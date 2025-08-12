@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose  = require("mongoose")
 
 const blockConfigSchema = new mongoose.Schema({
     lastSyncBlock: { type: String, default:"48787822",required: true },
@@ -6,4 +6,6 @@ const blockConfigSchema = new mongoose.Schema({
     { timestamps: true, collection: "BlockConfig" }
 );
 
-export const DForceBlockConfig = mongoose.model("BlockConfig", blockConfigSchema);
+ const DscNodeBlockConfig = mongoose.model("BlockConfig", blockConfigSchema);
+
+module.exports = DscNodeBlockConfig;

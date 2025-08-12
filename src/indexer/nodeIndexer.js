@@ -1,7 +1,8 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
-const { DscNodeBlockConfig } = require("../models/DscNodeBlockConfig.js");
+const  DscNodeBlockConfig  = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct } = require("../helpers/helper.js");
+const { ct, registerUser } = require("../helpers/helper.js");
+const StakingModel = require("../models/StakingModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -52,8 +53,35 @@ async function processEvents(events) {
 
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
-            if (event == "RankIncome") {
-                
+            if (event == "Staked") {
+                try{
+
+                    let { amountDsc, amountDscInUsd,amountUsdt,rateDollarPerDsc,userAddress,lastUsedNonce } = returnValues;
+
+                    amountDsc = new BigNumber(amountDsc).toFixed();
+                    amountDscInUsd = new BigNumber(amountDscInUsd).toFixed();
+                    amountUsdt = new BigNumber(amountUsdt).toFixed();
+                    lastUsedNonce =  Number(lastUsedNonce);
+                    
+                    const newStake = await StakingModel.create({
+                        userAddress,
+                        totalAmountInUsd: amountDscInUsd,
+                        amountInDscInUsd: amountDscInUsd,
+                        amountInDsc: amountDsc,
+                        amountInUsdt: amountUsdt,
+                        time: Number(timestampNormal),
+                        lastUsedNonce
+                    });
+
+                    console.log("New stake created:", newStake);
+
+                    await registerUser(userAddress, Number(timestampNormal));
+
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
             }
            
             else {

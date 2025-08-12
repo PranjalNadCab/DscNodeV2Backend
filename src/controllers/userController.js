@@ -2,7 +2,8 @@ const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
 const { giveVrsForStaking } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
-
+const BigNumber = require("bignumber.js");
+const { dscNodeContract } = require("../web3/web3");
 
 
 const stakeVrs = async(req,res,next)=> {
@@ -32,21 +33,21 @@ const stakeVrs = async(req,res,next)=> {
         const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18).toFixed(0);
         const priceDscInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
-        const lastStake = await StakingModel.findOne({ userAddress }).sort({ lastUsedNonce: -1 });
+        const lastStake = await StakingModel.findOne({ userAddress:user }).sort({ lastUsedNonce: -1 });
         let prevNonce = 0;
         if (!lastStake) {
             prevNonce = -1;
         } else {
             prevNonce = Number(lastStake.lastUsedNonce);
         }
-        const currNonce = await dscNodeContract.methods.userNoncesForStaking(userAddress).call();
+        const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
-        const hash = await dscNodeContract.methods.getHashForStaking(userAddress, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
+        const hash = await dscNodeContract.methods.getHashForStaking(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
 
-        const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user,hash,currNonce);
+        const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user,hash,Number(currNonce));
 
 
         return res.status(200).json({success:true, message:"Vrs generated successfully",price:price,generatedAmountDsc,sentAmountDsc:amountDsc,vrsSign});
