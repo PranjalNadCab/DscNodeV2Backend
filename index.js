@@ -5,6 +5,9 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const moment = require("moment");
+const userRoutes = require("./src/routes/userRoutes");
+const { getLivePrice } = require("./src/utils/liveDscPriceApi");
+const { errorHandler } = require("./src/middlewares/errorHandler");
 
 
 
@@ -15,6 +18,12 @@ app.use(cors({
     origin: "*"
 }));
 
+app.get("/api/test", (req, res) => {
+    res.status(200).json({ message: "Congratulations! Your backend is live." });
+})
+
+app.use("/api/user", userRoutes);
+app.use(errorHandler);
 
 const server = app.listen(PORT, async () => {
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
@@ -22,7 +31,8 @@ const server = app.listen(PORT, async () => {
     console.log(`🚀 Server is running on port ${PORT} at ${currentTime} & in unix check: ${unixServerTimeCheck}`);
 
     if (process.env.NODE_ENV === "development") {
-
+        const res = await getLivePrice();
+        console.log("Live DSC Price fetched successfully:", res);
 
     } else {
 
