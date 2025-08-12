@@ -8,7 +8,7 @@ const StakingSchema = new mongoose.Schema({
         unique: true
     },
     totalAmountInUsd: {
-        type: string,
+        type: String,
         required: true
     },
     amountInDscInUsd:{

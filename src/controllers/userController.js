@@ -1,6 +1,7 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
 const { giveVrsForStaking } = require("../helpers/helper");
+const StakingModel = require("../models/StakingModel");
 
 
 
@@ -8,11 +9,11 @@ const stakeVrs = async(req,res,next)=> {
     try {
         // Extract user data from request body
 
-        const {user, dscAmount,dscAmountInUsd, usdtAmount, priceDscInUsd} = req.body; //amounts will be in number
+        const {user, amountDsc,amountDscInUsd, amountUsdt, priceDscInUsd} = req.body; //amounts will be in number
 
-        if (!user || !dscAmount || !dscAmountInUsd || !usdtAmount || !priceDscInUsd) throw new Error("Please send all the required fields.");
+        if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd) throw new Error("Please send all the required fields.");
 
-        const totalUsd = Number(dscAmountInUsd) + Number(usdtAmount);
+        const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
         if(totalUsd < 100) throw new Error("Total amount must be at least $100.");
         if(totalUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
 
@@ -20,37 +21,35 @@ const stakeVrs = async(req,res,next)=> {
 
         if (!price) throw new Error("Live price not found.");
 
-        const generatedDscAmount = dscAmountInUsd/price;
+        const generatedAmountDsc = amountDscInUsd/price;
 
-        if (Math.abs(dscAmount - generatedDscAmount) > 0.2) {
+        if (Math.abs(amountDsc - generatedAmountDsc) > 0.2) {
             throw new Error("DSC amount does not match the calculated amount based on USD value.");
         }
 
-        const dscAmountInUsdIn1e18 = new BigNumber(dscAmountInUsd).multipliedBy(1e18).toFixed(0);
-        const dscAmountIn1e18 = new BigNumber(generatedDscAmount).multipliedBy(1e18).toFixed(0);
-        const usdtAmountIn1e18 = new BigNumber(usdtAmount).multipliedBy(1e18).toFixed(0);
+        const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed(0);
+        const amountDscIn1e18 = new BigNumber(generatedAmountDsc).multipliedBy(1e18).toFixed(0);
+        const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18).toFixed(0);
         const priceDscInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
-        // const lastWithdrawFund = await WithDrawFundModel.findOne({ userAddress }).sort({ nonce: -1 });
-        // let prevNonce = 0;
-        // if (!lastWithdrawFund) {
-        //     prevNonce = -1;
-        // } else {
-        //     prevNonce = Number(lastWithdrawFund.nonce);
-        // }
-        // const currNonce = await et_contract.methods.userNoncesForWithdrawl(userAddress).call();
-        // if ((prevNonce + 1) !== Number(currNonce)) {
-        //     throw new Error("Your previous withdrawl is not stored yet! Please import your withdrawl!")
-        // }
+        const lastStake = await StakingModel.findOne({ userAddress }).sort({ lastUsedNonce: -1 });
+        let prevNonce = 0;
+        if (!lastStake) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(lastStake.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForStaking(userAddress).call();
+        if ((prevNonce + 1) !== Number(currNonce)) {
+            throw new Error("Your previous stake is not stored yet! Please try again later.");
+        }
 
-        // const hashForWithdrawal = await et_contract.methods.getHashForWithdrawlSch(userAddress, withDrawAmountSchAfterDeductionIn1e8, withDrawAmountSchIn1e18, withDrawAmountUsdtIn1e18, currentDollarRatePerSchIn1e18).call();
+        const hash = await dscNodeContract.methods.getHashForStaking(userAddress, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
 
-        const hash = null;
-        const nonce = null;
-        const vrsSign = await giveVrsForStaking(dscAmountInUsdIn1e18, dscAmountIn1e18, usdtAmountIn1e18, priceDscInUsdIn1e18, user,hash,nonce);
+        const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user,hash,currNonce);
 
 
-        return res.status(200).json({success:true, message:"Vrs generated successfully",price:price,generatedDscAmount,sentDscAmount:dscAmount,vrsSign});
+        return res.status(200).json({success:true, message:"Vrs generated successfully",price:price,generatedAmountDsc,sentAmountDsc:amountDsc,vrsSign});
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);
