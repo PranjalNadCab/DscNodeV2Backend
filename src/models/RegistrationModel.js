@@ -23,6 +23,10 @@ const RegistrationSchema = new mongoose.Schema({
         type: String,
         default:"0"
     },
+    userTotalStakeInUsd:{
+        type: String,
+        default:"0"
+    },
     time:{
         type:Number,
         default: () => Math.floor(Date.now() / 1000)

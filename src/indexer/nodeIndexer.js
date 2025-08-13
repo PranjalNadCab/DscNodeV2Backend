@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const  DscNodeBlockConfig  = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalStakeUsdt } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 
 
@@ -78,6 +78,8 @@ async function processEvents(events) {
                     console.log("New stake created:", newStake);
 
                     await registerUser(userAddress, Number(timestampNormal),sponsor);
+                    const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
+                    await updateUserTotalStakeUsdt(userAddress,totalUsd)
 
 
                 }catch(error){
