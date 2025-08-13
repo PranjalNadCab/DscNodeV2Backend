@@ -6,8 +6,8 @@ const ct = (payload) => {
     console.table(payload);
 };
 
-const giveCheckSummedAddress = (address)=>{
-  
+const giveCheckSummedAddress = (address) => {
+
     return web3.utils.toChecksumAddress(address);
 }
 
@@ -126,11 +126,15 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
         if (!sponsorDoc) {
             return;
         }
+        let oldUserDirectPlusSelfStakeInUsd = new BigNumber(sponsorDoc.userDirectPlusSelfStakeInUsd || "0");
+        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd.plus(totalStakeAmountInUsd).toFixed();
+
+
         let sponsorDirectBusiness = new BigNumber(sponsorDoc.directStaking);
         sponsorDirectBusiness = sponsorDirectBusiness.plus(totalStakeAmountInUsd);
         const sponsorUpdate = await RegistrationModel.findOneAndUpdate(
             { user: originalUser.sponsorAddress },
-            { $set: { directStaking: sponsorDirectBusiness.toFixed() } },
+            { $set: { directStaking: sponsorDirectBusiness.toFixed(), userDirectPlusSelfStakeInUsd: newUserDirectPlusSelfStakeInUsd } },
             { upsert: true, new: true }
         );
 
@@ -140,7 +144,7 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
     }
 };
 
-const registerUser = async (userAddress, time,sponsorAddress) => {
+const registerUser = async (userAddress, time, sponsorAddress) => {
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
@@ -184,9 +188,9 @@ const createDefaultOwnerDoc = async () => {
         console.log(error, "Error creating default owner document");
     }
 }
- 
-const  updateUserTotalStakeUsdt = async(userAddress, totalStakeAmountInUsd) => {
-    try{
+
+const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) => {
+    try {
         const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
         if (!userDoc) {
             console.log("User not found for address:", userAddress);
@@ -195,9 +199,12 @@ const  updateUserTotalStakeUsdt = async(userAddress, totalStakeAmountInUsd) => {
         let oldStakedAmount = new BigNumber(userDoc.userTotalStakeInUsd || "0");
         let newStakedAmount = oldStakedAmount.plus(totalStakeAmountInUsd).toFixed();
 
+        let oldUserDirectPlusSelfStakeInUsd = new BigNumber(userDoc.userDirectPlusSelfStakeInUsd || "0");
+        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd.plus(totalStakeAmountInUsd).toFixed();
+
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: userAddress },
-            { $set: { userTotalStakeInUsd: newStakedAmount } },
+            { $set: { userTotalStakeInUsd: newStakedAmount, userDirectPlusSelfStakeInUsd: newUserDirectPlusSelfStakeInUsd } },
             { new: true }
         );
 
@@ -207,10 +214,10 @@ const  updateUserTotalStakeUsdt = async(userAddress, totalStakeAmountInUsd) => {
             console.log("User total stake in USD updated successfully for address:", userAddress);
         }
 
-    }catch(error){
+    } catch (error) {
         console.log(error, "Error in updateUserTotalStakeUsdt");
     }
 }
 
 
-module.exports = { ct, giveVrsForStaking, registerUser,updateUserTotalStakeUsdt, createDefaultOwnerDoc,giveCheckSummedAddress }
+module.exports = { ct, giveVrsForStaking, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress }
