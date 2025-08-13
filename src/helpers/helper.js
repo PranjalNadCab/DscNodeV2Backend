@@ -113,6 +113,8 @@ const updateDirectCount = async (sponsorAddress) => {
 
 const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
     try {
+
+        const totalStakeAmountInUsdNormal = new BigNumber(totalStakeAmountInUsd).dividedBy(1e18).toNumber();
         const originalUser = await RegistrationModel.findOne({
             userAddress: userAddress,
         });
@@ -128,15 +130,15 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
         if (!sponsorDoc) {
             return;
         }
-        let oldUserDirectPlusSelfStakeInUsd = new BigNumber(sponsorDoc.userDirectPlusSelfStakeInUsd || "0");
-        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd.plus(totalStakeAmountInUsd).toFixed();
+        let oldUserDirectPlusSelfStakeInUsd = sponsorDoc.userDirectPlusSelfStakeInUsd;
+        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd +  totalStakeAmountInUsdNormal;
 
 
-        let sponsorDirectBusiness = new BigNumber(sponsorDoc.directStaking);
-        sponsorDirectBusiness = sponsorDirectBusiness.plus(totalStakeAmountInUsd);
+        let sponsorDirectBusiness = sponsorDoc.directStaking;
+        sponsorDirectBusiness = sponsorDirectBusiness + totalStakeAmountInUsdNormal;
         const sponsorUpdate = await RegistrationModel.findOneAndUpdate(
-            { user: originalUser.sponsorAddress },
-            { $set: { directStaking: sponsorDirectBusiness.toFixed(), userDirectPlusSelfStakeInUsd: newUserDirectPlusSelfStakeInUsd } },
+            { userAddress: originalUser.sponsorAddress },
+            { $set: { directStaking: sponsorDirectBusiness, userDirectPlusSelfStakeInUsd: newUserDirectPlusSelfStakeInUsd } },
             { upsert: true, new: true }
         );
 
@@ -193,16 +195,17 @@ const createDefaultOwnerDoc = async () => {
 
 const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) => {
     try {
+        let totalStakeAmountInUsdNormal = new BigNumber(totalStakeAmountInUsd).dividedBy(1e18).toNumber();
         const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
         if (!userDoc) {
             console.log("User not found for address:", userAddress);
             return;
         }
-        let oldStakedAmount = new BigNumber(userDoc.userTotalStakeInUsd || "0");
-        let newStakedAmount = oldStakedAmount.plus(totalStakeAmountInUsd).toFixed();
+        let oldStakedAmount =userDoc.userTotalStakeInUsd ;
+        let newStakedAmount = oldStakedAmount + totalStakeAmountInUsdNormal;
 
-        let oldUserDirectPlusSelfStakeInUsd = new BigNumber(userDoc.userDirectPlusSelfStakeInUsd || "0");
-        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd.plus(totalStakeAmountInUsd).toFixed();
+        let oldUserDirectPlusSelfStakeInUsd = userDoc.userDirectPlusSelfStakeInUsd;
+        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd + totalStakeAmountInUsdNormal;
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: userAddress },
@@ -229,9 +232,10 @@ const manageRank = async(userAddress)=>{
         const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
         if(!userInfo)return;
 
-        const userDirectPlusSelfStakeInUsdNormal = new BigNumber(userInfo.userDirectPlusSelfStakeInUsd).dividedBy(1e18).toNumber();
+        const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
         const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
-        ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank:matchedRank.rank});
+        console.log("matchedRank", matchedRank);
+        ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank: matchedRank.rank});
 
     }catch(error){
         console.log(error, "Error in manageRank");

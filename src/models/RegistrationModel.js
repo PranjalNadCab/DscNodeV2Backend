@@ -20,16 +20,16 @@ const RegistrationSchema = new mongoose.Schema({
         default:0
     },
     directStaking:{
-        type: String,
-        default:"0"
+        type: Number,
+        default:0
     },
     userTotalStakeInUsd:{
-        type: String,
-        default:"0"
+        type: Number,
+        default:0
     },
     userDirectPlusSelfStakeInUsd:{
-        type: String,
-        default:"0"
+        type: Number,
+        default:0
     },
     currentRank:{
         type: String,
