@@ -1,6 +1,7 @@
 const RegistrationModel = require("../models/RegistrationModel");
 const { web3 } = require("../web3/web3")
 const BigNumber = require("bignumber.js");
+const { ranks } = require("./constant");
 
 
 const ct = (payload) => {
@@ -99,7 +100,7 @@ const updateDirectCount = async (sponsorAddress) => {
     try {
 
         const sponsorUpdate = await RegistrationModel.findOneAndUpdate(
-            { user: sponsorAddress },
+            { userAddress: sponsorAddress },
             { $inc: { directCount: 1 } },
             { upsert: true, new: true }
         );

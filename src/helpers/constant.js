@@ -25,3 +25,8 @@ const ranks = [
         upperBound: 99999999999
     },
 ]
+
+module.exports = {
+    ranks,
+   
+};
