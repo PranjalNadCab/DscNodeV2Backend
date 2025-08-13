@@ -16,6 +16,7 @@ const stakeVrs = async(req,res,next)=> {
         if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
 
         let formattedSponsor = giveCheckSummedAddress(sponsorAddress);
+        let formattedUser = giveCheckSummedAddress(user);
         const sponsorDoc = await RegistrationModel.findOne({ userAddress: formattedSponsor });
         if(!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
 

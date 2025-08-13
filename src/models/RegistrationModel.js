@@ -31,11 +31,17 @@ const RegistrationSchema = new mongoose.Schema({
         type: String,
         default:"0"
     },
+    currentRank:{
+        type: String,
+        default: null
+    },
     time:{
         type:Number,
         default: () => Math.floor(Date.now() / 1000)
     }
 },{timestamps: true, collection: 'registration'});
+
+RegistrationSchema.index({ userAddress: 1, sponsorAddress: 1 }, { unique: true });
 
 const RegistrationModel = mongoose.model('registration', RegistrationSchema);
 

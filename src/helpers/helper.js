@@ -1,5 +1,6 @@
 const RegistrationModel = require("../models/RegistrationModel");
 const { web3 } = require("../web3/web3")
+const BigNumber = require("bignumber.js");
 
 
 const ct = (payload) => {
@@ -219,5 +220,21 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
     }
 }
 
+const manageRank = async(userAddress)=>{
+    try{
+        if(!userAddress)return;
 
-module.exports = { ct, giveVrsForStaking, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress }
+        const fUserAddress = giveCheckSummedAddress(userAddress);
+        const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
+        if(!userInfo)return;
+
+        const userDirectPlusSelfStakeInUsdNormal = new BigNumber(userInfo.userDirectPlusSelfStakeInUsd).dividedBy(1e18).toNumber();
+        const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
+        ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank:matchedRank.rank});
+
+    }catch(error){
+        console.log(error, "Error in manageRank");
+    }
+}
+
+module.exports = { ct, giveVrsForStaking, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress,manageRank }
