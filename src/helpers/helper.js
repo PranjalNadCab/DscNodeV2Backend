@@ -1,9 +1,15 @@
 const RegistrationModel = require("../models/RegistrationModel");
 const { web3 } = require("../web3/web3")
+
+
 const ct = (payload) => {
     console.table(payload);
 };
 
+const giveCheckSummedAddress = (address)=>{
+  
+    return web3.utils.toChecksumAddress(address);
+}
 
 function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
     return new Promise(async (resolve, reject) => {
@@ -175,4 +181,4 @@ const createDefaultOwnerDoc = async () => {
     }
 }
 
-module.exports = { ct, giveVrsForStaking, registerUser, createDefaultOwnerDoc }
+module.exports = { ct, giveVrsForStaking, registerUser, createDefaultOwnerDoc,giveCheckSummedAddress }

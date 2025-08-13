@@ -1,9 +1,10 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
+const RegistrationModel = require("../models/RegistrationModel");
 
 
 const stakeVrs = async(req,res,next)=> {
@@ -12,7 +13,11 @@ const stakeVrs = async(req,res,next)=> {
 
         const {user, amountDsc,amountDscInUsd, amountUsdt, priceDscInUsd,sponsorAddress} = req.body; //amounts will be in number
 
-        if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd) throw new Error("Please send all the required fields.");
+        if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
+
+        let formattedSponsor = giveCheckSummedAddress(sponsorAddress);
+        const sponsorDoc = await RegistrationModel.findOne({ userAddress: formattedSponsor });
+        if(!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
 
         const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
         if(totalUsd < 100) throw new Error("Total amount must be at least $100.");
@@ -76,8 +81,26 @@ const getLiveDscPrice = async(req,res,next)=>{
     }
 }
 
+const getUserInfo = async (req,res,next)=>{
+    try{
+        let {userAddress} = req.body;
+        if(!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const userDoc = await RegistrationModel.findOne({userAddress:userAddress});
+        if(!userDoc) throw new Error("User not found. Please register first.");
+
+        return res.status(200).json({success:true, message:"User info fetched successfully", userInfo:userDoc});
+    }catch(error){
+        console.error("Error in getUserInfo:", error);
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
-    getLiveDscPrice
+    getLiveDscPrice,
+    getUserInfo
 };
 

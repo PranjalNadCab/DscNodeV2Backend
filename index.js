@@ -9,7 +9,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerDoc } = require("./src/helpers/helper");
+const { createDefaultOwnerDoc, giveCheckSummedAddress } = require("./src/helpers/helper");
 
 
 
