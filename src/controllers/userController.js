@@ -10,7 +10,7 @@ const stakeVrs = async(req,res,next)=> {
     try {
         // Extract user data from request body
 
-        const {user, amountDsc,amountDscInUsd, amountUsdt, priceDscInUsd} = req.body; //amounts will be in number
+        const {user, amountDsc,amountDscInUsd, amountUsdt, priceDscInUsd,sponsorAddress} = req.body; //amounts will be in number
 
         if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd) throw new Error("Please send all the required fields.");
 
@@ -61,7 +61,23 @@ const stakeVrs = async(req,res,next)=> {
 
 }
 
+const getLiveDscPrice = async(req,res,next)=>{
+    try{
+        
+        const {price} = await LivePriceDsc.findOne();
+
+        if (!price) throw new Error("Live price not found.");
+
+
+
+        return res.status(200).json({success:true, message:"Live DSC Price fetched successfully", price});
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
-    stakeVrs
+    stakeVrs,
+    getLiveDscPrice
 };
 

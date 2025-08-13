@@ -56,12 +56,13 @@ async function processEvents(events) {
             if (event == "Staked") {
                 try{
 
-                    let { amountDsc, amountDscInUsd,amountUsdt,rateDollarPerDsc,userAddress,lastUsedNonce } = returnValues;
+                    let {sponsor, amountDsc, amountDscInUsd,amountUsdt,rateDollarPerDsc,userAddress,lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed();
                     amountDscInUsd = new BigNumber(amountDscInUsd).toFixed();
                     amountUsdt = new BigNumber(amountUsdt).toFixed();
                     lastUsedNonce =  Number(lastUsedNonce);
+                    rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
                     
                     const newStake = await StakingModel.create({
                         userAddress,
@@ -69,13 +70,14 @@ async function processEvents(events) {
                         amountInDscInUsd: amountDscInUsd,
                         amountInDsc: amountDsc,
                         amountInUsdt: amountUsdt,
+                        rateDollarPerDsc: rateDollarPerDsc,
                         time: Number(timestampNormal),
                         lastUsedNonce
                     });
 
                     console.log("New stake created:", newStake);
 
-                    await registerUser(userAddress, Number(timestampNormal));
+                    await registerUser(userAddress, Number(timestampNormal),sponsor);
 
 
                 }catch(error){

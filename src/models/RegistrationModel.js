@@ -7,6 +7,10 @@ const RegistrationSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    sponsorAddress: {
+        type: String,
+        required: true,
+    },
     teamCount:{
         type:Number,
         default:0
@@ -14,6 +18,10 @@ const RegistrationSchema = new mongoose.Schema({
     directCount:{
         type:Number,
         default:0
+    },
+    directStaking:{
+        type: String,
+        default:"0"
     },
     time:{
         type:Number,

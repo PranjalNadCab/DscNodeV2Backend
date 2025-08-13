@@ -5,7 +5,7 @@ const StakingSchema = new mongoose.Schema({
     userAddress: {
         type: String,
         required: true,
-        unique: true
+        
     },
     totalAmountInUsd: {
         type: String,
@@ -23,6 +23,10 @@ const StakingSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    rateDollarPerDsc:{
+        type: String,
+        required: true
+    },
     time: {
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
@@ -32,6 +36,8 @@ const StakingSchema = new mongoose.Schema({
         default: 0
     }
 }, { timestamps: true, collection: 'staking'});
+
+StakingSchema.index({ userAddress: 1, lastUsedNonce: 1 }, { unique: true });
 
 const StakingModel = mongoose.model('staking', StakingSchema);
 

@@ -9,6 +9,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
+const { createDefaultOwnerDoc } = require("./src/helpers/helper");
 
 
 
@@ -23,7 +24,7 @@ app.get("/api/test", (req, res) => {
     res.status(200).json({ message: "Congratulations! Your backend is live." });
 })
 
-app.use("/api/user", userRoutes);
+app.use("/api", userRoutes);
 app.use(errorHandler);
 
 const server = app.listen(PORT, async () => {
@@ -34,8 +35,8 @@ const server = app.listen(PORT, async () => {
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
+        await createDefaultOwnerDoc();
         dscNodeListEvents();
-
     } else {
 
 
