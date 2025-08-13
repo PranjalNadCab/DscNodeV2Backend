@@ -5,20 +5,20 @@ const ct = (payload) => {
 };
 
 
-function giveVrsForStaking(dscAmountInUsdIn1e18, dscAmountIn1e18, usdtAmountIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
+function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
     return new Promise(async (resolve, reject) => {
         try {
 
             //call contract to match nonce
-            ct({dscAmountInUsdIn1e18, dscAmountIn1e18, usdtAmountIn1e18, priceDscInUsdIn1e18, user, hash, nonce})
+            ct({amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce})
 
             const data = {
                 hash: hash,
                 nonce: nonce,
                 user: user,
-                dscAmountInUsdIn1e18,
-                dscAmountIn1e18,
-                usdtAmountIn1e18,
+                amountDscInUsdIn1e18,
+                amountDscIn1e18,
+                amountUsdtIn1e18,
                 priceDscInUsdIn1e18
             };
             console.log({ data })

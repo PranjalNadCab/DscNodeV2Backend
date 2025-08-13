@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking } = require("../helpers/helper");
+const { giveVrsForStaking, ct } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
@@ -23,10 +23,13 @@ const stakeVrs = async(req,res,next)=> {
         if (!price) throw new Error("Live price not found.");
 
         const generatedAmountDsc = amountDscInUsd/price;
+        const generatedAmountDscInUsd = price * amountDsc;
 
-        if (Math.abs(amountDsc - generatedAmountDsc) > 0.2) {
+        ct({generatedAmountDsc,amountDsc,generatedAmountDscInUsd,amountDscInUsd});
+        if (Math.abs(generatedAmountDscInUsd - amountDscInUsd) > 0.02) {
             throw new Error("DSC amount does not match the calculated amount based on USD value.");
         }
+
 
         const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed(0);
         const amountDscIn1e18 = new BigNumber(generatedAmountDsc).multipliedBy(1e18).toFixed(0);
@@ -42,7 +45,7 @@ const stakeVrs = async(req,res,next)=> {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous stake is not stored yet! Please try again later.");
+            // throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();

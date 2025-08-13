@@ -15,10 +15,13 @@ const url = "https://explorer.pancakeswap.com/api/cached/pools/v2/bsc/list/top?t
                 currentRate = parseFloat(currentRate);
                 currentRate = 30*(currentRate);
                 currentRate = currentRate.toFixed(8);
-                const currentRateInNumber = Number(currentRate);
+                let currentRateInNumber = Number(currentRate);
                 
                 currentRate = new BigNumber(currentRate).multipliedBy(1e18).toFixed(0);
-                console.log("currentRate",currentRate);
+                if(process.env.NODE_ENV === "development"){
+                    currentRateInNumber = 50000
+                    console.log("currentRateInNumber",currentRateInNumber);
+                }
 
                 const updateLiveDscPrice = await LivePriceDsc.findOneAndUpdate({},{price:currentRateInNumber},{new:true, upsert:true});
 
