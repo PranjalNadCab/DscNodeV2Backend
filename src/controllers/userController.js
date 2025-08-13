@@ -89,9 +89,8 @@ const getUserInfo = async (req,res,next)=>{
         userAddress = giveCheckSummedAddress(userAddress);
 
         const userDoc = await RegistrationModel.findOne({userAddress:userAddress});
-        if(!userDoc) throw new Error("User not found. Please register first.");
 
-        return res.status(200).json({success:true, message:"User info fetched successfully", userInfo:userDoc});
+        return res.status(200).json({success:true, message:"User info fetched successfully", userInfo:userDoc ? userDoc :null});
     }catch(error){
         console.error("Error in getUserInfo:", error);
         next(error);

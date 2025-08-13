@@ -149,6 +149,10 @@ const registerUser = async (userAddress, time,sponsorAddress) => {
                 sponsorAddress,
                 time: time || Math.floor(Date.now() / 1000)
             });
+
+            await updateTeamCount(userAddress);
+            await updateDirectCount(sponsorAddress);
+            await updateDirectBusiness(0, userAddress); // Assuming initial stake amount is 0
         }
     } catch (error) {
         console.error("Error registering user:", error);
