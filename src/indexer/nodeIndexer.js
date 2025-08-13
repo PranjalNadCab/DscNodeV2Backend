@@ -72,7 +72,9 @@ async function processEvents(events) {
                         amountInUsdt: amountUsdt,
                         rateDollarPerDsc: rateDollarPerDsc,
                         time: Number(timestampNormal),
-                        lastUsedNonce
+                        lastUsedNonce,
+                        block: Number(block),
+                        transactionHash: transactionHash
                     });
 
                     console.log("New stake created:", newStake);

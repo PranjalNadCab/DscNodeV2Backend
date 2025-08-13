@@ -34,10 +34,18 @@ const StakingSchema = new mongoose.Schema({
     lastUsedNonce:{
         type:Number,
         default: 0
+    },
+    transactionHash:{
+        type: String,
+        required: true
+    },
+    block:{
+        type: Number,
+        required: true
     }
 }, { timestamps: true, collection: 'staking'});
 
-StakingSchema.index({ userAddress: 1, lastUsedNonce: 1 }, { unique: true });
+StakingSchema.index({ userAddress: 1, lastUsedNonce: 1,transactionHash:1 }, { unique: true });
 
 const StakingModel = mongoose.model('staking', StakingSchema);
 
