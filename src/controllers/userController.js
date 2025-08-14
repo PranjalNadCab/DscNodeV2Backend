@@ -59,7 +59,7 @@ const stakeVrs = async(req,res,next)=> {
         const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user,hash,Number(currNonce));
 
 
-        return res.status(200).json({success:true, message:"Vrs generated successfully",price:price,generatedAmountDsc,sentAmountDsc:amountDsc,vrsSign});
+        return res.status(200).json({success:true, message:"Vrs generated successfully",price:price,generatedAmountDsc,sentAmountDsc:amountDsc,vrsSign:{...vrsSign,sponsorAddress:sponsorDoc.userAddress}});
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);

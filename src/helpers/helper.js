@@ -237,6 +237,18 @@ const manageRank = async(userAddress)=>{
         console.log("matchedRank", matchedRank);
         ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank: matchedRank.rank});
 
+        if(matchedRank){
+            const updatedUser = await RegistrationModel.findOneAndUpdate(
+                { userAddress: fUserAddress },
+                { $set: { currentRank: matchedRank.rank } },
+                { new: true }
+            );
+            if(!updatedUser){
+                console.log("Failed to update user rank for address:", fUserAddress);
+            }else{
+                console.log("User rank updated successfully for address:", fUserAddress);
+            }
+        }
     }catch(error){
         console.log(error, "Error in manageRank");
     }
