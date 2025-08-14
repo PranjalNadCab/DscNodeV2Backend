@@ -9,7 +9,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerDoc, giveCheckSummedAddress, manageRank } = require("./src/helpers/helper");
+const { createDefaultOwnerDoc, giveCheckSummedAddress, manageRank,giveGapIncome} = require("./src/helpers/helper");
 
 
 
@@ -36,8 +36,10 @@ const server = app.listen(PORT, async () => {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
         await createDefaultOwnerDoc();
-        await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
+        // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
+        await giveGapIncome("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d","100000000000000000000");
        await dscNodeListEvents();
+
     } else {
 
 

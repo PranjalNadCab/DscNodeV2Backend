@@ -3,6 +3,7 @@ const  DscNodeBlockConfig  = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
 const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
+const RegistrationModel = require("../models/RegistrationModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -79,7 +80,15 @@ async function processEvents(events) {
 
                     console.log("New stake created:", newStake);
 
-                    await registerUser(userAddress, Number(timestampNormal),sponsor);
+                    let rankDuringStaking = null;
+                    const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
+                    if(!userDoc){
+                        await registerUser(userAddress, Number(timestampNormal),sponsor);
+                    }else{
+                        rankDuringStaking = userDoc.currentRank;
+                    }
+
+
                     const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
                     await updateUserTotalSelfStakeUsdt(userAddress,totalUsd);
                     await manageRank(userAddress);

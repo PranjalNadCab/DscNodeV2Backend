@@ -13,7 +13,12 @@ const stakeVrs = async(req,res,next)=> {
 
         const {user, amountDsc,amountDscInUsd, amountUsdt, priceDscInUsd,sponsorAddress} = req.body; //amounts will be in number
 
-        if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
+        const missingFields = Object.keys(req.body).filter(key =>  ( key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
+        if (missingFields.length > 0) {
+            throw new Error(`Please send all the required fields. Missing fields: ${missingFields.join(", ")}`);
+        }
+        
+        // if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
 
         let formattedSponsor = giveCheckSummedAddress(sponsorAddress);
         let formattedUser = giveCheckSummedAddress(user);
@@ -98,9 +103,11 @@ const getUserInfo = async (req,res,next)=>{
     }
 }
 
+
+
 module.exports = {
     stakeVrs,
     getLiveDscPrice,
-    getUserInfo
+    getUserInfo,
 };
 

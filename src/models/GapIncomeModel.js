@@ -1,0 +1,57 @@
+const mongoose  = require("mongoose")
+
+const gapIncomeSchema = new mongoose.Schema({
+    receiverAddress:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    receiverRank:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    senderAddress:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    senderRank:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    gapIncome:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    time:{
+        type: Number,
+        required: true,
+        default: Math.floor(Date.now() / 1000) // Unix timestamp in seconds
+    },
+    stakingAmountInUsd: {
+        type: String,
+        default: null,
+        trim: true
+    },
+    transactionHash:{
+        type: String,
+        default:null,
+        trim: true
+    },
+    blockNumber:{
+        type: Number,
+        default: null
+    },
+
+},
+    { timestamps: true}
+);
+
+gapIncomeSchema.index({ receiverAddress: 1, senderAddress: 1, time: -1 }, { unique: true });
+
+ const GapIncomeModel = mongoose.model("gapIncome", gapIncomeSchema);
+
+module.exports = GapIncomeModel;

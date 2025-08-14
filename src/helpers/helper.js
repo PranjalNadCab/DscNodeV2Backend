@@ -182,6 +182,7 @@ const createDefaultOwnerDoc = async () => {
                 sponsorAddress: "0x0000000000000000000000000000000000000000",
                 teamCount: 0,
                 directCount: 0,
+                currentRank:ranks[0].rank,
                 time: Math.floor(Date.now() / 1000)
             });
             console.log("Default owner document created successfully.");
@@ -227,20 +228,22 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
 const manageRank = async(userAddress)=>{
     try{
         if(!userAddress)return;
-
+        let rankDuringStaking = null;
         const fUserAddress = giveCheckSummedAddress(userAddress);
         const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
-        if(!userInfo)return;
+        if(!userInfo)return {rankDuringStaking};
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
         const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
         console.log("matchedRank", matchedRank);
         ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank: matchedRank.rank});
 
-        if(matchedRank){
+        const currTimeInUnix = moment().unix();
+
+        if(matchedRank && (matchedRank.rank !== userInfo.currentRank)){
             const updatedUser = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
-                { $set: { currentRank: matchedRank.rank } },
+                { $set: { currentRank: matchedRank.rank,rankAchievedAt:currTimeInUnix } },
                 { new: true }
             );
             if(!updatedUser){
@@ -253,5 +256,64 @@ const manageRank = async(userAddress)=>{
         console.log(error, "Error in manageRank");
     }
 }
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18,rankDuringStaking=null)=>{
+    try {
 
-module.exports = { ct, giveVrsForStaking, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress,manageRank }
+        senderAddress = giveCheckSummedAddress(senderAddress);
+        if (!senderAddress || !stakingAmountIn1e18) {
+            throw new Error("Sender address and staking amount are required.");
+        }
+
+        const senderDoc = await RegistrationModel.findOne({ userAddress: senderAddress });
+        if (!senderDoc) {
+            throw new Error("Sender not found. Please register first.");
+        }
+
+        const amountToDistribute = new BigNumber(stakingAmountIn1e18).multipliedBy(0.18).toFixed(0); // 18% of the staking amount
+        if (amountToDistribute <= 0) {
+            throw new Error("Invalid amount to distribute.");
+        }
+
+        const userUpline = await RegistrationModel.aggregate([
+            {
+                $match:{
+                    userAddress: senderAddress
+                }
+            },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "sponsorAddress",
+                    connectToField: "userAddress",
+                    as: "upline",
+                    maxDepth: 100000000,
+                    depthField: "level"
+                }
+            },
+            {
+                $unwind: "$upline"
+            },
+            {
+                $match: { "upline.level": { $gt: 0 } } // Exclude the root user (level 0)
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userAddress: "$upline.userAddress",
+                    currentRank: "$upline.currentRank",
+                    level: "$upline.level"
+                }
+            }
+        ])
+
+        // Logic to calculate and give gap income
+        // This function should be implemented based on your business logic
+        console.log("sender address is......", userUpline);
+        console.log("Giving gap income...");
+    } catch (error) {
+        console.error("Error in giveGapIncome:", error);
+    }
+}
+
+module.exports = { ct, giveVrsForStaking,giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress,manageRank }
