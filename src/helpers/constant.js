@@ -29,9 +29,22 @@ const ranks = [
         upperBound: 99999999999,
         grade:5
     },
-]
+];
+
+
+
+const gapIncome = {
+    Beginner: 0.06,
+    Learner: 0.09,
+    Expert: 0.12,
+    Master: 0.15,
+    Mentor: 0.18
+}
+
+
 
 module.exports = {
     ranks,
+    gapIncome
    
 };

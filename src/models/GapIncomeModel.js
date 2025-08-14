@@ -18,13 +18,21 @@ const gapIncomeSchema = new mongoose.Schema({
     },
     senderRank:{
         type: String,
-        required: true,
+        default:null,
         trim: true
+    },
+    senderTotalStakedUsd:{
+        type: Number,
+        default: 0
     },
     gapIncome:{
         type: String,
         required: true,
         trim: true
+    },
+    percentReceived:{
+        type:Number,
+        required: true,
     },
     time:{
         type: Number,
@@ -50,7 +58,7 @@ const gapIncomeSchema = new mongoose.Schema({
     { timestamps: true}
 );
 
-gapIncomeSchema.index({ receiverAddress: 1, senderAddress: 1, time: -1 }, { unique: true });
+gapIncomeSchema.index({ senderTotalStakedUsd:1, senderAddress: 1 }, { unique: true });
 
  const GapIncomeModel = mongoose.model("gapIncome", gapIncomeSchema);
 

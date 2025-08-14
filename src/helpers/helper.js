@@ -1,8 +1,9 @@
 const RegistrationModel = require("../models/RegistrationModel");
 const { web3 } = require("../web3/web3")
 const BigNumber = require("bignumber.js");
-const { ranks } = require("./constant");
-
+const { ranks, gapIncome } = require("./constant");
+const GapIncomeModel = require("../models/GapIncomeModel");
+const moment = require("moment");
 
 const ct = (payload) => {
     console.table(payload);
@@ -131,7 +132,7 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
             return;
         }
         let oldUserDirectPlusSelfStakeInUsd = sponsorDoc.userDirectPlusSelfStakeInUsd;
-        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd +  totalStakeAmountInUsdNormal;
+        let newUserDirectPlusSelfStakeInUsd = oldUserDirectPlusSelfStakeInUsd + totalStakeAmountInUsdNormal;
 
 
         let sponsorDirectBusiness = sponsorDoc.directStaking;
@@ -182,7 +183,7 @@ const createDefaultOwnerDoc = async () => {
                 sponsorAddress: "0x0000000000000000000000000000000000000000",
                 teamCount: 0,
                 directCount: 0,
-                currentRank:ranks[0].rank,
+                currentRank: ranks[0].rank,
                 time: Math.floor(Date.now() / 1000)
             });
             console.log("Default owner document created successfully.");
@@ -202,7 +203,7 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
             console.log("User not found for address:", userAddress);
             return;
         }
-        let oldStakedAmount =userDoc.userTotalStakeInUsd ;
+        let oldStakedAmount = userDoc.userTotalStakeInUsd;
         let newStakedAmount = oldStakedAmount + totalStakeAmountInUsdNormal;
 
         let oldUserDirectPlusSelfStakeInUsd = userDoc.userDirectPlusSelfStakeInUsd;
@@ -225,38 +226,38 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
     }
 }
 
-const manageRank = async(userAddress)=>{
-    try{
-        if(!userAddress)return;
+const manageRank = async (userAddress) => {
+    try {
+        if (!userAddress) return;
         let rankDuringStaking = null;
         const fUserAddress = giveCheckSummedAddress(userAddress);
         const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
-        if(!userInfo)return {rankDuringStaking};
+        if (!userInfo) return { rankDuringStaking };
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
         const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
         console.log("matchedRank", matchedRank);
-        ct({userAddress, userDirectPlusSelfStakeInUsdNormal,rank: matchedRank.rank});
+        ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
 
         const currTimeInUnix = moment().unix();
 
-        if(matchedRank && (matchedRank.rank !== userInfo.currentRank)){
+        if (matchedRank && (matchedRank.rank !== userInfo.currentRank)) {
             const updatedUser = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
-                { $set: { currentRank: matchedRank.rank,rankAchievedAt:currTimeInUnix } },
+                { $set: { currentRank: matchedRank.rank, rankAchievedAt: currTimeInUnix } },
                 { new: true }
             );
-            if(!updatedUser){
+            if (!updatedUser) {
                 console.log("Failed to update user rank for address:", fUserAddress);
-            }else{
+            } else {
                 console.log("User rank updated successfully for address:", fUserAddress);
             }
         }
-    }catch(error){
+    } catch (error) {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18,rankDuringStaking=null)=>{
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -276,7 +277,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18,rankDuringStakin
 
         const userUpline = await RegistrationModel.aggregate([
             {
-                $match:{
+                $match: {
                     userAddress: senderAddress
                 }
             },
@@ -307,13 +308,79 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18,rankDuringStakin
             }
         ])
 
-        // Logic to calculate and give gap income
-        // This function should be implemented based on your business logic
-        console.log("sender address is......", userUpline);
-        console.log("Giving gap income...");
+        const senderGrade = rankDuringStaking ? ranks.find(r => r.rank === rankDuringStaking)?.grade : 0;
+
+        let higherRankUsers = userUpline.filter(u => {
+            const userGrade = ranks.find(r => r.rank === u.currentRank)?.grade;
+            return userGrade > senderGrade;
+        });
+
+
+        let uniqueRankUsers = [];
+        let seenRanks = new Set();
+
+
+        for (let user of higherRankUsers) {
+            if (!seenRanks.has(user.currentRank)) {
+                // Check if there are other users with same rank but lower level
+                const sameRankUsers = higherRankUsers.filter(
+                    u => u.currentRank === user.currentRank
+                );
+                const minLevelUser = sameRankUsers.reduce((min, curr) =>
+                    curr.level < min.level ? curr : min
+                );
+                uniqueRankUsers.push(minLevelUser);
+                seenRanks.add(user.currentRank);
+            }
+        }
+
+        let assignedPercent = 0;
+        let percentDistributed = 0;
+        let currentRank = rankDuringStaking;
+
+        let docsToInsert = [];
+        const lastPackagePercent = gapIncome["Mentor"]; // 18% of the total amount to distribute
+        for (let user of uniqueRankUsers) {
+            assignedPercent = gapIncome[user.currentRank];
+            if (percentDistributed >= lastPackagePercent) { ct({ status: "Limit reached", lastPackagePercent, percentDistributed, userId: uplineUser.userId }); break; }
+            const percentToDistribute = Number(new BigNumber(assignedPercent).minus(new BigNumber(percentDistributed)));
+            const gapIncomeGenerated = new BigNumber(stakingAmountIn1e18).multipliedBy(percentToDistribute).toFixed();
+            docsToInsert.push({
+                receiverAddress: user.userAddress,
+                receiverRank: user.currentRank,
+                senderAddress: senderAddress,
+                senderRank: rankDuringStaking,
+                gapIncome: gapIncomeGenerated,
+                senderTotalStakedUsd: senderDoc.userTotalStakeInUsd || 0,
+                percentReceived: percentToDistribute,
+                time: moment().unix(),
+                stakingAmountInUsd: new BigNumber(stakingAmountIn1e18)
+                    .dividedBy(1e18)
+                    .toFixed(),
+                transactionHash: null,
+                blockNumber: null
+            });
+            ct({
+                status: "Distributing gap income",
+                receiverAddress: user.userAddress,
+                receiverRank: user.currentRank,
+                senderAddress: senderAddress,
+                senderRank: rankDuringStaking,
+                gapIncomeGenerated,
+                percentToDistribute,
+                percentDistributed
+            });
+            currentRank = user.currentRank;
+            percentDistributed = percentDistributed + percentToDistribute;
+
+        }
+        if (docsToInsert.length > 0) {
+            await GapIncomeModel.insertMany(docsToInsert);
+          ct({uid:"344sds32q",message:"Gap income distributed successfully", docsCount: docsToInsert.length, senderAddress, currentRank, totalDistributed: percentDistributed });
+        }
     } catch (error) {
         console.error("Error in giveGapIncome:", error);
     }
 }
 
-module.exports = { ct, giveVrsForStaking,giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress,manageRank }
+module.exports = { ct, giveVrsForStaking, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
