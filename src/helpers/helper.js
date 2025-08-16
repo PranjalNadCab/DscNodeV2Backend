@@ -350,7 +350,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 receiverRank: user.currentRank,
                 senderAddress: senderAddress,
                 senderRank: rankDuringStaking,
-                gapIncome: gapIncomeGenerated,
+                totalGapIncomeInUsd: gapIncomeGenerated,
                 senderTotalStakedUsd: senderDoc.userTotalStakeInUsd || 0,
                 percentReceived: percentToDistribute,
                 time: moment().unix(),
@@ -383,4 +383,13 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
     }
 }
 
-module.exports = { ct, giveVrsForStaking, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
+function splitByRatio(total, ratioUsdt, ratioDsc, tokenPrice=null) {
+    const part = total / (ratioUsdt + ratioDsc);
+    const usdt = ratioUsdt * part;
+    const tokenUsd = ratioDsc * part;
+    const tokenUnits = tokenPrice ? tokenUsd / tokenPrice : null;
+    ct({ total, ratioUsdt, ratioDsc, part, usdt, tokenUsd, tokenUnits });
+    return { usdt, tokenUsd, tokenUnits };
+  } 
+
+module.exports = { ct, giveVrsForStaking,splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }

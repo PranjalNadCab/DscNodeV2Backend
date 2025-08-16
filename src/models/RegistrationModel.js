@@ -39,6 +39,19 @@ const RegistrationSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    totalIncomeUsd:{
+        type: String,
+        default: "0"
+    },
+    totalIncomeDsc:{
+        type: String,
+        default: "0"
+    },
+    totalIncomeDscInUsd:{
+        type: String,
+        default: "0"
+    },
+
     time:{
         type:Number,
         default: () => Math.floor(Date.now() / 1000)
