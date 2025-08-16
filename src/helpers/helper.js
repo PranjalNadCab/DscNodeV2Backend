@@ -258,7 +258,7 @@ const manageRank = async (userAddress) => {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null,usdtStakedIn1e18,dscStakedInUsdtIn1e18) => {
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -342,6 +342,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
         const dscPrice = await LivePriceDsc.findOne({}).sort({ time: -1 });
 
         let docsToInsert = [];
+        const bulkRegOps = [];
         const lastPackagePercent = gapIncome["Mentor"]; // 18% of the total amount to distribute
         for (let user of uniqueRankUsers) {
             assignedPercent = gapIncome[user.currentRank];
@@ -349,7 +350,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
             const percentToDistribute = Number(new BigNumber(assignedPercent).minus(new BigNumber(percentDistributed)));
             const gapIncomeGenerated = new BigNumber(stakingAmountIn1e18).multipliedBy(percentToDistribute).toFixed();
 
-            const {usdt, tokenUsd,tokenUnits} = splitByRatio(gapIncomeGenerated, usdtStakedIn1e18, dscStakedInUsdtIn1e18, dscPrice?.price);
+            const { usdt, tokenUsd, tokenUnits } = splitByRatio(gapIncomeGenerated, usdtStakedIn1e18, dscStakedInUsdtIn1e18, dscPrice?.price);
             docsToInsert.push({
                 receiverAddress: user.userAddress,
                 receiverRank: user.currentRank,
@@ -357,6 +358,10 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 senderRank: rankDuringStaking,
                 totalGapIncomeInUsd: gapIncomeGenerated,
                 senderTotalStakedUsd: senderDoc.userTotalStakeInUsd || 0,
+                gapIncomeInUsd: usdt,
+                gapIncomeInDsc: tokenUnits,
+                gapIncomeInDscInUsd: tokenUsd,
+                dscPrice: dscPrice.price ? dscPrice.price : 0,
                 percentReceived: percentToDistribute,
                 time: moment().unix(),
                 stakingAmountInUsd: new BigNumber(stakingAmountIn1e18)
@@ -365,6 +370,27 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 transactionHash: null,
                 blockNumber: null
             });
+
+            const regDoc = await RegistrationModel.findOne({ userAddress: user.userAddress });
+
+            const newDscIncomeWallet = new BigNumber(regDoc.dscIncomeWallet || "0").plus(tokenUnits).toFixed(0);
+            const newUsdtIncomeWallet = new BigNumber(regDoc.usdtIncomeWallet || "0").plus(usdt).toFixed(0);
+            const newTotalIncomeDsc = new BigNumber(regDoc.totalIncomeDscReceived || "0").plus(tokenUnits).toFixed(0);
+            const newTotalIncomeUsdt = new BigNumber(regDoc.totalIncomeUsdtReceived || "0").plus(usdt).toFixed(0);
+
+            bulkRegOps.push({
+                updateOne: {
+                    filter: { userAddress: user.userAddress },
+                    update: {
+                        $set: {
+                            dscIncomeWallet: newDscIncomeWallet,
+                            usdtIncomeWallet: newUsdtIncomeWallet,
+                            totalIncomeDscReceived: newTotalIncomeDsc,
+                            totalIncomeUsdtReceived: newTotalIncomeUsdt,
+                        }
+                    }
+                }
+            })
             ct({
                 status: "Distributing gap income",
                 receiverAddress: user.userAddress,
@@ -381,14 +407,14 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
         }
         if (docsToInsert.length > 0) {
             await GapIncomeModel.insertMany(docsToInsert);
-          ct({uid:"344sds32q",message:"Gap income distributed successfully", docsCount: docsToInsert.length, senderAddress, currentRank, totalDistributed: percentDistributed });
+            ct({ uid: "344sds32q", message: "Gap income distributed successfully", docsCount: docsToInsert.length, senderAddress, currentRank, totalDistributed: percentDistributed });
         }
     } catch (error) {
         console.error("Error in giveGapIncome:", error);
     }
 }
 
-function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice=null) {
+function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
 
     let totalStakesInUsdInBig = new BigNumber(total);
     let ratioUsdtInBig = new BigNumber(ratioUsdt);
@@ -402,6 +428,6 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice=null) {
     const tokenUnits = tokenPriceInBig ? new BigNumber(tokenUsd).dividedBy(tokenPriceInBig).toFixed() : null;
     ct({ total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
     return { usdt, tokenUsd, tokenUnits };
-  } 
+}
 
-module.exports = { ct, giveVrsForStaking,splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
+module.exports = { ct, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
