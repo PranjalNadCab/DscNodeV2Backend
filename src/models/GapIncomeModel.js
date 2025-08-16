@@ -45,12 +45,12 @@ const gapIncomeSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    percentReceived:{
-        type:Number,
-        required: true,
-    },
     dscPrice:{
         type: Number,
+        required: true,
+    },
+    percentReceived:{
+        type:Number,
         required: true,
     },
     time:{

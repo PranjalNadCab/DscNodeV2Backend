@@ -4,6 +4,7 @@ const BigNumber = require("bignumber.js");
 const { ranks, gapIncome } = require("./constant");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const moment = require("moment");
+const LivePriceDsc = require("../models/LiveDscPriceModel");
 
 const ct = (payload) => {
     console.table(payload);
@@ -257,7 +258,7 @@ const manageRank = async (userAddress) => {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null) => {
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null,usdtStakedIn1e18,dscStakedInUsdtIn1e18) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -338,6 +339,8 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
         let percentDistributed = 0;
         let currentRank = rankDuringStaking;
 
+        const dscPrice = await LivePriceDsc.findOne({}).sort({ time: -1 });
+
         let docsToInsert = [];
         const lastPackagePercent = gapIncome["Mentor"]; // 18% of the total amount to distribute
         for (let user of uniqueRankUsers) {
@@ -345,6 +348,8 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
             if (percentDistributed >= lastPackagePercent) { ct({ status: "Limit reached", lastPackagePercent, percentDistributed, userId: uplineUser.userId }); break; }
             const percentToDistribute = Number(new BigNumber(assignedPercent).minus(new BigNumber(percentDistributed)));
             const gapIncomeGenerated = new BigNumber(stakingAmountIn1e18).multipliedBy(percentToDistribute).toFixed();
+
+            const {usdt, tokenUsd,tokenUnits} = splitByRatio(gapIncomeGenerated, usdtStakedIn1e18, dscStakedInUsdtIn1e18, dscPrice?.price);
             docsToInsert.push({
                 receiverAddress: user.userAddress,
                 receiverRank: user.currentRank,
@@ -383,12 +388,19 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
     }
 }
 
-function splitByRatio(total, ratioUsdt, ratioDsc, tokenPrice=null) {
-    const part = total / (ratioUsdt + ratioDsc);
-    const usdt = ratioUsdt * part;
-    const tokenUsd = ratioDsc * part;
-    const tokenUnits = tokenPrice ? tokenUsd / tokenPrice : null;
-    ct({ total, ratioUsdt, ratioDsc, part, usdt, tokenUsd, tokenUnits });
+function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice=null) {
+
+    let totalStakesInUsdInBig = new BigNumber(total);
+    let ratioUsdtInBig = new BigNumber(ratioUsdt);
+    let ratioDscInBig = new BigNumber(ratioDscInUsd);
+    let tokenPriceInBig = tokenPrice ? new BigNumber(tokenPrice) : null;
+    // const part = total / (ratioUsdt + ratioDsc);
+    const part = totalStakesInUsdInBig.dividedBy(ratioUsdtInBig.plus(ratioDscInBig));
+
+    const usdt = ratioUsdtInBig.multipliedBy(part).toFixed(0);
+    const tokenUsd = ratioDscInBig.multipliedBy(part).toFixed(0);
+    const tokenUnits = tokenPriceInBig ? new BigNumber(tokenUsd).dividedBy(tokenPriceInBig).toFixed() : null;
+    ct({ total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
     return { usdt, tokenUsd, tokenUnits };
   } 
 

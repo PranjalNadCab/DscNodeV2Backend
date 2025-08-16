@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const  DscNodeBlockConfig  = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 
@@ -65,9 +65,10 @@ async function processEvents(events) {
                     lastUsedNonce =  Number(lastUsedNonce);
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
                     
+                    const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
                     const newStake = await StakingModel.create({
                         userAddress,
-                        totalAmountInUsd: amountDscInUsd,
+                        totalAmountInUsd: totalUsd,
                         amountInDscInUsd: amountDscInUsd,
                         amountInDsc: amountDsc,
                         amountInUsdt: amountUsdt,
@@ -89,9 +90,9 @@ async function processEvents(events) {
                     }
 
 
-                    const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
                     await updateUserTotalSelfStakeUsdt(userAddress,totalUsd);
                     await manageRank(userAddress);
+                    await giveGapIncome(userAddress, totalUsd, rankDuringStaking, amountUsdt, amountDscInUsd);
 
 
                 }catch(error){

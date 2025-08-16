@@ -1,4 +1,4 @@
-const mongoose  =require("mongoose");
+const mongoose = require("mongoose");
 
 
 const RegistrationSchema = new mongoose.Schema({
@@ -11,52 +11,55 @@ const RegistrationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    teamCount:{
-        type:Number,
-        default:0
-    },
-    directCount:{
-        type:Number,
-        default:0
-    },
-    directStaking:{
+    teamCount: {
         type: Number,
-        default:0
+        default: 0
     },
-    userTotalStakeInUsd:{
+    directCount: {
         type: Number,
-        default:0
+        default: 0
     },
-    userDirectPlusSelfStakeInUsd:{
+    directStaking: {
         type: Number,
-        default:0
+        default: 0
     },
-    currentRank:{
+    userTotalStakeInUsd: {
+        type: Number,
+        default: 0
+    },
+    userDirectPlusSelfStakeInUsd: {
+        type: Number,
+        default: 0
+    },
+    currentRank: {
         type: String,
         default: null
     },
-    rankAchievedAt:{
+    rankAchievedAt: {
         type: Number,
         default: null
     },
-    totalIncomeUsd:{
+    usdtIncomeWallet: {
         type: String,
         default: "0"
     },
-    totalIncomeDsc:{
+    dscIncomeWallet: {
         type: String,
         default: "0"
     },
-    totalIncomeDscInUsd:{
+    totalIncomeDscReceived: {
         type: String,
         default: "0"
     },
-
-    time:{
-        type:Number,
+    totalIncomeUsdtReceived: {
+        type: String,
+        default: "0"
+    },
+    time: {
+        type: Number,
         default: () => Math.floor(Date.now() / 1000)
     }
-},{timestamps: true, collection: 'registration'});
+}, { timestamps: true, collection: 'registration' });
 
 RegistrationSchema.index({ userAddress: 1, sponsorAddress: 1 }, { unique: true });
 
