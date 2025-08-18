@@ -49,6 +49,55 @@
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountDsc",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountDscInUsd",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "rateDollarPerDsc",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sponsor",
+                "type": "address"
+            }
+        ],
+        "name": "WithdrawIncome",
+        "type": "event"
+    },
+    {
         "stateMutability": "payable",
         "type": "fallback"
     },
@@ -107,6 +156,45 @@
             }
         ],
         "name": "getHashForStaking",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDsc",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDscInUsd",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "rate",
+                "type": "uint256"
+            }
+        ],
+        "name": "getHashForWithdrawIncome",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -288,6 +376,68 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userNoncesForWithdrawIncome",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "",
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDsc",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "priceDscInUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDscInUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "withdrawIncome",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
