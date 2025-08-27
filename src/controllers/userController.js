@@ -254,7 +254,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
         // ✅ Validate amounts
         if (amountDscIn1e18.isZero()) {
-            throw new Error("Invalid request. At least one withdrawal amount must be greater than zero.");
+            throw new Error("Withdrawal amount must be greater than zero.");
         }
 
        

@@ -8,8 +8,8 @@ router.post("/stake-vrs", stakeVrs);
 router.get("/get-dsc-price",getLiveDscPrice);
 router.post("/get-user-info",getUserInfo);
 router.post("/get-user-stakings",getUserStakings);
-router.post("/withdraw-income",withdrawIncomeUsdt);
-router.post("/withdraw-income",withdrawIncomeDsc);
+router.post("/withdraw-usdt",withdrawIncomeUsdt);
+router.post("/withdraw-dsc",withdrawIncomeDsc);
 
 
 
