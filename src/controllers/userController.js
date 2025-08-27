@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncome } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
@@ -147,7 +147,7 @@ const getUserStakings = async (req, res, next) => {
 
 const withdrawIncomeUsdt = async (req, res, next) => {
     try {
-        let { userAddress, amountDsc, amountUsdt, amountDscInUsd, priceDscInUsd } = req.body;
+        let { userAddress, amountUsdt } = req.body;
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
@@ -165,52 +165,30 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
         if (!userRegDoc) throw new Error("User not found. Please register first.");
 
-        let { usdtIncomeWallet, dscIncomeWallet } = userRegDoc;
+        let { usdtIncomeWallet } = userRegDoc;
 
         // Convert stored string balances to BigNumber
         usdtIncomeWallet = new BigNumber(usdtIncomeWallet); // already in 1e18
-        dscIncomeWallet = new BigNumber(dscIncomeWallet);   // already in 1e18
 
         // Convert request amounts to 1e18
-        const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
         const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18);
 
-        const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed();
-        const priceDscInUsdIn1e18 = new BigNumber(priceDscInUsd).multipliedBy(1e18).toFixed();
-        // (keeping them for later if conversion/validations needed)
 
-        const amountDscIn1e18AfterDeduction = amountDscIn1e18.multipliedBy(0.95).toFixed(0);
         const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(0.95).toFixed(0);
-        const amountDscInUsdIn1e18AfterDeduction = new BigNumber(amountDscInUsdIn1e18).multipliedBy(0.95).toFixed(0);
 
         // ✅ Validate amounts
-        if (amountUsdtIn1e18.isZero() && amountDscIn1e18.isZero()) {
-            throw new Error("Invalid request. At least one withdrawal amount must be greater than zero.");
+        if (amountUsdtIn1e18.isZero()) {
+            throw new Error("Withdrawal amount must be greater than zero.");
         }
 
         // ✅ Case 1: Withdraw only USDT
-        if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.isZero()) {
+       
             if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
                 throw new Error("Insufficient USDT balance in wallet.");
             }
-        }
+        
 
-        // ✅ Case 2: Withdraw only DSC
-        else if (amountDscIn1e18.gt(0) && amountUsdtIn1e18.isZero()) {
-            if (dscIncomeWallet.lt(amountDscIn1e18)) {
-                throw new Error("Insufficient DSC balance in wallet.");
-            }
-        }
 
-        // ✅ Case 3: Withdraw both USDT and DSC
-        else if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.gt(0)) {
-            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
-                throw new Error("Insufficient USDT balance in wallet.");
-            }
-            if (dscIncomeWallet.lt(amountDscIn1e18)) {
-                throw new Error("Insufficient DSC balance in wallet.");
-            }
-        }
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
         let prevNonce = 0;
         if (!lastWithdraw) {
@@ -224,10 +202,10 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         }
         
      
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncome(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountUsdtIn1e18.toFixed(0), priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeUsdt(userAddress, amountUsdtIn1e18.toFixed(0),amountUsdtIn1e18AfterDeduction).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, userAddress, hash, Number(currNonce),amountUsdtIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
@@ -242,7 +220,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
 
 const withdrawIncomeDsc = async (req, res, next) => {
     try {
-        let { userAddress, amountDsc, amountUsdt, amountDscInUsd, priceDscInUsd } = req.body;
+        let { userAddress, amountDsc, amountDscInUsd, priceDscInUsd } = req.body;
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
@@ -260,52 +238,35 @@ const withdrawIncomeDsc = async (req, res, next) => {
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
         if (!userRegDoc) throw new Error("User not found. Please register first.");
 
-        let { usdtIncomeWallet, dscIncomeWallet } = userRegDoc;
+        let {  dscIncomeWallet } = userRegDoc;
 
         // Convert stored string balances to BigNumber
-        usdtIncomeWallet = new BigNumber(usdtIncomeWallet); // already in 1e18
         dscIncomeWallet = new BigNumber(dscIncomeWallet);   // already in 1e18
 
         // Convert request amounts to 1e18
         const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
-        const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18);
 
         const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed();
         const priceDscInUsdIn1e18 = new BigNumber(priceDscInUsd).multipliedBy(1e18).toFixed();
-        // (keeping them for later if conversion/validations needed)
 
         const amountDscIn1e18AfterDeduction = amountDscIn1e18.multipliedBy(0.95).toFixed(0);
-        const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(0.95).toFixed(0);
         const amountDscInUsdIn1e18AfterDeduction = new BigNumber(amountDscInUsdIn1e18).multipliedBy(0.95).toFixed(0);
 
         // ✅ Validate amounts
-        if (amountUsdtIn1e18.isZero() && amountDscIn1e18.isZero()) {
+        if (amountDscIn1e18.isZero()) {
             throw new Error("Invalid request. At least one withdrawal amount must be greater than zero.");
         }
 
-        // ✅ Case 1: Withdraw only USDT
-        if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.isZero()) {
-            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
-                throw new Error("Insufficient USDT balance in wallet.");
-            }
-        }
+       
 
         // ✅ Case 2: Withdraw only DSC
-        else if (amountDscIn1e18.gt(0) && amountUsdtIn1e18.isZero()) {
+        
             if (dscIncomeWallet.lt(amountDscIn1e18)) {
                 throw new Error("Insufficient DSC balance in wallet.");
             }
-        }
+        
 
-        // ✅ Case 3: Withdraw both USDT and DSC
-        else if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.gt(0)) {
-            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
-                throw new Error("Insufficient USDT balance in wallet.");
-            }
-            if (dscIncomeWallet.lt(amountDscIn1e18)) {
-                throw new Error("Insufficient DSC balance in wallet.");
-            }
-        }
+    
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
         let prevNonce = 0;
         if (!lastWithdraw) {
@@ -319,10 +280,10 @@ const withdrawIncomeDsc = async (req, res, next) => {
         }
         
      
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncome(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountUsdtIn1e18.toFixed(0), priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,

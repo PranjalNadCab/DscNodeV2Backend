@@ -51,12 +51,45 @@ function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e
     });
 }
 
-function giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction) {
+function giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, user, hash, nonce,amountUsdtIn1e18AfterDeduction) {
     return new Promise(async (resolve, reject) => {
         try {
 
             //call contract to match nonce
-            ct({ amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce })
+
+            const data = {
+                hash: hash,
+                nonce: nonce,
+                user: user,
+                amountUsdtIn1e18,
+                amountUsdtIn1e18AfterDeduction,
+            };
+       
+
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
+function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, user, hash, nonce,amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+            ct({ amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, user, hash, nonce })
 
             const data = {
                 hash: hash,
@@ -64,10 +97,8 @@ function giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountU
                 user: user,
                 amountDscInUsdIn1e18,
                 amountDscIn1e18,
-                amountUsdtIn1e18,
                 priceDscInUsdIn1e18,
                 amountDscInUsdIn1e18AfterDeduction,
-                amountUsdtIn1e18AfterDeduction,
                 amountDscIn1e18AfterDeduction
             };
        
@@ -469,4 +500,4 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     return { usdt, tokenUsd, tokenUnits };
 }
 
-module.exports = { ct,giveVrsForWithdrawIncome, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
+module.exports = { ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
