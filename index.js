@@ -9,7 +9,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid } = require("./src/helpers/helper");
 
 
 
@@ -35,8 +35,10 @@ const server = app.listen(PORT, async () => {
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
-        await createDefaultOwnerDoc();
-        // await dscNodeListEvents();
+        await createDefaultOwnerRegDoc();
+        await generateDefaultAdminDoc();
+
+        await dscNodeListEvents();
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
         // await giveGapIncome("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d","100000000000000000000");
         //    splitByRatio("500000000000000000000","6000000000000000000","19000000000000000000",50000)

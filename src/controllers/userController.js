@@ -6,6 +6,8 @@ const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
 const RegistrationModel = require("../models/RegistrationModel");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
+const { isAddress } = require("web3-validator");
+const Admin = require("../models/AdminModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -280,7 +282,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
         }
         
      
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction,priceDscInUsdIn1e18).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
         const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
@@ -296,6 +298,48 @@ const withdrawIncomeDsc = async (req, res, next) => {
     }
 };
 
+const convertToNode = async (req,res,next)=>{
+    try{
+
+        let {userAddress,nodeName} = req.body;
+        if(!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
+        if(typeof nodeName !== "string") throw new Error("Node name must be a string.");
+
+        if(!isAddress(userAddress)) throw new Error("Invalid user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const adminDoc = await Admin.findOne({});
+
+        if(!adminDoc) throw new Error("Admin not found.");
+
+        const {nodeValidators} = adminDoc;
+
+        const nodeIndexRequested = nodeValidators.findIndex(n=>n.nodeName.toLowerCase() === nodeName.toLowerCase());
+        if(nodeIndexRequested === -1) throw new Error("Node not found.");
+
+        const userDoc = await RegistrationModel.findOne({userAddress});
+
+        if(!userDoc) throw new Error("User not found.");
+
+        const {userTotalStakeInUsd,currentNodeName} = userDoc;
+
+        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n=>n.nodeName.toLowerCase() === currentNodeName.toLowerCase()) : -1;
+        if(currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
+
+        const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd);
+
+
+
+
+
+
+
+        return res.status(200).json({success:true,message:"Convert to node endpoint"});
+    }catch(error){
+        next(error);
+    }
+}
+
 
 module.exports = {
     stakeVrs,
@@ -303,6 +347,7 @@ module.exports = {
     getUserInfo,
     getUserStakings,
     withdrawIncomeUsdt,
-    withdrawIncomeDsc
+    withdrawIncomeDsc,
+    convertToNode
 };
 

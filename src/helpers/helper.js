@@ -5,10 +5,45 @@ const { ranks, gapIncome } = require("./constant");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const moment = require("moment");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
+const AdminModel = require("../models/AdminModel");
+
 
 const ct = (payload) => {
     console.table(payload);
 };
+
+const generateDefaultAdminDoc = async ()=>{
+    try {
+        const existingAdmin = await AdminModel.findOne({});
+        if (!existingAdmin) {
+            const defaultAdmin = new AdminModel({
+                withdrawDeductionPercent: 5, // Default deduction percent
+                nodeValidators: [
+                    { name: "Pioneers", reward: 100, selfStaking: 3000 },
+                    { name: "Guardians", reward: 200, selfStaking: 6000 },
+                    { name: "Visionaries", reward: 300, selfStaking: 9000 },
+                    { name: "Node Omega", reward: 400, selfStaking: 12000 },
+                    { name: "Node Core", reward: 600, selfStaking: 18000 },
+                    { name: "Node Apex", reward: 800, selfStaking: 24000 },
+                    { name: "Node Nexus", reward: 1200, selfStaking: 36000 },
+                    { name: "Node Fusion", reward: 1600, selfStaking: 48000 },
+                    { name: "Node Dominion", reward: 2000, selfStaking: 60000 }
+                
+                ],
+                stakeRatio: {
+                    part1:7,
+                    part2:3
+                } 
+            });
+            await defaultAdmin.save();
+            console.log("Default admin document created.");
+        } else {
+            console.log("Admin document already exists.");
+        }
+    } catch (error) {
+        console.log("Error creating default admin document:", error);
+    }
+}
 
 const giveCheckSummedAddress = (address) => {
 
@@ -240,7 +275,7 @@ const registerUser = async (userAddress, time, sponsorAddress) => {
     }
 }
 
-const createDefaultOwnerDoc = async () => {
+const createDefaultOwnerRegDoc = async () => {
     try {
         const defaultOwnerAddress = process.env.DEFAULT_OWNER_ADDRESS;
         if (!defaultOwnerAddress) {
@@ -500,4 +535,7 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     return { usdt, tokenUsd, tokenUnits };
 }
 
-module.exports = { ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerDoc, giveCheckSummedAddress, manageRank }
+
+
+
+module.exports = { generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank }

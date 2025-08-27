@@ -58,6 +58,18 @@ const RegistrationSchema = new mongoose.Schema({
     time: {
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
+    },
+    achievedNodes:{
+        type: [{
+            nodeName: { type: String, required: true },
+            achievedAt: { type: Number, required: true },
+            reward: { type: Number, required: true }
+        }],
+        default: []
+    },
+    currentNodeName:{
+        type:String,
+        default: null
     }
 }, { timestamps: true, collection: 'registration' });
 
