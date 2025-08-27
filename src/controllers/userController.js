@@ -145,7 +145,7 @@ const getUserStakings = async (req, res, next) => {
 };
 
 
-const withdrawIncome = async (req, res, next) => {
+const withdrawIncomeUsdt = async (req, res, next) => {
     try {
         let { userAddress, amountDsc, amountUsdt, amountDscInUsd, priceDscInUsd } = req.body;
 
@@ -179,6 +179,10 @@ const withdrawIncome = async (req, res, next) => {
         const priceDscInUsdIn1e18 = new BigNumber(priceDscInUsd).multipliedBy(1e18).toFixed();
         // (keeping them for later if conversion/validations needed)
 
+        const amountDscIn1e18AfterDeduction = amountDscIn1e18.multipliedBy(0.95).toFixed(0);
+        const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(0.95).toFixed(0);
+        const amountDscInUsdIn1e18AfterDeduction = new BigNumber(amountDscInUsdIn1e18).multipliedBy(0.95).toFixed(0);
+
         // ✅ Validate amounts
         if (amountUsdtIn1e18.isZero() && amountDscIn1e18.isZero()) {
             throw new Error("Invalid request. At least one withdrawal amount must be greater than zero.");
@@ -207,22 +211,118 @@ const withdrawIncome = async (req, res, next) => {
                 throw new Error("Insufficient DSC balance in wallet.");
             }
         }
-        const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
+        const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
         let prevNonce = 0;
         if (!lastWithdraw) {
             prevNonce = -1;
         } else {
             prevNonce = Number(lastWithdraw.lastUsedNonce);
         }
-        const currNonce = await dscNodeContract.methods.userNoncesForWithdrawIncome(user).call();
+        const currNonce = await dscNodeContract.methods.userNoncesForWithdrawIncome(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
             // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
-
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncome(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
+        
+     
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncome(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountUsdtIn1e18.toFixed(0), priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, Number(currNonce));
+        const vrsSign = await giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
+
+        return res.status(200).json({
+            success: true,
+            message: "Withdraw income request validated successfully. (Transfer logic not implemented yet.)",
+            vrsSign
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const withdrawIncomeDsc = async (req, res, next) => {
+    try {
+        let { userAddress, amountDsc, amountUsdt, amountDscInUsd, priceDscInUsd } = req.body;
+
+        // ✅ Validate required fields
+        const missingFields = Object.entries(req.body)
+            .filter(([key, val]) => val === undefined || val === null || val === "" || (typeof val === "string" && val.trim() === ""))
+            .map(([key]) => key);
+
+        if (missingFields.length > 0) {
+            throw new Error(`Please send these missing fields: ${missingFields.join(", ")}`);
+        }
+
+        // ✅ Checksum user address
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // ✅ Fetch user document
+        const userRegDoc = await RegistrationModel.findOne({ userAddress });
+        if (!userRegDoc) throw new Error("User not found. Please register first.");
+
+        let { usdtIncomeWallet, dscIncomeWallet } = userRegDoc;
+
+        // Convert stored string balances to BigNumber
+        usdtIncomeWallet = new BigNumber(usdtIncomeWallet); // already in 1e18
+        dscIncomeWallet = new BigNumber(dscIncomeWallet);   // already in 1e18
+
+        // Convert request amounts to 1e18
+        const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
+        const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18);
+
+        const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed();
+        const priceDscInUsdIn1e18 = new BigNumber(priceDscInUsd).multipliedBy(1e18).toFixed();
+        // (keeping them for later if conversion/validations needed)
+
+        const amountDscIn1e18AfterDeduction = amountDscIn1e18.multipliedBy(0.95).toFixed(0);
+        const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(0.95).toFixed(0);
+        const amountDscInUsdIn1e18AfterDeduction = new BigNumber(amountDscInUsdIn1e18).multipliedBy(0.95).toFixed(0);
+
+        // ✅ Validate amounts
+        if (amountUsdtIn1e18.isZero() && amountDscIn1e18.isZero()) {
+            throw new Error("Invalid request. At least one withdrawal amount must be greater than zero.");
+        }
+
+        // ✅ Case 1: Withdraw only USDT
+        if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.isZero()) {
+            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
+                throw new Error("Insufficient USDT balance in wallet.");
+            }
+        }
+
+        // ✅ Case 2: Withdraw only DSC
+        else if (amountDscIn1e18.gt(0) && amountUsdtIn1e18.isZero()) {
+            if (dscIncomeWallet.lt(amountDscIn1e18)) {
+                throw new Error("Insufficient DSC balance in wallet.");
+            }
+        }
+
+        // ✅ Case 3: Withdraw both USDT and DSC
+        else if (amountUsdtIn1e18.gt(0) && amountDscIn1e18.gt(0)) {
+            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
+                throw new Error("Insufficient USDT balance in wallet.");
+            }
+            if (dscIncomeWallet.lt(amountDscIn1e18)) {
+                throw new Error("Insufficient DSC balance in wallet.");
+            }
+        }
+        const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
+        let prevNonce = 0;
+        if (!lastWithdraw) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(lastWithdraw.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForWithdrawIncome(userAddress).call();
+        if ((prevNonce + 1) !== Number(currNonce)) {
+            // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+        }
+        
+     
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncome(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountUsdtIn1e18.toFixed(0), priceDscInUsdIn1e18,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction).call();
+        // If validation passed, continue with withdrawal (not implemented yet)
+
+        const vrsSign = await giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
@@ -241,6 +341,7 @@ module.exports = {
     getLiveDscPrice,
     getUserInfo,
     getUserStakings,
-    withdrawIncome
+    withdrawIncomeUsdt,
+    withdrawIncomeDsc
 };
 

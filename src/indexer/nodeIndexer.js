@@ -154,7 +154,7 @@ async function updateBlock(updatedBlock) {
         }
         await updateBlock(toBlock);
 
-        setTimeout(dscNodeListEvents, 10000);
+        setTimeout(dscNodeListEvents, 8000);
     } catch (error) {
         console.log("Error in dscNode Events:", error);
         setTimeout(dscNodeListEvents, 10000);

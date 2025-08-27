@@ -51,7 +51,7 @@ function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e
     });
 }
 
-function giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
+function giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce,amountDscInUsdIn1e18AfterDeduction,amountUsdtIn1e18AfterDeduction,amountDscIn1e18AfterDeduction) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -65,9 +65,12 @@ function giveVrsForWithdrawIncome(amountDscInUsdIn1e18, amountDscIn1e18, amountU
                 amountDscInUsdIn1e18,
                 amountDscIn1e18,
                 amountUsdtIn1e18,
-                priceDscInUsdIn1e18
+                priceDscInUsdIn1e18,
+                amountDscInUsdIn1e18AfterDeduction,
+                amountUsdtIn1e18AfterDeduction,
+                amountDscIn1e18AfterDeduction
             };
-            console.log({ data })
+       
 
 
             const account = web3.eth.accounts.privateKeyToAccount(

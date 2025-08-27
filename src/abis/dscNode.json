@@ -66,7 +66,13 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "amountUsdt",
+                "name": "amountDscAfterDeduction",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountDscInUsdAfterDeduction",
                 "type": "uint256"
             },
             {
@@ -86,15 +92,40 @@
                 "internalType": "uint32",
                 "name": "lastUsedNonce",
                 "type": "uint32"
+            }
+        ],
+        "name": "WithdrawIncomeDsc",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountUsdtAfterDeduction",
+                "type": "uint256"
             },
             {
                 "indexed": false,
                 "internalType": "address",
-                "name": "sponsor",
+                "name": "userAddress",
                 "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
             }
         ],
-        "name": "WithdrawIncome",
+        "name": "WithdrawIncomeUsdt",
         "type": "event"
     },
     {
@@ -185,7 +216,12 @@
             },
             {
                 "internalType": "uint256",
-                "name": "amountUsdt",
+                "name": "amountDscInUsdIn1e18AfterDeduction",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDscIn1e18AfterDeduction",
                 "type": "uint256"
             },
             {
@@ -194,7 +230,36 @@
                 "type": "uint256"
             }
         ],
-        "name": "getHashForWithdrawIncome",
+        "name": "getHashForWithdrawIncomeDsc",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountUsdtIn1e18AfterDeduction",
+                "type": "uint256"
+            }
+        ],
+        "name": "getHashForWithdrawIncomeUsdt",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -401,22 +466,27 @@
         "inputs": [
             {
                 "internalType": "uint256",
-                "name": "amountUsdt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
                 "name": "amountDsc",
                 "type": "uint256"
             },
             {
                 "internalType": "uint256",
-                "name": "priceDscInUsdt",
+                "name": "amountDscInUsdt",
                 "type": "uint256"
             },
             {
                 "internalType": "uint256",
-                "name": "amountDscInUsdt",
+                "name": "amountDscInUsdIn1e18AfterDeduction",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountDscIn1e18AfterDeduction",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "priceDscInUsdt",
                 "type": "uint256"
             },
             {
@@ -435,7 +505,40 @@
                 "type": "bytes32"
             }
         ],
-        "name": "withdrawIncome",
+        "name": "withdrawIncomeDsc",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountUsdt",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountUsdtIn1e18AfterDeduction",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "withdrawIncomeUsdt",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
