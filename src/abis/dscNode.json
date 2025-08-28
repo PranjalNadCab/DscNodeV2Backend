@@ -199,19 +199,6 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "dsc_token",
-        "outputs": [
-            {
-                "internalType": "contract IERC20",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "address",
@@ -361,12 +348,12 @@
             },
             {
                 "internalType": "address",
-                "name": "_token",
+                "name": "_usdt_token",
                 "type": "address"
             },
             {
                 "internalType": "address",
-                "name": "_usdt_token",
+                "name": "_router",
                 "type": "address"
             }
         ],
@@ -433,6 +420,19 @@
         "outputs": [
             {
                 "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "router",
+        "outputs": [
+            {
+                "internalType": "contract IPancakeRouter",
                 "name": "",
                 "type": "address"
             }
