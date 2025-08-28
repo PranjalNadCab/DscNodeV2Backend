@@ -38,15 +38,18 @@ const stakeVrs = async (req, res, next) => {
         const ratioUsdt = (Number(amountUsdt) * 100) / totalUsd;
         const ratioDsc = (Number(amountDscInUsd) * 100) / totalUsd;
 
-        // your predefined ratio parts
-        const part1 = 7; // USDT numerator
-        const part2 = 3; // DSC numerator
-        const totalParts = part1 + part2;
+        const adminDoc = await Admin.findOne({});
+
+        if (!adminDoc) throw new Error("Admin not found.");
+        const { stakeRatio } = adminDoc;
+
+        const totalParts = stakeRatio.part1 + stakeRatio.part2;
 
         // calculate expected ratios
-        const expectedUsdt = (part1 / totalParts) * 100;
-        const expectedDsc = (part2 / totalParts) * 100;
+        const expectedUsdt = (stakeRatio.part1 / totalParts) * 100;
+        const expectedDsc = (stakeRatio.part2 / totalParts) * 100;
 
+        ct({ ratioUsdt, ratioDsc, expectedUsdt, expectedDsc });
         // tolerance margin for floating point errors
         const tolerance = 0.01;
 
