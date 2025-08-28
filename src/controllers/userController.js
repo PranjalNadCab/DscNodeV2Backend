@@ -33,6 +33,35 @@ const stakeVrs = async (req, res, next) => {
         if (totalUsd < 100) throw new Error("Total amount must be at least $100.");
         if (totalUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
 
+
+        // ✅ Ratio validation
+        const ratioUsdt = (Number(amountUsdt) * 100) / totalUsd;
+        const ratioDsc = (Number(amountDscInUsd) * 100) / totalUsd;
+
+        // your predefined ratio parts
+        const part1 = 7; // USDT numerator
+        const part2 = 3; // DSC numerator
+        const totalParts = part1 + part2;
+
+        // calculate expected ratios
+        const expectedUsdt = (part1 / totalParts) * 100;
+        const expectedDsc = (part2 / totalParts) * 100;
+
+        // tolerance margin for floating point errors
+        const tolerance = 0.01;
+
+        const validUsdtOnly = ratioUsdt === 100 && ratioDsc === 0;
+        const validDscOnly = ratioDsc === 100 && ratioUsdt === 0;
+        const validMix =
+            Math.abs(ratioUsdt - expectedUsdt) < tolerance &&
+            Math.abs(ratioDsc - expectedDsc) < tolerance;
+
+        if (!(validUsdtOnly || validDscOnly || validMix)) {
+            throw new Error(
+                `You can only stake 100% USDT, 100% DSC, or ${expectedUsdt}% USDT + ${expectedDsc}% DSC.`
+            );
+        }
+
         const { price } = await LivePriceDsc.findOne();
 
         if (!price) throw new Error("Live price not found.");
@@ -109,7 +138,7 @@ const getUserInfo = async (req, res, next) => {
 
 const getUserStakings = async (req, res, next) => {
     try {
-        let { userAddress, page = 1, limit = 10 } = req.body; 
+        let { userAddress, page = 1, limit = 10 } = req.body;
         // page starts from 1, limit defaults to 10
 
         if (!userAddress) throw new Error("Please provide user address.");
@@ -185,11 +214,11 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         }
 
         // ✅ Case 1: Withdraw only USDT
-       
-            if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
-                throw new Error("Insufficient USDT balance in wallet.");
-            }
-        
+
+        if (usdtIncomeWallet.lt(amountUsdtIn1e18)) {
+            throw new Error("Insufficient USDT balance in wallet.");
+        }
+
 
 
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
@@ -203,12 +232,12 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         if ((prevNonce + 1) !== Number(currNonce)) {
             // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
-        
-     
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeUsdt(userAddress, amountUsdtIn1e18.toFixed(0),amountUsdtIn1e18AfterDeduction).call();
+
+
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeUsdt(userAddress, amountUsdtIn1e18.toFixed(0), amountUsdtIn1e18AfterDeduction).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, userAddress, hash, Number(currNonce),amountUsdtIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeUsdt(amountUsdtIn1e18, userAddress, hash, Number(currNonce), amountUsdtIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
@@ -241,7 +270,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
         if (!userRegDoc) throw new Error("User not found. Please register first.");
 
-        let {  dscIncomeWallet } = userRegDoc;
+        let { dscIncomeWallet } = userRegDoc;
 
         // Convert stored string balances to BigNumber
         dscIncomeWallet = new BigNumber(dscIncomeWallet);   // already in 1e18
@@ -260,16 +289,16 @@ const withdrawIncomeDsc = async (req, res, next) => {
             throw new Error("Withdrawal amount must be greater than zero.");
         }
 
-       
+
 
         // ✅ Case 2: Withdraw only DSC
-        
-            if (dscIncomeWallet.lt(amountDscIn1e18)) {
-                throw new Error("Insufficient DSC balance in wallet.");
-            }
-        
 
-    
+        if (dscIncomeWallet.lt(amountDscIn1e18)) {
+            throw new Error("Insufficient DSC balance in wallet.");
+        }
+
+
+
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
         let prevNonce = 0;
         if (!lastWithdraw) {
@@ -281,12 +310,12 @@ const withdrawIncomeDsc = async (req, res, next) => {
         if ((prevNonce + 1) !== Number(currNonce)) {
             // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
-        
-     
-        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction,priceDscInUsdIn1e18).call();
+
+
+        const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction, priceDscInUsdIn1e18).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce),amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce), amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
@@ -299,38 +328,38 @@ const withdrawIncomeDsc = async (req, res, next) => {
     }
 };
 
-const convertToNode = async (req,res,next)=>{
-    try{
+const convertToNode = async (req, res, next) => {
+    try {
 
-        let {userAddress,nodeName} = req.body;
-        if(!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
-        if(typeof nodeName !== "string") throw new Error("Node name must be a string.");
+        let { userAddress, nodeName } = req.body;
+        if (!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
+        if (typeof nodeName !== "string") throw new Error("Node name must be a string.");
 
-        if(!isAddress(userAddress)) throw new Error("Invalid user address.");
+        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
         const adminDoc = await Admin.findOne({});
 
-        if(!adminDoc) throw new Error("Admin not found.");
+        if (!adminDoc) throw new Error("Admin not found.");
 
-        const {nodeValidators} = adminDoc;
+        const { nodeValidators } = adminDoc;
 
-        console.log("klsdrfsdgasdf",nodeValidators)
-        const nodeIndexRequested = nodeValidators.findIndex(n=>n.name.toLowerCase() === nodeName.toLowerCase());
-        if(nodeIndexRequested === -1) throw new Error("Node not found.");
+        console.log("klsdrfsdgasdf", nodeValidators)
+        const nodeIndexRequested = nodeValidators.findIndex(n => n.name.toLowerCase() === nodeName.toLowerCase());
+        if (nodeIndexRequested === -1) throw new Error("Node not found.");
 
-        const userDoc = await RegistrationModel.findOne({userAddress});
+        const userDoc = await RegistrationModel.findOne({ userAddress });
 
-        if(!userDoc) throw new Error("User not found.");
+        if (!userDoc) throw new Error("User not found.");
 
-        const {userTotalStakeInUsd,currentNodeName} = userDoc;
+        const { userTotalStakeInUsd, currentNodeName } = userDoc;
 
-        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n=>n.nodeName.toLowerCase() === currentNodeName.toLowerCase()) : -1;
-        if(currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
+        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n => n.nodeName.toLowerCase() === currentNodeName.toLowerCase()) : -1;
+        if (currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
 
         const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd).multipliedBy(1e18);
 
-        if(userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
+        if (userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
 
 
         //generate vrs
@@ -347,18 +376,18 @@ const convertToNode = async (req,res,next)=>{
         if ((prevNonce + 1) !== Number(currNonce)) {
             // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
-        
-     
+
+
         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeName).call();
 
-        const vrsSign = await giveVrsForNodeConversion(userAddress,nodeName,Number(currNonce),hash);
+        const vrsSign = await giveVrsForNodeConversion(userAddress, nodeName, Number(currNonce), hash);
 
 
 
 
 
-        return res.status(200).json({success:true,message:"Node conversion request fullfilled",vrsSign});
-    }catch(error){
+        return res.status(200).json({ success: true, message: "Node conversion request fullfilled", vrsSign });
+    } catch (error) {
         next(error);
     }
 }
