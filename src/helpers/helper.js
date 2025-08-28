@@ -19,15 +19,15 @@ const generateDefaultAdminDoc = async ()=>{
             const defaultAdmin = new AdminModel({
                 withdrawDeductionPercent: 5, // Default deduction percent
                 nodeValidators: [
-                    { name: "Pioneers", reward: 100, selfStaking: 3000 },
-                    { name: "Guardians", reward: 200, selfStaking: 6000 },
-                    { name: "Visionaries", reward: 300, selfStaking: 9000 },
-                    { name: "Node Omega", reward: 400, selfStaking: 12000 },
-                    { name: "Node Core", reward: 600, selfStaking: 18000 },
-                    { name: "Node Apex", reward: 800, selfStaking: 24000 },
-                    { name: "Node Nexus", reward: 1200, selfStaking: 36000 },
-                    { name: "Node Fusion", reward: 1600, selfStaking: 48000 },
-                    { name: "Node Dominion", reward: 2000, selfStaking: 60000 }
+                    { name: "Pioneers", reward: 100, selfStaking: new BigNumber(3000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Guardians", reward: 200, selfStaking: new BigNumber(6000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Visionaries", reward: 300, selfStaking: new BigNumber(9000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Omega", reward: 400, selfStaking: new BigNumber(12000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Core", reward: 600, selfStaking: new BigNumber(18000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Apex", reward: 800, selfStaking: new BigNumber(24000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0) },
+                    { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0) },
                 
                 ],
                 stakeRatio: {

@@ -315,7 +315,8 @@ const convertToNode = async (req,res,next)=>{
 
         const {nodeValidators} = adminDoc;
 
-        const nodeIndexRequested = nodeValidators.findIndex(n=>n.nodeName.toLowerCase() === nodeName.toLowerCase());
+        console.log("klsdrfsdgasdf",nodeValidators)
+        const nodeIndexRequested = nodeValidators.findIndex(n=>n.name.toLowerCase() === nodeName.toLowerCase());
         if(nodeIndexRequested === -1) throw new Error("Node not found.");
 
         const userDoc = await RegistrationModel.findOne({userAddress});
@@ -327,9 +328,9 @@ const convertToNode = async (req,res,next)=>{
         const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n=>n.nodeName.toLowerCase() === currentNodeName.toLowerCase()) : -1;
         if(currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
 
-        const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd);
+        const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd).multipliedBy(1e18);
 
-        if(userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${nodeValidators[nodeIndexRequested].selfStaking} staked to convert to this node.`);
+        if(userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
 
 
         //generate vrs
@@ -350,13 +351,13 @@ const convertToNode = async (req,res,next)=>{
      
         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeName).call();
 
-        const vrsSign = giveVrsForNodeConversion(userAddress,nodeName,Number(currNonce),hash);
+        const vrsSign = await giveVrsForNodeConversion(userAddress,nodeName,Number(currNonce),hash);
 
 
 
 
 
-        return res.status(200).json({success:true,message:"Convert to node endpoint",vrsSign});
+        return res.status(200).json({success:true,message:"Node conversion request fullfilled",vrsSign});
     }catch(error){
         next(error);
     }

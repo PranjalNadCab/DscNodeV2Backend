@@ -10,7 +10,7 @@ router.post("/get-user-info",getUserInfo);
 router.post("/get-user-stakings",getUserStakings);
 router.post("/withdraw-usdt",withdrawIncomeUsdt);
 router.post("/withdraw-dsc",withdrawIncomeDsc);
-router.post("/convert-to-node",convertToNode)
+router.post("/convert-to-node",convertToNode);
 
 
 
