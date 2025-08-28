@@ -156,6 +156,38 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
+function giveVrsForNodeConversion(userAddress,nodeName,currNonce,hash) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+
+            const data = {
+                hash: hash,
+                nonce: currNonce,
+                userAddress: userAddress,
+                nodeName:nodeName
+            };
+       
+
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
 const updateTeamCount = async (userAddress) => {
     try {
 
@@ -538,4 +570,4 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
 
 
 
-module.exports = { generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank }
+module.exports = { giveVrsForNodeConversion,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank }

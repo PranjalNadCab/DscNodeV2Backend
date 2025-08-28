@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversion } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
@@ -8,6 +8,7 @@ const RegistrationModel = require("../models/RegistrationModel");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 const { isAddress } = require("web3-validator");
 const Admin = require("../models/AdminModel");
+const NodeConverted = require("../models/NodeConvertedModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -328,13 +329,34 @@ const convertToNode = async (req,res,next)=>{
 
         const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd);
 
+        if(userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${nodeValidators[nodeIndexRequested].selfStaking} staked to convert to this node.`);
+
+
+        //generate vrs
+
+
+        const lastConversion = await NodeConverted.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
+        let prevNonce = 0;
+        if (!lastConversion) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(lastConversion.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
+        if ((prevNonce + 1) !== Number(currNonce)) {
+            // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+        }
+        
+     
+        const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeName).call();
+
+        const vrsSign = giveVrsForNodeConversion(userAddress,nodeName,Number(currNonce),hash);
 
 
 
 
 
-
-        return res.status(200).json({success:true,message:"Convert to node endpoint"});
+        return res.status(200).json({success:true,message:"Convert to node endpoint",vrsSign});
     }catch(error){
         next(error);
     }

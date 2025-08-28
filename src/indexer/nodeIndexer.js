@@ -1,9 +1,11 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
-const  DscNodeBlockConfig  = require("../models/DscNodeBlockConfig.js");
+const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
 const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
+const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
+const NodeConverted = require("../models/NodeConvertedModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -55,16 +57,16 @@ async function processEvents(events) {
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
             if (event == "Staked") {
-                try{
+                try {
 
-                    let {sponsor, amountDsc, amountDscInUsd,amountUsdt,rateDollarPerDsc,userAddress,lastUsedNonce } = returnValues;
+                    let { sponsor, amountDsc, amountDscInUsd, amountUsdt, rateDollarPerDsc, userAddress, lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed();
                     amountDscInUsd = new BigNumber(amountDscInUsd).toFixed();
                     amountUsdt = new BigNumber(amountUsdt).toFixed();
-                    lastUsedNonce =  Number(lastUsedNonce);
+                    lastUsedNonce = Number(lastUsedNonce);
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
-                    
+
                     const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
                     const newStake = await StakingModel.create({
                         userAddress,
@@ -83,24 +85,95 @@ async function processEvents(events) {
 
                     let rankDuringStaking = null;
                     const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
-                    if(!userDoc){
-                        await registerUser(userAddress, Number(timestampNormal),sponsor);
-                    }else{
+                    if (!userDoc) {
+                        await registerUser(userAddress, Number(timestampNormal), sponsor);
+                    } else {
                         rankDuringStaking = userDoc.currentRank;
                     }
 
 
-                    await updateUserTotalSelfStakeUsdt(userAddress,totalUsd);
+                    await updateUserTotalSelfStakeUsdt(userAddress, totalUsd);
                     await manageRank(userAddress);
                     await giveGapIncome(userAddress, totalUsd, rankDuringStaking, amountUsdt, amountDscInUsd);
 
 
-                }catch(error){
+                } catch (error) {
                     console.log(error);
                     continue;
                 }
             }
-           
+            else if (event == "WithdrawIncomeUsdt") {
+                try {
+                    const { userAddress, amountUsdt, amountUsdtAfterDeduction, lastUsedNonce } = returnValues;
+
+                     const newWithdraw = await WithdrawIncomeModel.create({
+                        userAddress,
+                        amountInUsdt: new BigNumber(amountUsdt).toFixed(),
+                        amountInUsdtAfterDeduction: new BigNumber(amountUsdtAfterDeduction).toFixed(),
+                        amountInDsc: null,
+                        amountInDscAfterDeduction: null,
+                        amountInDscInUsd: null,
+                        amountInDscInUsdAfterDeduction: null,
+                        time: Number(timestampNormal),
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash: transactionHash
+                     });
+
+                     console.log("Usdt withdraw doc created:", newWithdraw);
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+            }
+            else if (event == "WithdrawIncomeDsc") {
+                try {
+                    const { amountDsc,amountDscInUsd,amountDscAfterDeductionuserAddress,amountDscInUsdAfterDeduction,rateDollarPerDsc,userAddress, lastUsedNonce } = returnValues;
+
+                        const newWithdraw = await WithdrawIncomeModel.create({
+                        userAddress,
+                        amountInUsdt: null,
+                        amountInUsdtAfterDeduction: null,
+                        amountInDsc: new BigNumber(amountDsc).toFixed(),
+                        amountInDscAfterDeduction: new BigNumber(amountDscAfterDeductionuserAddress).toFixed(),
+                        amountInDscInUsd: new BigNumber(amountDscInUsd).toFixed(),
+                        amountInDscInUsdAfterDeduction: new BigNumber(amountDscInUsdAfterDeduction).toFixed(),
+                        time: Number(timestampNormal),
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash: transactionHash
+                        });
+
+                    console.log("Dsc withdraw doc created:", newWithdraw);
+
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+            }
+            else if (event == "ConvertToNode") {
+                try {
+                    const { user,nodeName,lastUsedNonce } = returnValues;
+
+                        const nodeConverted = await NodeConverted.create({
+                        userAddress:user,
+                        nodeName:nodeName,
+                        time: Number(timestampNormal),
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash: transactionHash
+                        });
+
+                    console.log("Node converted doc created:", nodeConverted);
+
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+            }
             else {
                 console.log("Got no events!");
             }
@@ -127,7 +200,7 @@ async function updateBlock(updatedBlock) {
     }
 }
 
- const dscNodeListEvents = async () => {
+const dscNodeListEvents = async () => {
 
     try {
         let lastSyncBlock = await dscNodeSyncBlock();
