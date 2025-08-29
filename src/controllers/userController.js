@@ -9,6 +9,7 @@ const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 const { isAddress } = require("web3-validator");
 const Admin = require("../models/AdminModel");
 const NodeConverted = require("../models/NodeConvertedModel");
+const GapIncomeModel = require("../models/GapIncomeModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -395,6 +396,86 @@ const convertToNode = async (req, res, next) => {
     }
 }
 
+const getGapIncomeHistory = async(req,res,next)=>{
+    try{
+        let {userAddress,page=1,limit=10} = req.body;
+        // page starts from 1, limit defaults to 10
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Ensure numbers
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination metadata
+        const total = await GapIncomeModel.countDocuments({ receiverAddress:userAddress });
+
+        // Fetch paginated data
+        const gapIncomes = await GapIncomeModel.find({ receiverAddress:userAddress })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        return res.status(200).json({
+            success: true,
+            message: "Gap income history fetched successfully",
+            gapIncomes,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    }catch(error){
+        next(error);
+    }
+}
+
+const getWithdrawIncomeHistory = async(req, res, next)=>{
+    try{
+        let {userAddress,page=1,limit=10} = req.body;
+        // page starts from 1, limit defaults to 10
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Ensure numbers
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination metadata
+        const total = await WithdrawIncomeModel.countDocuments({ userAddress });
+
+        // Fetch paginated data
+        const withdrawIncomes = await WithdrawIncomeModel.find({ userAddress })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        return res.status(200).json({
+            success: true,
+            message: "Withdraw income history fetched successfully",
+            withdrawIncomes,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+
+    }catch(error){
+        next(error);
+    }
+}
 
 module.exports = {
     stakeVrs,
@@ -403,6 +484,8 @@ module.exports = {
     getUserStakings,
     withdrawIncomeUsdt,
     withdrawIncomeDsc,
-    convertToNode
+    convertToNode,
+    getGapIncomeHistory,
+    getWithdrawIncomeHistory
 };
 
