@@ -544,6 +544,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
         }
         if (docsToInsert.length > 0) {
             await GapIncomeModel.insertMany(docsToInsert);
+            await RegistrationModel.bulkWrite(bulkRegOps);
             ct({ uid: "344sds32q", message: "Gap income distributed successfully", docsCount: docsToInsert.length, senderAddress, currentRank, totalDistributed: percentDistributed });
         }
     } catch (error) {
