@@ -299,7 +299,7 @@ const registerUser = async (userAddress, time, sponsorAddress) => {
 
             await updateTeamCount(userAddress);
             await updateDirectCount(sponsorAddress);
-            await updateDirectBusiness(0, userAddress); // Assuming initial stake amount is 0
+            // await updateDirectBusiness(0, userAddress); // Assuming initial stake amount is 0
         }
     } catch (error) {
         console.error("Error registering user:", error);
@@ -577,4 +577,4 @@ const transferFundToLiquidityPool = async ()=>{
 }
 
 
-module.exports = { giveVrsForNodeConversion,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank }
+module.exports = { giveVrsForNodeConversion,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
