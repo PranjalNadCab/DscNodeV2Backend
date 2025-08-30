@@ -228,7 +228,7 @@ const dscNodeListEvents = async () => {
         }
         await updateBlock(toBlock);
 
-        setTimeout(dscNodeListEvents, 800);
+        setTimeout(dscNodeListEvents, 8000);
     } catch (error) {
         console.log("Error in dscNode Events:", error);
         setTimeout(dscNodeListEvents, 10000);

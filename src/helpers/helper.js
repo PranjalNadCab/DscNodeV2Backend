@@ -443,8 +443,12 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     currentRank: "$upline.currentRank",
                     level: "$upline.level"
                 }
+            },{
+                $sort: { level: 1 } // Sort by level in ascending order
             }
-        ])
+        ]);
+
+        console.log("userUpline", userUpline);
 
         const senderGrade = rankDuringStaking ? ranks.find(r => r.rank === rankDuringStaking)?.grade : 0;
 
@@ -481,9 +485,12 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
         let docsToInsert = [];
         const bulkRegOps = [];
         const lastPackagePercent = gapIncome["Mentor"]; // 18% of the total amount to distribute
+        const currTime = moment().unix();
+        let count = 0;
         for (let user of uniqueRankUsers) {
+            count++;
             assignedPercent = gapIncome[user.currentRank];
-            if (percentDistributed >= lastPackagePercent) { ct({ status: "Limit reached", lastPackagePercent, percentDistributed, userId: uplineUser.userId }); break; }
+            if (percentDistributed >= lastPackagePercent) { ct({ status: "Limit reached", lastPackagePercent, percentDistributed, userId: user.userAddress }); break; }
             const percentToDistribute = Number(new BigNumber(assignedPercent).minus(new BigNumber(percentDistributed)));
             const gapIncomeGenerated = new BigNumber(stakingAmountIn1e18).multipliedBy(percentToDistribute).toFixed();
 
@@ -500,7 +507,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 gapIncomeInDscInUsd: tokenUsd,
                 dscPrice: dscPrice.price ? dscPrice.price : 0,
                 percentReceived: percentToDistribute,
-                time: moment().unix(),
+                time: currTime,
                 stakingAmountInUsd: new BigNumber(stakingAmountIn1e18)
                     .dividedBy(1e18)
                     .toFixed(),
@@ -529,6 +536,8 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 }
             })
             ct({
+                uid:"jkr674",
+                count,
                 status: "Distributing gap income",
                 receiverAddress: user.userAddress,
                 receiverRank: user.currentRank,
@@ -564,7 +573,7 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     const usdt = ratioUsdtInBig.multipliedBy(part).toFixed(0);
     const tokenUsd = ratioDscInBig.multipliedBy(part).toFixed(0);
     const tokenUnits = tokenPriceInBig ? new BigNumber(tokenUsd).dividedBy(tokenPriceInBig).toFixed() : null;
-    ct({ total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
+    ct({uid:"589jkd34", total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
     return { usdt, tokenUsd, tokenUnits };
 }
 

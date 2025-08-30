@@ -77,7 +77,7 @@ const gapIncomeSchema = new mongoose.Schema({
     { timestamps: true}
 );
 
-gapIncomeSchema.index({ senderTotalStakedUsd:1, senderAddress: 1 }, { unique: true });
+gapIncomeSchema.index({ senderTotalStakedUsd:1, senderAddress: 1,receiverAddress:1,time:1 }, { unique: true });
 
  const GapIncomeModel = mongoose.model("gapIncome", gapIncomeSchema);
 
