@@ -567,7 +567,13 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     return { usdt, tokenUsd, tokenUnits };
 }
 
+const transferFundToLiquidityPool = async ()=>{
+    try{
 
+    }catch(error){
+        
+    }
+}
 
 
 module.exports = { giveVrsForNodeConversion,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank }

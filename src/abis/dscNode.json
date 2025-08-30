@@ -403,6 +403,32 @@
     },
     {
         "inputs": [],
+        "name": "mixDscPart",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "mixUsdtPart",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "operator",
         "outputs": [
             {
@@ -438,6 +464,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_usdtPart",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_dscPart",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMixRatio",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
