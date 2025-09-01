@@ -358,11 +358,13 @@ const convertToNode = async (req, res, next) => {
 
         const { userTotalStakeInUsd, currentNodeName } = userDoc;
 
-        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n => n.nodeName.toLowerCase() === currentNodeName.toLowerCase()) : -1;
+        // console.log("ksdfsg",nodeValidators)
+        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n => n.name.toLowerCase() === currentNodeName.toLowerCase()) : -1;
         if (currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
 
         const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd).multipliedBy(1e18);
 
+        ct({ userTotalStakeInUsdBN:userTotalStakeInUsdBN.toFixed(), requiredStake: nodeValidators[nodeIndexRequested].selfStaking });
         if (userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
 
 
@@ -378,7 +380,7 @@ const convertToNode = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+            throw new Error("Your previous Node conversion not stored yet! Please try again later.");
         }
 
 

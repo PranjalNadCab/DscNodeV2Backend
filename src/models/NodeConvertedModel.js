@@ -5,7 +5,6 @@ const NodeConvertedSchema = new mongoose.Schema({
     nodeName: {
         type: String,
         required: true,
-        unique: true
     },
     userAddress:{
         type:String,
@@ -31,7 +30,7 @@ const NodeConvertedSchema = new mongoose.Schema({
 },{ timestamps: true });
 
 
-NodeConvertedSchema.index({ userAddress: 1,transactionHash:1,nodeName:1 },{unique:true});
+NodeConvertedSchema.index({ userAddress: 1,nodeName:1 },{unique:true});
 
 const NodeConverted = mongoose.model("NodeConverted", NodeConvertedSchema);
 

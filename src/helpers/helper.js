@@ -577,13 +577,56 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     return { usdt, tokenUsd, tokenUnits };
 }
 
-const transferFundToLiquidityPool = async ()=>{
+const updateUserNodeInfo = async (user,nodeName,time)=>{
     try{
+        if(!user || !nodeName || !time) return;
+
+        const getUserDoc = await RegistrationModel.findOne({userAddress:user});
+        if(!getUserDoc) {console.log(`Invalid user address ${user}`); return};
+
+        let achievedNodes = getUserDoc.achievedNodes || [];
+        let currentNodeName = getUserDoc.currentNodeName || null;
+
+        const alreadyAchieved = achievedNodes.find(n => n.nodeName === nodeName);
+
+        if(alreadyAchieved){
+            console.log(`User ${user} has already achieved node ${nodeName}`);
+            return;
+        }
+        const adminDoc = await AdminModel.findOne({});
+        if(!adminDoc){
+            console.log("Admin doc not found");
+            return;
+        }
+        const nodeInfo = adminDoc.nodeValidators.find(n => n.name === nodeName);
+        if(!nodeInfo){
+            console.log(`Invalid node name ${nodeName}`);
+            return;
+        }
+        achievedNodes.push({
+            nodeName:nodeName,
+            achievedAt:time,
+            reward:nodeInfo.reward
+        });
+
+        const updatedUser = await RegistrationModel.findOneAndUpdate(
+            { userAddress: user },
+            { $set: { achievedNodes: achievedNodes, currentNodeName: nodeName } },
+            { new: true }
+        );
+
+        if(!updatedUser){
+            console.log(`Failed to update user ${user} node info`);
+        }
+        else{
+            console.log(`User ${user} node info updated successfully`);
+        }
+
 
     }catch(error){
-        
+        console.log(error);
     }
 }
 
 
-module.exports = { giveVrsForNodeConversion,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
+module.exports = { giveVrsForNodeConversion,updateUserNodeInfo,updateUserNodeInfo,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
