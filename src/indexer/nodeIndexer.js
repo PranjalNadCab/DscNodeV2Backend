@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -123,6 +123,8 @@ async function processEvents(events) {
 
                      console.log("Usdt withdraw doc created:", newWithdraw);
 
+                        await manageUserWallet(userAddress,new BigNumber(amountUsdt).toFixed(),null);
+
                 } catch (error) {
                     console.log(error);
                     continue;
@@ -147,6 +149,8 @@ async function processEvents(events) {
                         });
 
                     console.log("Dsc withdraw doc created:", newWithdraw);
+
+                    await manageUserWallet(userAddress,null,new BigNumber(amountDsc).toFixed());
 
 
                 } catch (error) {

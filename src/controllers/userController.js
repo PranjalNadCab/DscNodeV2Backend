@@ -234,7 +234,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForWithdrawIncome(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+            throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
 
@@ -312,7 +312,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForWithdrawIncome(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            // throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+            throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
 

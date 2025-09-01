@@ -628,5 +628,45 @@ const updateUserNodeInfo = async (user,nodeName,time)=>{
     }
 }
 
+const manageUserWallet = async (user,amountInUsdt=null,amountInDsc=null)=>{
+    try{
 
-module.exports = { giveVrsForNodeConversion,updateUserNodeInfo,updateUserNodeInfo,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
+
+    
+        if(!user) return;
+        const fUser = giveCheckSummedAddress(user);
+        const userDoc = await RegistrationModel.findOne({userAddress:fUser});
+        if(!userDoc) {
+            console.log("User not found for address:", fUser);
+            return;
+        }
+
+        let newDscIncomeWallet = userDoc.dscIncomeWallet || "0";
+        let newUsdtIncomeWallet = userDoc.usdtIncomeWallet || "0";
+
+        if(amountInUsdt && Number(amountInUsdt) > 0){
+            newUsdtIncomeWallet = new BigNumber(newUsdtIncomeWallet).minus(new BigNumber(amountInUsdt)).toFixed(0);
+        }
+
+        if(amountInDsc && Number(amountInDsc) > 0){
+            newDscIncomeWallet = new BigNumber(newDscIncomeWallet).minus(new BigNumber(amountInDsc)).toFixed(0);
+        }
+
+        const updatedUser = await RegistrationModel.findOneAndUpdate(
+            { userAddress: fUser },
+            { $set: { dscIncomeWallet: newDscIncomeWallet, usdtIncomeWallet: newUsdtIncomeWallet } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            console.log("Failed to update user wallet for address:", fUser);
+        } else {
+            console.log("User wallet updated successfully for address:", fUser);
+        }
+    }catch(error){
+        console.log(error);
+    }
+}
+
+
+module.exports = {manageUserWallet, giveVrsForNodeConversion,updateUserNodeInfo,updateUserNodeInfo,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
