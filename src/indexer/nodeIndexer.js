@@ -132,14 +132,14 @@ async function processEvents(events) {
             }
             else if (event == "WithdrawIncomeDsc") {
                 try {
-                    const { amountDsc,amountDscInUsd,amountDscAfterDeductionuserAddress,amountDscInUsdAfterDeduction,rateDollarPerDsc,userAddress, lastUsedNonce } = returnValues;
+                    const { amountDsc,amountDscInUsd,amountDscAfterDeduction,amountDscInUsdAfterDeduction,rateDollarPerDsc,userAddress, lastUsedNonce } = returnValues;
 
                         const newWithdraw = await WithdrawIncomeModel.create({
                         userAddress,
                         amountInUsdt: null,
                         amountInUsdtAfterDeduction: null,
                         amountInDsc: new BigNumber(amountDsc).toFixed(),
-                        amountInDscAfterDeduction: new BigNumber(amountDscAfterDeductionuserAddress).toFixed(),
+                        amountInDscAfterDeduction: new BigNumber(amountDscAfterDeduction).toFixed(),
                         amountInDscInUsd: new BigNumber(amountDscInUsd).toFixed(),
                         amountInDscInUsdAfterDeduction: new BigNumber(amountDscInUsdAfterDeduction).toFixed(),
                         time: Number(timestampNormal),
