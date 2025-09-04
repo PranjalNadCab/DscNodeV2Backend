@@ -93,7 +93,7 @@ async function processEvents(events) {
 
 
                     await updateUserTotalSelfStakeUsdt(userAddress, totalUsd);
-                    await updateDirectBusiness(totalUsd,userAddress)
+                    await updateDirectBusiness(totalUsd, userAddress)
                     await manageRank(userAddress);
                     await giveGapIncome(userAddress, totalUsd, rankDuringStaking, amountUsdt, amountDscInUsd);
 
@@ -107,7 +107,7 @@ async function processEvents(events) {
                 try {
                     const { userAddress, amountUsdt, amountUsdtAfterDeduction, lastUsedNonce } = returnValues;
 
-                     const newWithdraw = await WithdrawIncomeModel.create({
+                    const newWithdraw = await WithdrawIncomeModel.create({
                         userAddress,
                         amountInUsdt: new BigNumber(amountUsdt).toFixed(),
                         amountInUsdtAfterDeduction: new BigNumber(amountUsdtAfterDeduction).toFixed(),
@@ -119,11 +119,11 @@ async function processEvents(events) {
                         lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
                         transactionHash: transactionHash
-                     });
+                    });
 
-                     console.log("Usdt withdraw doc created:", newWithdraw);
+                    console.log("Usdt withdraw doc created:", newWithdraw);
 
-                        await manageUserWallet(userAddress,new BigNumber(amountUsdt).toFixed(),null);
+                    await manageUserWallet(userAddress, new BigNumber(amountUsdt).toFixed(), null);
 
                 } catch (error) {
                     console.log(error);
@@ -132,9 +132,9 @@ async function processEvents(events) {
             }
             else if (event == "WithdrawIncomeDsc") {
                 try {
-                    const { amountDsc,amountDscInUsd,amountDscAfterDeduction,amountDscInUsdAfterDeduction,rateDollarPerDsc,userAddress, lastUsedNonce } = returnValues;
+                    const { amountDsc, amountDscInUsd, amountDscAfterDeduction, amountDscInUsdAfterDeduction, rateDollarPerDsc, userAddress, lastUsedNonce } = returnValues;
 
-                        const newWithdraw = await WithdrawIncomeModel.create({
+                    const newWithdraw = await WithdrawIncomeModel.create({
                         userAddress,
                         amountInUsdt: null,
                         amountInUsdtAfterDeduction: null,
@@ -146,11 +146,11 @@ async function processEvents(events) {
                         lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
                         transactionHash: transactionHash
-                        });
+                    });
 
                     console.log("Dsc withdraw doc created:", newWithdraw);
 
-                    await manageUserWallet(userAddress,null,new BigNumber(amountDsc).toFixed());
+                    await manageUserWallet(userAddress, null, new BigNumber(amountDsc).toFixed());
 
 
                 } catch (error) {
@@ -160,20 +160,20 @@ async function processEvents(events) {
             }
             else if (event == "ConvertToNode") {
                 try {
-                    const { user,nodeName,lastUsedNonce } = returnValues;
+                    const { user, nodeName, lastUsedNonce } = returnValues;
 
-                        const nodeConverted = await NodeConverted.create({
-                        userAddress:user,
-                        nodeName:nodeName,
+                    const nodeConverted = await NodeConverted.create({
+                        userAddress: user,
+                        nodeName: nodeName,
                         time: Number(timestampNormal),
                         lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
                         transactionHash: transactionHash
-                        });
+                    });
 
                     console.log("Node converted doc created:", nodeConverted);
 
-                    await updateUserNodeInfo(user,nodeName,Number(timestampNormal));
+                    await updateUserNodeInfo(user, nodeName, Number(timestampNormal));
 
 
                 } catch (error) {

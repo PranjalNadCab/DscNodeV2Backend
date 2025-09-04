@@ -12,7 +12,7 @@ const ct = (payload) => {
     console.table(payload);
 };
 
-const generateDefaultAdminDoc = async ()=>{
+const generateDefaultAdminDoc = async () => {
     try {
         const existingAdmin = await AdminModel.findOne({});
         if (!existingAdmin) {
@@ -28,12 +28,12 @@ const generateDefaultAdminDoc = async ()=>{
                     { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0) },
                     { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0) },
                     { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0) },
-                
+
                 ],
                 stakeRatio: {
-                    part1:7,
-                    part2:3
-                } 
+                    part1: 7,
+                    part2: 3
+                }
             });
             await defaultAdmin.save();
             console.log("Default admin document created.");
@@ -86,7 +86,7 @@ function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e
     });
 }
 
-function giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, user, hash, nonce,amountUsdtIn1e18AfterDeduction) {
+function giveVrsForWithdrawIncomeUsdt(amountUsdtIn1e18, user, hash, nonce, amountUsdtIn1e18AfterDeduction) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -99,7 +99,7 @@ function giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, user, hash, nonce,amoun
                 amountUsdtIn1e18,
                 amountUsdtIn1e18AfterDeduction,
             };
-       
+
 
 
             const account = web3.eth.accounts.privateKeyToAccount(
@@ -119,7 +119,7 @@ function giveVrsForWithdrawIncomeUsdt( amountUsdtIn1e18, user, hash, nonce,amoun
     });
 }
 
-function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, user, hash, nonce,amountDscInUsdIn1e18AfterDeduction,amountDscIn1e18AfterDeduction) {
+function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, user, hash, nonce, amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -136,7 +136,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
                 amountDscInUsdIn1e18AfterDeduction,
                 amountDscIn1e18AfterDeduction
             };
-       
+
 
 
             const account = web3.eth.accounts.privateKeyToAccount(
@@ -156,7 +156,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
-function giveVrsForNodeConversion(userAddress,nodeName,currNonce,hash) {
+function giveVrsForNodeConversion(userAddress, nodeName, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -166,9 +166,9 @@ function giveVrsForNodeConversion(userAddress,nodeName,currNonce,hash) {
                 hash: hash,
                 nonce: currNonce,
                 userAddress: userAddress,
-                nodeName:nodeName
+                nodeName: nodeName
             };
-       
+
 
 
             const account = web3.eth.accounts.privateKeyToAccount(
@@ -291,7 +291,9 @@ const registerUser = async (userAddress, time, sponsorAddress) => {
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
+            const uniqueRandomId = await generateRandomId();
             const newUser = await RegistrationModel.create({
+                uniqueRandomId: uniqueRandomId,
                 userAddress,
                 sponsorAddress,
                 time: time || Math.floor(Date.now() / 1000)
@@ -443,7 +445,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     currentRank: "$upline.currentRank",
                     level: "$upline.level"
                 }
-            },{
+            }, {
                 $sort: { level: 1 } // Sort by level in ascending order
             }
         ]);
@@ -536,7 +538,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 }
             })
             ct({
-                uid:"jkr674",
+                uid: "jkr674",
                 count,
                 status: "Distributing gap income",
                 receiverAddress: user.userAddress,
@@ -573,40 +575,40 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     const usdt = ratioUsdtInBig.multipliedBy(part).toFixed(0);
     const tokenUsd = ratioDscInBig.multipliedBy(part).toFixed(0);
     const tokenUnits = tokenPriceInBig ? new BigNumber(tokenUsd).dividedBy(tokenPriceInBig).toFixed() : null;
-    ct({uid:"589jkd34", total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
+    ct({ uid: "589jkd34", total, ratioUsdt, ratioDscInUsd, part: part.toFixed(0), usdt, tokenUsd, tokenUnits });
     return { usdt, tokenUsd, tokenUnits };
 }
 
-const updateUserNodeInfo = async (user,nodeName,time)=>{
-    try{
-        if(!user || !nodeName || !time) return;
+const updateUserNodeInfo = async (user, nodeName, time) => {
+    try {
+        if (!user || !nodeName || !time) return;
 
-        const getUserDoc = await RegistrationModel.findOne({userAddress:user});
-        if(!getUserDoc) {console.log(`Invalid user address ${user}`); return};
+        const getUserDoc = await RegistrationModel.findOne({ userAddress: user });
+        if (!getUserDoc) { console.log(`Invalid user address ${user}`); return };
 
         let achievedNodes = getUserDoc.achievedNodes || [];
         let currentNodeName = getUserDoc.currentNodeName || null;
 
         const alreadyAchieved = achievedNodes.find(n => n.nodeName === nodeName);
 
-        if(alreadyAchieved){
+        if (alreadyAchieved) {
             console.log(`User ${user} has already achieved node ${nodeName}`);
             return;
         }
         const adminDoc = await AdminModel.findOne({});
-        if(!adminDoc){
+        if (!adminDoc) {
             console.log("Admin doc not found");
             return;
         }
         const nodeInfo = adminDoc.nodeValidators.find(n => n.name === nodeName);
-        if(!nodeInfo){
+        if (!nodeInfo) {
             console.log(`Invalid node name ${nodeName}`);
             return;
         }
         achievedNodes.push({
-            nodeName:nodeName,
-            achievedAt:time,
-            reward:nodeInfo.reward
+            nodeName: nodeName,
+            achievedAt: time,
+            reward: nodeInfo.reward
         });
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
@@ -615,28 +617,28 @@ const updateUserNodeInfo = async (user,nodeName,time)=>{
             { new: true }
         );
 
-        if(!updatedUser){
+        if (!updatedUser) {
             console.log(`Failed to update user ${user} node info`);
         }
-        else{
+        else {
             console.log(`User ${user} node info updated successfully`);
         }
 
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
 
-const manageUserWallet = async (user,amountInUsdt=null,amountInDsc=null)=>{
-    try{
+const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) => {
+    try {
 
 
-    
-        if(!user) return;
+
+        if (!user) return;
         const fUser = giveCheckSummedAddress(user);
-        const userDoc = await RegistrationModel.findOne({userAddress:fUser});
-        if(!userDoc) {
+        const userDoc = await RegistrationModel.findOne({ userAddress: fUser });
+        if (!userDoc) {
             console.log("User not found for address:", fUser);
             return;
         }
@@ -644,11 +646,11 @@ const manageUserWallet = async (user,amountInUsdt=null,amountInDsc=null)=>{
         let newDscIncomeWallet = userDoc.dscIncomeWallet || "0";
         let newUsdtIncomeWallet = userDoc.usdtIncomeWallet || "0";
 
-        if(amountInUsdt && Number(amountInUsdt) > 0){
+        if (amountInUsdt && Number(amountInUsdt) > 0) {
             newUsdtIncomeWallet = new BigNumber(newUsdtIncomeWallet).minus(new BigNumber(amountInUsdt)).toFixed(0);
         }
 
-        if(amountInDsc && Number(amountInDsc) > 0){
+        if (amountInDsc && Number(amountInDsc) > 0) {
             newDscIncomeWallet = new BigNumber(newDscIncomeWallet).minus(new BigNumber(amountInDsc)).toFixed(0);
         }
 
@@ -663,10 +665,35 @@ const manageUserWallet = async (user,amountInUsdt=null,amountInDsc=null)=>{
         } else {
             console.log("User wallet updated successfully for address:", fUser);
         }
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
 
+export const generateRandomId = async () => {
+    try {
+        let newRandomId;
+        let isUnique = false;
 
-module.exports = {manageUserWallet, giveVrsForNodeConversion,updateUserNodeInfo,updateUserNodeInfo,generateDefaultAdminDoc,ct,giveVrsForWithdrawIncomeDsc,giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank ,updateDirectBusiness}
+        while (!isUnique) {
+            newRandomId = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6-digit random ID
+
+            // Check if ID exists in the database
+            const existingUser = await RegistrationModel.findOne(
+                { uniqueRandomId: newRandomId },
+                { _id: 1 }
+            );
+
+            if (!existingUser) {
+                isUnique = true;
+            }
+        }
+
+        return newRandomId;
+    } catch (error) {
+        console.error("Error generating unique random ID:", error);
+        throw new Error("Failed to generate unique random ID");
+    }
+};
+
+module.exports = { manageUserWallet, giveVrsForNodeConversion, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }

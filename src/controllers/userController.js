@@ -364,7 +364,7 @@ const convertToNode = async (req, res, next) => {
 
         const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd).multipliedBy(1e18);
 
-        ct({ userTotalStakeInUsdBN:userTotalStakeInUsdBN.toFixed(), requiredStake: nodeValidators[nodeIndexRequested].selfStaking });
+        ct({ userTotalStakeInUsdBN: userTotalStakeInUsdBN.toFixed(), requiredStake: nodeValidators[nodeIndexRequested].selfStaking });
         if (userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
 
 
@@ -398,9 +398,9 @@ const convertToNode = async (req, res, next) => {
     }
 }
 
-const getGapIncomeHistory = async(req,res,next)=>{
-    try{
-        let {userAddress,page=1,limit=10} = req.body;
+const getGapIncomeHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
         // page starts from 1, limit defaults to 10
 
         if (!userAddress) throw new Error("Please provide user address.");
@@ -414,10 +414,10 @@ const getGapIncomeHistory = async(req,res,next)=>{
         const skip = (page - 1) * limit;
 
         // Get total count for pagination metadata
-        const total = await GapIncomeModel.countDocuments({ receiverAddress:userAddress });
+        const total = await GapIncomeModel.countDocuments({ receiverAddress: userAddress });
 
         // Fetch paginated data
-        const gapIncomes = await GapIncomeModel.find({ receiverAddress:userAddress })
+        const gapIncomes = await GapIncomeModel.find({ receiverAddress: userAddress })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -433,14 +433,14 @@ const getGapIncomeHistory = async(req,res,next)=>{
                 totalPages: Math.ceil(total / limit)
             }
         });
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
-const getWithdrawIncomeHistory = async(req, res, next)=>{
-    try{
-        let {userAddress,page=1,limit=10} = req.body;
+const getWithdrawIncomeHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
         // page starts from 1, limit defaults to 10
 
         if (!userAddress) throw new Error("Please provide user address.");
@@ -474,7 +474,7 @@ const getWithdrawIncomeHistory = async(req, res, next)=>{
             }
         });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }

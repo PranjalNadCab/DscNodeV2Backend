@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 
 const RegistrationSchema = new mongoose.Schema({
+    uniqueRandomId:{
+        type: String,
+        required: true,
+        unique: true
+    },
     userAddress: {
         type: String,
         required: true,
