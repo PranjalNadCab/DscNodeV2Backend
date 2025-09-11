@@ -6,6 +6,8 @@ const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
 const NodeConverted = require("../models/NodeConvertedModel.js");
+const NodesRegistered = require("../models/NodeRegistrationModel.js");
+const UpgradedNodes = require("../models/UpgradeNodeModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -180,6 +182,59 @@ async function processEvents(events) {
                     console.log(error);
                     continue;
                 }
+            }
+            else if (event == "NodeRegistered") {
+                try {
+                    let { user, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
+                    amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
+                    majorIncome = new BigNumber(majorIncome).toFixed(0);
+                    minor4Income = new BigNumber(minor4Income).toFixed(0);
+
+                    const newReg = await NodesRegistered.create({
+                        userAddress: user,
+                        amountUsdtPaid,
+                        majorIncome,
+                        minor4Income,
+                        time: Number(timestampNormal),
+                        block: Number(block),
+                        transactionHash: transactionHash
+                    });
+                    ct(newReg)
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+
+
+
+            }
+            else if (event == "UpgradeNode") {
+                try {
+                    let { user, nodeName, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
+                    amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
+                    majorIncome = new BigNumber(majorIncome).toFixed(0);
+                    minor4Income = new BigNumber(minor4Income).toFixed(0);
+
+                    const upgradeNode = await UpgradedNodes.create({
+                        userAddress: user,
+                        nodeName,
+                        lastUsedNonce: Number(lastUsedNonce),
+                        amountUsdtPaid,
+                        majorIncome,
+                        minor4Income,
+                        time: Number(timestampNormal),
+                        block: Number(block),
+                        transactionHash: transactionHash
+                    });
+
+                    ct(upgradeNode)
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+
             }
             else {
                 console.log("Got no events!");

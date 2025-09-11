@@ -64,6 +64,10 @@ const RegistrationSchema = new mongoose.Schema({
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
     },
+    isNodeRegDone:{
+        type: Boolean,
+        default: false
+    },
     achievedNodes:{
         type: [{
             nodeName: { type: String, required: true },

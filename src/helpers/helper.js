@@ -670,7 +670,7 @@ const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) =
     }
 }
 
-export const generateRandomId = async () => {
+ const generateRandomId = async () => {
     try {
         let newRandomId;
         let isUnique = false;
@@ -696,4 +696,4 @@ export const generateRandomId = async () => {
     }
 };
 
-module.exports = { manageUserWallet, giveVrsForNodeConversion, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
+module.exports = { manageUserWallet,generateRandomId, giveVrsForNodeConversion, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
