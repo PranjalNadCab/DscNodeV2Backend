@@ -6,6 +6,7 @@ const GapIncomeModel = require("../models/GapIncomeModel");
 const moment = require("moment");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
 const AdminModel = require("../models/AdminModel");
+const Admin = require("../models/AdminModel");
 
 
 const ct = (payload) => {
@@ -156,7 +157,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
-function giveVrsForNodeConversion(userAddress, nodeName, currNonce, hash) {
+function giveVrsForNodeConversionAndRegistration(userAddress, action,amountInUsdt, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -166,7 +167,8 @@ function giveVrsForNodeConversion(userAddress, nodeName, currNonce, hash) {
                 hash: hash,
                 nonce: currNonce,
                 userAddress: userAddress,
-                nodeName: nodeName
+                action: action,
+                amountInUsdt
             };
 
 
@@ -696,4 +698,19 @@ const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) =
     }
 };
 
-module.exports = { manageUserWallet,generateRandomId, giveVrsForNodeConversion, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
+const giveAdminSettings = async ()=>{
+    try{
+
+        const {withdrawDeductionPercent=null,nodeValidators=null,stakeRatio=null} = await Admin.findOne({});
+
+         
+
+        return {withdrawDeductionPercent,nodeValidators,stakeRatio}
+
+    }catch(error){
+        console.log(error);
+        return {withdrawDeductionPercent:null,nodeValidators:null,stakeRatio:null} 
+    }
+}
+
+module.exports = {giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }

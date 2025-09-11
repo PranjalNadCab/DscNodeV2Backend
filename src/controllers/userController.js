@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversion } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
@@ -386,7 +386,7 @@ const convertToNode = async (req, res, next) => {
 
         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeName).call();
 
-        const vrsSign = await giveVrsForNodeConversion(userAddress, nodeName, Number(currNonce), hash);
+        const vrsSign = await giveVrsForNodeConversionAndRegistration(userAddress, nodeName, Number(currNonce), hash);
 
 
 
@@ -493,13 +493,46 @@ const nodeRegistration = async (req,res,next)=>{
 
         if (!userDoc) throw new Error("User not found.");
 
-        if(userDoc.isNodeRegDone) throw new Error("Node Registration already done.");
+        const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+
+        if(isRegistered) throw new Error("You have already registered!");
+
+        const {nodeValidators} = await giveAdminSettings();
+
+        let amountToDeduct = new BigNumber(nodeValidators[0].selfStaking*0.1 || 300).multipliedBy(1e18).toFixed();
+
+        const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress);
+
+        if(Number(currNonce) !== 0)throw new Error("You have already registered!");
+
+        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, nodeName).call();
 
 
         //make VRS
 
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,"Registration",amountToDeduct,Number(currNonce),hash);
 
-        return res.status(200).json({ success: true, message: "Node registered successfully", registration });
+
+
+        return res.status(200).json({ success: true, message: "Node registered successfully", nodeValidators,vrs });
+
+    }catch(error){
+        next(error);
+    }
+}
+
+const upgradeNode = async(req,res,next)=>{
+    try{
+
+        let {userAddress,nodeName} = req.body;
+
+        if (!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
+        if (typeof nodeName !== "string") throw new Error("Node name must be a string.");
+
+        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        
 
     }catch(error){
         next(error);
@@ -508,6 +541,7 @@ const nodeRegistration = async (req,res,next)=>{
 
 module.exports = {
     stakeVrs,
+    upgradeNode,
     getLiveDscPrice,
     getUserInfo,
     getUserStakings,

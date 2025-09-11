@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, convertToNode, getGapIncomeHistory, getWithdrawIncomeHistory, nodeRegistration } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, convertToNode, getGapIncomeHistory, getWithdrawIncomeHistory, nodeRegistration, upgradeNode } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -14,6 +14,8 @@ router.post("/convert-to-node",convertToNode);
 router.post("/get-gap-income-history",getGapIncomeHistory);
 router.post("/withdraw-income-history",getWithdrawIncomeHistory);
 router.post("/node-registration",nodeRegistration);
+router.post("/upgrade-node",upgradeNode);
+
 
 
 

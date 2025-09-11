@@ -258,7 +258,7 @@ async function updateBlock(updatedBlock) {
             console.log("Something went wrong updating the block!");
         }
     } catch (e) {
-        console.log("Error updating block:", error);
+        console.log("Error updating block:", e);
     }
 }
 
