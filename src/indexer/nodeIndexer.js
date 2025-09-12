@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -202,7 +202,17 @@ async function processEvents(events) {
                         block: Number(block),
                         transactionHash: transactionHash
                     });
-                    ct(newReg)
+                    console.log("New node registered",newReg)
+
+                    const regDoc = await RegistrationModel.findOne({ userAddress: user });
+                    if(!regDoc){
+                        console.log("No registration doc found for user while registering node:",user);
+                    }
+                    const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
+
+                    regDoc.nodePurchasingBalance = updatedBalance;
+                    regDoc.isNodeRegDone = true;
+                    await regDoc.save();
 
                 } catch (error) {
                     console.log(error);
@@ -218,12 +228,14 @@ async function processEvents(events) {
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
+                    oldBalance = new BigNumber(oldBalance).toFixed(0);
 
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
                         nodeName,
                         lastUsedNonce: Number(lastUsedNonce),
                         nodeNum:Number(nodeNum),
+                        oldBalance,
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,
@@ -232,7 +244,25 @@ async function processEvents(events) {
                         transactionHash: transactionHash
                     });
 
-                    ct(upgradeNode)
+                    console.log("Node upgraded doc created:", upgradeNode);
+                    const regDoc = await RegistrationModel.findOne({ userAddress: user });
+                    if(!regDoc){
+                        console.log("No registration doc found for user while upgrading node:",user);
+                    }
+                    const {nodePurchasingBalance} = regDoc;
+                    const {nodeValidators} = await giveAdminSettings();
+                    const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+                    const nodePrice = new BigNumber(myNode ? myNode.selfStaking : "0").multipliedBy(0.1).toFixed();
+                    if(new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)){
+                        regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
+                        regDoc.currentNodeName = nodeName;
+                        regDoc.achievedNodes.push({nodeName,achievedAt:Number(timestampNormal),reward:myNode ? myNode.reward : 0});
+                        await regDoc.save();
+                    }else {
+                        //update nodepurchasing balance to zero
+                        regDoc.nodePurchasingBalance = "0";
+                        await regDoc.save();
+                    }
 
                 } catch (error) {
                     console.log(error);
@@ -293,7 +323,7 @@ const dscNodeListEvents = async () => {
         }
         await updateBlock(toBlock);
 
-        setTimeout(dscNodeListEvents, 8000);
+        setTimeout(dscNodeListEvents, 5000);
     } catch (error) {
         console.log("Error in dscNode Events:", error);
         setTimeout(dscNodeListEvents, 10000);
