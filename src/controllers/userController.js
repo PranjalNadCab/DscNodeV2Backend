@@ -498,8 +498,8 @@ const nodeRegistration = async (req,res,next)=>{
         if(isRegistered) throw new Error("You have already registered!");
 
         const {nodeValidators} = await giveAdminSettings();
-
-        let amountToDeduct = new BigNumber(nodeValidators[0].selfStaking*0.1 || 300).multipliedBy(1e18).toFixed();
+        // [0].selfStaking*0.1
+        let amountToDeduct = new BigNumber(nodeValidators.find(n=>n.nodeNum===1).selfStaking*0.1).toFixed() || new BigNumber(300).multipliedBy(1e18).toFixed();
 
         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
 

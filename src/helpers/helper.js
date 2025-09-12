@@ -156,7 +156,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
-function giveVrsForNodeConversionAndRegistration(userAddress,amountInUsdt, action,nodeNum,nodePurchasingBalance, currNonce, hash) {
+function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, action,nodeNum,nodePurchasingBalance, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -167,7 +167,7 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountInUsdt, actio
                 nonce: currNonce,
                 userAddress: userAddress,
                 action: action,
-                amountInUsdt,
+                amountToDeduct,
                 nodeNum,
                 nodePurchasingBalance
             };
