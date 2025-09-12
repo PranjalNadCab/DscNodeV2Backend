@@ -185,7 +185,7 @@ async function processEvents(events) {
             }
             else if (event == "NodeRegistered") {
                 try {
-                    let { user, amountUsdtPaid, majorIncome, minor4Income,nodeNum,oldBalance } = returnValues;
+                    let { user, amountUsdtPaid, majorIncome, minor4Income, nodeNum, oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -197,16 +197,16 @@ async function processEvents(events) {
                         majorIncome,
                         minor4Income,
                         oldBalance,
-                        nodeNum:Number(nodeNum),
+                        nodeNum: Number(nodeNum),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash
                     });
-                    console.log("New node registered",newReg)
+                    console.log("New node registered", newReg)
 
                     const regDoc = await RegistrationModel.findOne({ userAddress: user });
-                    if(!regDoc){
-                        console.log("No registration doc found for user while registering node:",user);
+                    if (!regDoc) {
+                        console.log("No registration doc found for user while registering node:", user);
                     }
                     const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
 
@@ -224,7 +224,7 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeName,nodeNum, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income,oldBalance } = returnValues;
+                    let { user, nodeName, nodeNum, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -234,7 +234,7 @@ async function processEvents(events) {
                         userAddress: user,
                         nodeName,
                         lastUsedNonce: Number(lastUsedNonce),
-                        nodeNum:Number(nodeNum),
+                        nodeNum: Number(nodeNum),
                         oldBalance,
                         amountUsdtPaid,
                         majorIncome,
@@ -246,23 +246,24 @@ async function processEvents(events) {
 
                     console.log("Node upgraded doc created:", upgradeNode);
                     const regDoc = await RegistrationModel.findOne({ userAddress: user });
-                    if(!regDoc){
-                        console.log("No registration doc found for user while upgrading node:",user);
+                    if (!regDoc) {
+                        console.log("No registration doc found for user while upgrading node:", user);
                     }
-                    const {nodePurchasingBalance} = regDoc;
-                    const {nodeValidators} = await giveAdminSettings();
+                    const { nodePurchasingBalance } = regDoc;
+                    const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
                     const nodePrice = new BigNumber(myNode ? myNode.selfStaking : "0").multipliedBy(0.1).toFixed();
-                    if(new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)){
+                    if (new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)) {
                         regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
-                        regDoc.currentNodeName = nodeName;
-                        regDoc.achievedNodes.push({nodeName,achievedAt:Number(timestampNormal),reward:myNode ? myNode.reward : 0});
-                        await regDoc.save();
-                    }else {
+
+                    } else {
                         //update nodepurchasing balance to zero
                         regDoc.nodePurchasingBalance = "0";
-                        await regDoc.save();
+
                     }
+                    regDoc.currentNodeName = nodeName;
+                    regDoc.achievedNodes.push({ nodeName, achievedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
+                    await regDoc.save();
 
                 } catch (error) {
                     console.log(error);
