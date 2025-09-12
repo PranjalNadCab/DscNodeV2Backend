@@ -185,7 +185,7 @@ async function processEvents(events) {
             }
             else if (event == "NodeRegistered") {
                 try {
-                    let { user, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
+                    let { user, amountUsdtPaid, majorIncome, minor4Income,nodeNum,oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -195,6 +195,7 @@ async function processEvents(events) {
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,
+                        nodeNum:Number(nodeNum),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash
@@ -211,7 +212,7 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeName, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
+                    let { user, nodeName,nodeNum, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income,oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -220,6 +221,7 @@ async function processEvents(events) {
                         userAddress: user,
                         nodeName,
                         lastUsedNonce: Number(lastUsedNonce),
+                        nodeNum:Number(nodeNum),
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,

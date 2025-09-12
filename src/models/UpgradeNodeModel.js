@@ -12,6 +12,10 @@ const UpgradeNodeSchema = new mongoose.Schema({
         required: true,
         trim:true
     },
+    nodeNum:{
+        type:Number,
+        default:null
+    },
     lastUsedNonce:{
         type:Number,
         required:true
@@ -25,6 +29,10 @@ const UpgradeNodeSchema = new mongoose.Schema({
         required:true
     },
     minor4Income:{
+        type:String,
+        required:true
+    },
+    oldBalance:{
         type:String,
         required:true
     },
