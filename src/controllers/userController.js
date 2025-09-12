@@ -537,10 +537,11 @@ const upgradeNode = async(req,res,next)=>{
 
         if(!isRegistered) throw new Error("You have not registered for node upgradation!");
 
-        const regDoc = await RegistrationModel.find({userAddress});
+        const regDoc = await RegistrationModel.findOne({userAddress});
         if(!regDoc) throw new Error("Please do your first staking for registration");
 
         const {userTotalStakeInUsd,nodePurchasingBalance="0"} = regDoc;
+        console.log("kldsfgsdfg",nodePurchasingBalance,regDoc);
 
         const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({userAddress,nodeNum:Number(nodeNum)});
 
@@ -552,13 +553,15 @@ const upgradeNode = async(req,res,next)=>{
 
         if(!myNode) throw new Error("Node not found");
 
-        const reqSelfStaking = new BigNumber(myNode.selfStaking).multipliedBy(1e18);
+        const reqSelfStaking = new BigNumber(myNode.selfStaking);
 
         if(new BigNumber(userTotalStakeInUsd).isLessThan(reqSelfStaking.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
 
         let amountToDeduct = "0"
+        ct({nodePurchasingBalance,reqSelfStaking: reqSelfStaking.toFixed()})
         if(new BigNumber(nodePurchasingBalance).isLessThan(reqSelfStaking)) {
             amountToDeduct = BigNumber.max(reqSelfStaking.multipliedBy(0.1).minus(nodePurchasingBalance), 0);
+            console.log(amountToDeduct.toFixed())
 
         }
 
@@ -575,7 +578,7 @@ const upgradeNode = async(req,res,next)=>{
             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
-        ct({amountToDeduct})
+        ct({uid:"kdgsdrg",type:typeof amountToDeduct});
         const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(),myNode.name,myNode.nodeNum,nodePurchasingBalance).call();
 
         const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct.toFixed(0),myNode.name,myNode.nodeNum,nodePurchasingBalance,Number(currNonce),hash);
