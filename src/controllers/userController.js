@@ -555,7 +555,7 @@ const upgradeNode = async(req,res,next)=>{
 
         const reqSelfStaking = new BigNumber(myNode.selfStaking);
 
-        if(new BigNumber(userTotalStakeInUsd).isLessThan(reqSelfStaking.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
+        if(new BigNumber(userTotalStakeInUsd).multipliedBy(1e18).isLessThan(reqSelfStaking.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
 
         let amountToDeduct = "0"
         ct({nodePurchasingBalance,reqSelfStaking: reqSelfStaking.toFixed()})
