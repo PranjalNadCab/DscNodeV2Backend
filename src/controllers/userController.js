@@ -94,9 +94,9 @@ const stakeVrs = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            // throw new Error("Your previous stake is not stored yet! Please try again later.");
+            throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
-
+        
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
 
         const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, Number(currNonce));
