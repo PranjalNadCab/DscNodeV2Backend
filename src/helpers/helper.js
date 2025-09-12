@@ -167,7 +167,9 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountInUsdt, actio
                 nonce: currNonce,
                 userAddress: userAddress,
                 action: action,
-                amountInUsdt
+                amountInUsdt,
+                nodeNum,
+                nodePurchasingBalance
             };
 
 

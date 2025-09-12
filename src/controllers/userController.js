@@ -484,8 +484,7 @@ const nodeRegistration = async (req,res,next)=>{
     try{
         let { userAddress } = req.body;
         const {nodeName} = req.body;
-        if (!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
-        if (typeof nodeName !== "string") throw new Error("Node name must be a string.");
+        if (!userAddress) throw new Error("Please provide all the required fields.");
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
@@ -506,16 +505,18 @@ const nodeRegistration = async (req,res,next)=>{
 
         if(Number(currNonce) !== 0)throw new Error("You have already registered!");
 
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, nodeName).call();
+        const action = "Registration";
+        const nodeNum = 0;
+        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress,amountToDeduct, action,nodeNum,userDoc.nodePurchasingBalance).call();
 
 
         //make VRS
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,"Registration",amountToDeduct,Number(currNonce),hash);
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct,action,nodeNum,userDoc.nodePurchasingBalance,Number(currNonce),hash);
 
 
 
-        return res.status(200).json({ success: true, message: "Node registered successfully", nodeValidators,vrs });
+        return res.status(200).json({ success: true, message: "Node registration is in process",vrs });
 
     }catch(error){
         next(error);
