@@ -10,18 +10,36 @@
             },
             {
                 "indexed": false,
-                "internalType": "string",
-                "name": "nodeName",
-                "type": "string"
+                "internalType": "uint256",
+                "name": "amountUsdtPaid",
+                "type": "uint256"
             },
             {
                 "indexed": false,
-                "internalType": "uint32",
-                "name": "lastUsedNonce",
-                "type": "uint32"
+                "internalType": "uint256",
+                "name": "majorIncome",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minor4Income",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint16",
+                "name": "nodeNum",
+                "type": "uint16"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "oldBalance",
+                "type": "uint256"
             }
         ],
-        "name": "ConvertToNode",
+        "name": "NodeRegistered",
         "type": "event"
     },
     {
@@ -71,6 +89,61 @@
             }
         ],
         "name": "Staked",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "nodeName",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountUsdtPaid",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "majorIncome",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minor4Income",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint16",
+                "name": "nodeNum",
+                "type": "uint16"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "oldBalance",
+                "type": "uint256"
+            }
+        ],
+        "name": "UpgradeNode",
         "type": "event"
     },
     {
@@ -173,45 +246,32 @@
     {
         "inputs": [
             {
-                "internalType": "string",
-                "name": "nodeName",
-                "type": "string"
-            },
-            {
-                "internalType": "uint8",
-                "name": "v",
-                "type": "uint8"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "r",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "s",
-                "type": "bytes32"
-            }
-        ],
-        "name": "convertToNode",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "internalType": "address",
                 "name": "_user",
                 "type": "address"
             },
             {
+                "internalType": "uint256",
+                "name": "amountToDeduct",
+                "type": "uint256"
+            },
+            {
                 "internalType": "string",
-                "name": "nodeName",
+                "name": "action",
                 "type": "string"
+            },
+            {
+                "internalType": "uint16",
+                "name": "nodeNum",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint256",
+                "name": "oldBalance",
+                "type": "uint256"
             }
         ],
-        "name": "getHashForNodeConversion",
+        "name": "getHashForNodeRegistration",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -335,6 +395,71 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "incomeStream1",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incomeStream2",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incomeStream3",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incomeStream4",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incomeStream5",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -360,6 +485,25 @@
         "name": "initialize",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "isUserRegForNodeConversion",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -399,6 +543,49 @@
             }
         ],
         "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "action",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountToDeduct",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "oldBalance",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint16",
+                "name": "nodeNum",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "manageNode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
