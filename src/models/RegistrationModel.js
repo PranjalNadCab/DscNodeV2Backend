@@ -64,6 +64,10 @@ const RegistrationSchema = new mongoose.Schema({
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
     },
+    nodePurchasingBalance:{
+        type:String,
+        default:"0"
+    },
     isNodeRegDone:{
         type: Boolean,
         default: false
