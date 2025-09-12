@@ -169,7 +169,7 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, act
                 action: action,
                 amountToDeduct,
                 nodeNum,
-                nodePurchasingBalance
+                oldBalance:nodePurchasingBalance
             };
 
 

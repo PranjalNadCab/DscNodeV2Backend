@@ -189,12 +189,14 @@ async function processEvents(events) {
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
+                    oldBalance = new BigNumber(oldBalance).toFixed(0);
 
                     const newReg = await NodesRegistered.create({
                         userAddress: user,
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,
+                        oldBalance,
                         nodeNum:Number(nodeNum),
                         time: Number(timestampNormal),
                         block: Number(block),
