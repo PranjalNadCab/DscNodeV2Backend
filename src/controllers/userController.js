@@ -526,10 +526,9 @@ const nodeRegistration = async (req,res,next)=>{
 const upgradeNode = async(req,res,next)=>{
     try{
 
-        let {userAddress,nodeName,nodeNum} = req.body;
+        let {userAddress,nodeNum} = req.body;
 
-        if (!userAddress || !nodeName || !nodeNum) throw new Error("Please provide all the required fields.");
-        if (typeof nodeName !== "string") throw new Error("Node name must be a string.");
+        if (!userAddress  || !nodeNum) throw new Error("Please provide all the required fields.");
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
@@ -541,7 +540,7 @@ const upgradeNode = async(req,res,next)=>{
         const regDoc = await RegistrationModel.find({userAddress});
         if(!regDoc) throw new Error("Please do your first staking for registration");
 
-        const {currentNodeName,userTotalStakeInUsd,nodePurchasingBalance="0"} = regDoc;
+        const {userTotalStakeInUsd,nodePurchasingBalance="0"} = regDoc;
 
         const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({userAddress,nodeNum:Number(nodeNum)});
 
@@ -576,10 +575,10 @@ const upgradeNode = async(req,res,next)=>{
             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
+        ct({amountToDeduct})
+        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(),myNode.name,myNode.nodeNum,nodePurchasingBalance).call();
 
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct,myNode.name,myNode.nodeNum,nodePurchasingBalance).call();
-
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct,myNode.name,myNode.nodeNum,nodePurchasingBalance,Number(currNonce),hash);
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct.toFixed(0),myNode.name,myNode.nodeNum,nodePurchasingBalance,Number(currNonce),hash);
 
         
 
