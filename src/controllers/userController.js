@@ -96,7 +96,7 @@ const stakeVrs = async (req, res, next) => {
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
-        
+
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
 
         const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, Number(currNonce));
@@ -480,10 +480,10 @@ const getWithdrawIncomeHistory = async (req, res, next) => {
     }
 }
 
-const nodeRegistration = async (req,res,next)=>{
-    try{
+const nodeRegistration = async (req, res, next) => {
+    try {
         let { userAddress } = req.body;
-        const {nodeName} = req.body;
+        const { nodeName } = req.body;
         if (!userAddress) throw new Error("Please provide all the required fields.");
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
@@ -495,75 +495,79 @@ const nodeRegistration = async (req,res,next)=>{
 
         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if(isRegistered) throw new Error("You have already registered!");
+        if (isRegistered) throw new Error("You have already registered!");
 
-        const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
         // [0].selfStaking*0.1
-        let amountToDeduct = new BigNumber(nodeValidators.find(n=>n.nodeNum===1).selfStaking*0.1).toFixed() || new BigNumber(300).multipliedBy(1e18).toFixed();
+        let amountToDeduct = new BigNumber(nodeValidators.find(n => n.nodeNum === 1).selfStaking * 0.1).toFixed() || new BigNumber(300).multipliedBy(1e18).toFixed();
 
         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
 
-        if(Number(currNonce) !== 0)throw new Error("You have already registered!");
+        if (Number(currNonce) !== 0) throw new Error("You have already registered!");
 
         const action = "Registration";
         const nodeNum = 0;
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress,amountToDeduct, action,nodeNum,userDoc.nodePurchasingBalance).call();
+        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance).call();
 
 
         //make VRS
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct,action,nodeNum,userDoc.nodePurchasingBalance,Number(currNonce),hash);
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance, Number(currNonce), hash);
 
 
 
-        return res.status(200).json({ success: true, message: "Node registration is in process",vrs });
+        return res.status(200).json({ success: true, message: "Node registration is in process", vrs });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
-const upgradeNode = async(req,res,next)=>{
-    try{
+const upgradeNode = async (req, res, next) => {
+    try {
 
-        let {userAddress,nodeNum} = req.body;
+        let { userAddress, nodeNum } = req.body;
 
-        if (!userAddress  || !nodeNum) throw new Error("Please provide all the required fields.");
+        if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if(!isRegistered) throw new Error("You have not registered for node upgradation!");
+        if (!isRegistered) throw new Error("You have not registered for node upgradation!");
 
-        const regDoc = await RegistrationModel.findOne({userAddress});
-        if(!regDoc) throw new Error("Please do your first staking for registration");
+        const regDoc = await RegistrationModel.findOne({ userAddress });
+        if (!regDoc) throw new Error("Please do your first staking for registration");
 
-        const {userTotalStakeInUsd,nodePurchasingBalance="0"} = regDoc;
-        console.log("kldsfgsdfg",nodePurchasingBalance,regDoc);
+        const { nodePurchasingBalance = "0" } = regDoc;
+        console.log("kldsfgsdfg", nodePurchasingBalance, regDoc);
 
-        const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({userAddress,nodeNum:Number(nodeNum)});
+        const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
 
-        if(isNodeAlreadyUpgraded) throw new Error("You have already upgraded this node!");
+        if (isNodeAlreadyUpgraded) throw new Error("You have already upgraded this node!");
 
-        const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
 
-        const myNode = nodeValidators.find(n=>n.nodeNum === Number(nodeNum));
+        const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
 
-        if(!myNode) throw new Error("Node not found");
+        if (!myNode) throw new Error("Node not found");
 
-        const reqSelfStaking = new BigNumber(myNode.selfStaking);
+        const baseNodeValue = new BigNumber(myNode.selfStaking);
 
-        if(new BigNumber(userTotalStakeInUsd).multipliedBy(1e18).isLessThan(reqSelfStaking.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
+        // if(new BigNumber(userTotalStakeInUsd).multipliedBy(1e18).isLessThan(baseNodeValue.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
 
-        let amountToDeduct = "0"
-        ct({nodePurchasingBalance,reqSelfStaking: reqSelfStaking.toFixed()})
-        if(new BigNumber(nodePurchasingBalance).isLessThan(reqSelfStaking)) {
-            amountToDeduct = BigNumber.max(reqSelfStaking.multipliedBy(0.1).minus(nodePurchasingBalance), 0);
-            console.log(amountToDeduct.toFixed())
+        const percentToAdd = 0.1
+        let amountToDeduct = baseNodeValue
+            .minus(nodePurchasingBalance)   // subtract balance
+            .plus(baseNodeValue.multipliedBy(percentToAdd)); // add 10%
+        // if(new BigNumber(nodePurchasingBalance).isLessThan(baseNodeValue)) {
+        //     amountToDeduct = BigNumber.max(baseNodeValue.multipliedBy(0.1).minus(nodePurchasingBalance), 0);
+        //     console.log(amountToDeduct.toFixed())
 
-        }
+        // }
+
+        ct({ nodePurchasingBalance, baseNodeValue: baseNodeValue.toFixed() })
 
         const lastNode = await UpgradedNodes.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
 
@@ -578,16 +582,16 @@ const upgradeNode = async(req,res,next)=>{
             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
-        ct({uid:"kdgsdrg",type:typeof amountToDeduct});
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(),myNode.name,myNode.nodeNum,nodePurchasingBalance).call();
+        ct({ uid: "kdgsdrg", type: typeof amountToDeduct });
+        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(), myNode.name, myNode.nodeNum, nodePurchasingBalance).call();
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct.toFixed(0),myNode.name,myNode.nodeNum,nodePurchasingBalance,Number(currNonce),hash);
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), myNode.name, myNode.nodeNum, nodePurchasingBalance, Number(currNonce), hash);
 
-        
 
-        return res.status(200).json({success:true, message:"Node Upgradation is in process!",vrs});
 
-    }catch(error){
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs });
+
+    } catch (error) {
         next(error);
     }
 }
