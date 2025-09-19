@@ -7,7 +7,25 @@ const moment = require("moment");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
 const AdminModel = require("../models/AdminModel");
 const Admin = require("../models/AdminModel");
+const DscNodeBlockConfig = require("../models/DscNodeBlockConfig");
 
+
+const setLatestBlock = async () => {
+    try {
+        let latestBlock = await web3.eth.getBlockNumber();
+        latestBlock = Number(latestBlock);
+
+        const updated = await DscNodeBlockConfig.updateOne(
+            {}, // match condition (empty = match first/any)
+            { $set: { lastSyncBlock: latestBlock.toString() } },
+            { upsert: true } // ensures doc is created if not exists
+        );
+
+        console.log("----->> updated to latest block ------", updated);
+    } catch (error) {
+        console.log(error);
+    }
+};
 
 const ct = (payload) => {
     console.table(payload);
@@ -714,4 +732,4 @@ const giveAdminSettings = async ()=>{
     }
 }
 
-module.exports = {giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
+module.exports = {setLatestBlock,giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
