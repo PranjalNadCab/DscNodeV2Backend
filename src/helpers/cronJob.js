@@ -21,22 +21,41 @@ const updateNodeValueAssurance = async () => {
                 console.error("Admin settings not found.");
                 return;
             }
-            ct({lastUpdatedMonth: adminSettings.lastUpdatedMonthForNodeValidators, currentMonth: currentMonth});
+            const lastUpdated = adminSettings.lastUpdatedMonthForNodeValidators;
+            ct({ lastUpdatedMonth: lastUpdated, currentMonth: currentMonth });
             if (adminSettings.lastUpdatedMonthForNodeValidators === currentMonth) {
                 console.log(`Already updated for ${currentMonth} ✅`);
                 return;
-              }
+            }
+
+            let monthsPassed = 1; // default if null
+            if (lastUpdated) {
+                const lastMoment = moment(lastUpdated, "YYYY-MM");
+                monthsPassed = moment(currentMonth, "YYYY-MM").diff(lastMoment, "months");
+            }
+
+            if (monthsPassed <= 0) {
+                console.log(`Already updated for ${currentMonth} ✅`);
+                return;
+            }
             const currentNodeValueAssurance = adminSettings.nodeValidators || 0;
 
 
 
             adminSettings.nodeValidators = currentNodeValueAssurance.map((node) => {
                 // Increase selfStaking by 3%
-                const stakingBN = new BigNumber(node.selfStaking);
-                const updatedSelfStaking = stakingBN.multipliedBy(1.03).toFixed(0); // keep as string (no decimals)
+                // const stakingBN = new BigNumber(node.selfStaking);
+                // const updatedSelfStaking = stakingBN.multipliedBy(1.03).toFixed(0); // keep as string (no decimals)
 
-                // Decrease baseMinAss by 3%
-                const updatedBaseMinAss = new BigNumber(node.baseMinAss).multipliedBy(0.97).toFixed(0); // keep as string (no decimals)
+                // // Decrease baseMinAss by 3%
+                // const updatedBaseMinAss = new BigNumber(node.baseMinAss).multipliedBy(0.97).toFixed(0); // keep as string (no decimals)
+
+                const stakingBN = new BigNumber(node.selfStaking);
+                const updatedSelfStaking = stakingBN.multipliedBy(new BigNumber(1.03).pow(monthsPassed)).toFixed(0);
+
+                // Decrease baseMinAss by 3% compounded
+                const baseMinAssBN = new BigNumber(node.baseMinAss);
+                const updatedBaseMinAss = baseMinAssBN.multipliedBy(new BigNumber(0.97).pow(monthsPassed)).toFixed(0);
 
                 return {
                     ...node,

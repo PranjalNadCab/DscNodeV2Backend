@@ -211,6 +211,38 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, act
     });
 }
 
+function giveVrsForNodeConversion(userAddress,nodeNum, currNonce, hash) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+
+            const data = {
+                hash: hash,
+                nonce: currNonce,
+                userAddress: userAddress,
+                nodeNum,
+            };
+
+
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
 const updateTeamCount = async (userAddress) => {
     try {
 
@@ -741,4 +773,4 @@ const giveAdminSettings = async ()=>{
     }
 }
 
-module.exports = {setLatestBlock,giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness }
+module.exports = {setLatestBlock,giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness,giveVrsForNodeConversion }

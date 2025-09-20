@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract } = require("../web3/web3");
@@ -369,7 +369,8 @@ const convertToNode = async (req, res, next) => {
 
         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeNum).call();
 
-        const vrsSign = await giveVrsForNodeConversionAndRegistration(userAddress, nodeNum, Number(currNonce), hash);
+        ct({ hash, currNonce:Number(currNonce), prevNonce, nodeNum });
+        const vrsSign = await giveVrsForNodeConversion(userAddress, nodeNum, Number(currNonce), hash);
 
 
         return res.status(200).json({ success: true, message: "Node conversion request fullfilled", vrsSign });
