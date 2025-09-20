@@ -160,6 +160,12 @@
                 "internalType": "uint256",
                 "name": "oldBalance",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
             }
         ],
         "name": "UpgradeNode",
@@ -766,6 +772,25 @@
             }
         ],
         "name": "userNoncesForNodeConversion",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "",
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userNoncesForNodePurchasing",
         "outputs": [
             {
                 "internalType": "uint32",

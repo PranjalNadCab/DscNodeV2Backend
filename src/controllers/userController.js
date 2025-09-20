@@ -523,7 +523,7 @@ const nodeRegistration = async (req, res, next) => {
     }
 }
 
-const upgradeNode = async (req, res, next) => {
+const purchaseNode = async (req, res, next) => {
     try {
 
         let { userAddress, nodeNum } = req.body;
@@ -577,7 +577,10 @@ const upgradeNode = async (req, res, next) => {
         } else {
             prevNonce = Number(lastNode.lastUsedNonce);
         }
-        const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
+        const currNonce = await dscNodeContract.methods.userNoncesForNodePurchasing(userAddress).call();
+
+        
+        
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
@@ -598,7 +601,7 @@ const upgradeNode = async (req, res, next) => {
 
 module.exports = {
     stakeVrs,
-    upgradeNode,
+    purchaseNode,
     getLiveDscPrice,
     getUserInfo,
     getUserStakings,

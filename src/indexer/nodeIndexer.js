@@ -224,7 +224,7 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeName, nodeNum, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
+                    let { user, nodeName, nodeNum,lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -236,6 +236,7 @@ async function processEvents(events) {
                         nodeNum: Number(nodeNum),
                         oldBalance,
                         amountUsdtPaid,
+                        lastUsedNonce:Number(lastUsedNonce),
                         majorIncome,
                         minor4Income,
                         time: Number(timestampNormal),
