@@ -40,6 +40,10 @@ const UpgradeNodeSchema = new mongoose.Schema({
         type:Number,
         default:()=>Math.floor(Date.now()/1000)
     },
+    nodeConversionTime:{
+        type:Number,
+        default:null
+    },
     block:{
         type:Number,
         required:true

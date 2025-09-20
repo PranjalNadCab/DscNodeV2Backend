@@ -8,6 +8,7 @@ const LivePriceDsc = require("../models/LiveDscPriceModel");
 const AdminModel = require("../models/AdminModel");
 const Admin = require("../models/AdminModel");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig");
+const UpgradedNodes = require("../models/UpgradeNodeModel");
 
 
 const setLatestBlock = async () => {
@@ -630,7 +631,8 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
         purchasedNodes.push({
             nodeName: nodeName,
             purchasedAt: time,
-            reward: nodeInfo.reward
+            reward: nodeInfo.reward,
+            nodeConversionTime:moment().unix()
         });
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
@@ -638,6 +640,11 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
             { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeName } },
             { new: true }
         );
+        const updateNode =await UpgradedNodes.updateOne(
+            { userAddress: user, nodeName:nodeName },
+            { $set: { nodeConversionTime: moment().unix() } },
+            { upsert:true }
+        )
 
         if (!updatedUser) {
             console.log(`Failed to update user ${user} node info`);

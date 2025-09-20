@@ -343,33 +343,15 @@ const convertToNode = async (req, res, next) => {
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
-        const adminDoc = await Admin.findOne({});
+        const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if (!adminDoc) throw new Error("Admin not found.");
-
-        const { nodeValidators } = adminDoc;
-
-        console.log("klsdrfsdgasdf", nodeValidators)
-        const nodeIndexRequested = nodeValidators.findIndex(n => n.name.toLowerCase() === nodeName.toLowerCase());
-        if (nodeIndexRequested === -1) throw new Error("Node not found.");
-
-        const userDoc = await RegistrationModel.findOne({ userAddress });
-
-        if (!userDoc) throw new Error("User not found.");
-
-        const { userTotalStakeInUsd, currentNodeName } = userDoc;
-
-        // console.log("ksdfsg",nodeValidators)
-        const currentNodeIndex = currentNodeName ? nodeValidators.findIndex(n => n.name.toLowerCase() === currentNodeName.toLowerCase()) : -1;
-        if (currentNodeIndex !== -1 && currentNodeIndex >= nodeIndexRequested) throw new Error("You have already achieved this node or a higher one.");
-
-        const userTotalStakeInUsdBN = new BigNumber(userTotalStakeInUsd).multipliedBy(1e18);
-
-        ct({ userTotalStakeInUsdBN: userTotalStakeInUsdBN.toFixed(), requiredStake: nodeValidators[nodeIndexRequested].selfStaking });
-        if (userTotalStakeInUsdBN.isLessThan(nodeValidators[nodeIndexRequested].selfStaking)) throw new Error(`You need at least $${new BigNumber(nodeValidators[nodeIndexRequested].selfStaking).dividedBy(1e18).toFixed()} staked to convert to ${nodeName} node.`);
-
-
+        if(!isRegistered) throw new Error("You have not registered for node upgradation!");
         //generate vrs
+
+        const myNode= await UpgradedNodes.findOne({userAddress,nodeNum:Number(nodeNum)});
+        if(!myNode) throw new Error("You have not purchased this node yet!");
+
+        if(myNode.nodeConversionTime) throw new Error("You have already converted this node!");
 
 
         const lastConversion = await NodeConverted.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
@@ -385,12 +367,9 @@ const convertToNode = async (req, res, next) => {
         }
 
 
-        const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeName).call();
+        const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeNum).call();
 
-        const vrsSign = await giveVrsForNodeConversionAndRegistration(userAddress, nodeName, Number(currNonce), hash);
-
-
-
+        const vrsSign = await giveVrsForNodeConversionAndRegistration(userAddress, nodeNum, Number(currNonce), hash);
 
 
         return res.status(200).json({ success: true, message: "Node conversion request fullfilled", vrsSign });
