@@ -9,6 +9,7 @@ const AdminModel = require("../models/AdminModel");
 const Admin = require("../models/AdminModel");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
+const NodeConverted = require("../models/NodeConvertedModel");
 
 
 const setLatestBlock = async () => {
@@ -676,6 +677,12 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
         const updateNode =await UpgradedNodes.updateOne(
             { userAddress: user, nodeName:nodeName },
             { $set: { nodeConversionTime: moment().unix() } },
+            { upsert:true }
+        );
+        const currentMonthName = moment().format("MMMM");
+        const updateConvertedNode = await NodeConverted.updateOne(
+            { userAddress: user, nodeName:nodeName },
+            { $set: { baseMinValue: nodeInfo.selfStaking,baseMinAss:nodeInfo.baseMinAss,conversionMonth:currentMonthName } },
             { upsert:true }
         )
 

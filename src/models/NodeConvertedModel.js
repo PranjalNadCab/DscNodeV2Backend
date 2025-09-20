@@ -34,6 +34,10 @@ const NodeConvertedSchema = new mongoose.Schema({
     baseMinAss:{
         type:String,
         required:true
+    },
+    conversionMonth:{
+        type:String,
+        required:true
     }
 },{ timestamps: true });
 
