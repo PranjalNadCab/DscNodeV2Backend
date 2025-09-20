@@ -362,6 +362,7 @@ const convertToNode = async (req, res, next) => {
             prevNonce = Number(lastConversion.lastUsedNonce);
         }
         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
+        console.log({ prevNonce, currNonce:Number(currNonce) });
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous Node conversion not stored yet! Please try again later.");
         }
@@ -369,7 +370,6 @@ const convertToNode = async (req, res, next) => {
 
         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeNum).call();
 
-        ct({ hash, currNonce:Number(currNonce), prevNonce, nodeNum });
         const vrsSign = await giveVrsForNodeConversion(userAddress, nodeNum, Number(currNonce), hash);
 
 
