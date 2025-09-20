@@ -39,15 +39,15 @@ const generateDefaultAdminDoc = async () => {
             const defaultAdmin = new AdminModel({
                 withdrawDeductionPercent: 5, // Default deduction percent
                 nodeValidators: [
-                    { name: "Pioneers", reward: 100, selfStaking: new BigNumber(3000).multipliedBy(1e18).toFixed(0),nodeNum:1 },
-                    { name: "Guardians", reward: 200, selfStaking: new BigNumber(6000).multipliedBy(1e18).toFixed(0),nodeNum:2 },
-                    { name: "Visionaries", reward: 300, selfStaking: new BigNumber(9000).multipliedBy(1e18).toFixed(0),nodeNum:3 },
-                    { name: "Node Omega", reward: 400, selfStaking: new BigNumber(12000).multipliedBy(1e18).toFixed(0),nodeNum:4 },
-                    { name: "Node Core", reward: 600, selfStaking: new BigNumber(18000).multipliedBy(1e18).toFixed(0),nodeNum:5 },
-                    { name: "Node Apex", reward: 800, selfStaking: new BigNumber(24000).multipliedBy(1e18).toFixed(0) ,nodeNum:6},
-                    { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0),nodeNum:7 },
-                    { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0),nodeNum:8 },
-                    { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0),nodeNum:9 },
+                    { name: "Pioneers", reward: 100, selfStaking: new BigNumber(3000).multipliedBy(1e18).toFixed(0),baseMinAss:90,nodeNum:1 },
+                    { name: "Guardians", reward: 200, selfStaking: new BigNumber(6000).multipliedBy(1e18).toFixed(0),baseMinAss:180,nodeNum:2 },
+                    { name: "Visionaries", reward: 300, selfStaking: new BigNumber(9000).multipliedBy(1e18).toFixed(0),baseMinAss:270,nodeNum:3 },
+                    { name: "Node Omega", reward: 400, selfStaking: new BigNumber(12000).multipliedBy(1e18).toFixed(0),baseMinAss:360,nodeNum:4 },
+                    { name: "Node Core", reward: 600, selfStaking: new BigNumber(18000).multipliedBy(1e18).toFixed(0),baseMinAss:540,nodeNum:5 },
+                    { name: "Node Apex", reward: 800, selfStaking: new BigNumber(24000).multipliedBy(1e18).toFixed(0) ,baseMinAss:720,nodeNum:6},
+                    { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0),baseMinAss:1080,nodeNum:7 },
+                    { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0),baseMinAss:1440,nodeNum:8 },
+                    { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0),baseMinAss:1800,nodeNum:9 },
                 ],
                 stakeRatio: {
                     part1: 7,
