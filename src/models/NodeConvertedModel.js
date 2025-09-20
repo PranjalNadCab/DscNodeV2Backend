@@ -26,6 +26,14 @@ const NodeConvertedSchema = new mongoose.Schema({
     transactionHash:{
         type:String,
         required:true,
+    },
+    baseMinValue:{
+        type:String,
+        required:true
+    },
+    baseMinAss:{
+        type:String,
+        required:true
     }
 },{ timestamps: true });
 

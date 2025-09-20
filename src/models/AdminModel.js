@@ -11,7 +11,7 @@ const adminSchema = new mongoose.Schema({
                 name: { type: String, required: true },
                 reward: { type: Number, required: true },
                 selfStaking: { type: String, required: true },
-                baseMinAss:{type:Number,required:true},
+                baseMinAss:{type:String,required:true},
                 nodeNum:{type:Number,required:true}
             }
         ],

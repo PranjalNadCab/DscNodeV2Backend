@@ -36,7 +36,7 @@ const updateNodeValueAssurance = async () => {
                 const updatedSelfStaking = stakingBN.multipliedBy(1.03).toFixed(0); // keep as string (no decimals)
 
                 // Decrease baseMinAss by 3%
-                const updatedBaseMinAss = Number((node.baseMinAss * 0.97).toFixed(2));
+                const updatedBaseMinAss = new BigNumber(node.baseMinAss).multipliedBy(0.97).toFixed(0); // keep as string (no decimals)
 
                 return {
                     ...node,
