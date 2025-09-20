@@ -162,11 +162,11 @@ async function processEvents(events) {
             }
             else if (event == "ConvertToNode") {
                 try {
-                    const { user, nodeName, lastUsedNonce } = returnValues;
+                    const { user, nodeNum, lastUsedNonce } = returnValues;
 
                     const nodeConverted = await NodeConverted.create({
                         userAddress: user,
-                        nodeName: nodeName,
+                        nodeNum: Number(nodeNum),
                         time: Number(timestampNormal),
                         lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
@@ -175,7 +175,7 @@ async function processEvents(events) {
 
                     console.log("Node converted doc created:", nodeConverted);
 
-                    await updateUserNodeInfo(user, nodeName, Number(timestampNormal));
+                    await updateUserNodeInfo(user, Number(nodeNum), Number(timestampNormal));
 
 
                 } catch (error) {

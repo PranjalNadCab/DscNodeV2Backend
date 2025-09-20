@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 
 const NodeConvertedSchema = new mongoose.Schema({   
-    nodeName: {
-        type: String,
+    nodeNum: {
+        type: Number,
         required: true,
     },
     userAddress:{
@@ -29,15 +29,15 @@ const NodeConvertedSchema = new mongoose.Schema({
     },
     baseMinValue:{
         type:String,
-        required:true
+        default:null
     },
     baseMinAss:{
         type:String,
-        required:true
+       default:null
     },
     conversionMonth:{
         type:String,
-        required:true
+        default:null
     }
 },{ timestamps: true });
 

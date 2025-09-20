@@ -636,20 +636,19 @@ function splitByRatio(total, ratioUsdt, ratioDscInUsd, tokenPrice = null) {
     return { usdt, tokenUsd, tokenUnits };
 }
 
-const updateUserNodeInfo = async (user, nodeName, time) => {
+const updateUserNodeInfo = async (user, nodeNum, time) => {
     try {
-        if (!user || !nodeName || !time) return;
+        if (!user || !nodeNum || !time) return;
 
         const getUserDoc = await RegistrationModel.findOne({ userAddress: user });
         if (!getUserDoc) { console.log(`Invalid user address ${user}`); return };
 
         let purchasedNodes = getUserDoc.purchasedNodes || [];
-        let currentNodeName = getUserDoc.currentNodeName || null;
 
-        const alreadyAchieved = purchasedNodes.find(n => n.nodeName === nodeName);
+        const alreadyAchieved = purchasedNodes.find(n => n.nodeNum === nodeNum);
 
         if (alreadyAchieved) {
-            console.log(`User ${user} has already achieved node ${nodeName}`);
+            console.log(`User ${user} has already achieved node ${nodeNum}`);
             return;
         }
         const adminDoc = await AdminModel.findOne({});
@@ -657,13 +656,13 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
             console.log("Admin doc not found");
             return;
         }
-        const nodeInfo = adminDoc.nodeValidators.find(n => n.name === nodeName);
+        const nodeInfo = adminDoc.nodeValidators.find(n => n.nodeNum === nodeNum);
         if (!nodeInfo) {
             console.log(`Invalid node name ${nodeName}`);
             return;
         }
         purchasedNodes.push({
-            nodeName: nodeName,
+            nodeName: nodeInfo.nodeName,
             purchasedAt: time,
             reward: nodeInfo.reward,
             nodeConversionTime:moment().unix()
@@ -671,17 +670,17 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: user },
-            { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeName } },
+            { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeInfo.nodeName } },
             { new: true }
         );
         const updateNode =await UpgradedNodes.updateOne(
-            { userAddress: user, nodeName:nodeName },
+            { userAddress: user, nodeNum },
             { $set: { nodeConversionTime: moment().unix() } },
             { upsert:true }
         );
         const currentMonthName = moment().format("MMMM");
         const updateConvertedNode = await NodeConverted.updateOne(
-            { userAddress: user, nodeName:nodeName },
+            { userAddress: user, nodeNum },
             { $set: { baseMinValue: nodeInfo.selfStaking,baseMinAss:nodeInfo.baseMinAss,conversionMonth:currentMonthName } },
             { upsert:true }
         )
