@@ -17,6 +17,10 @@ const adminSchema = new mongoose.Schema({
         ],
         required: true
     },
+    lastUpdatedMonthForNodeValidators:{
+        type: String,
+        default: null
+    },
     stakeRatio: {
         type: {
             part1: { type: Number, required: true },

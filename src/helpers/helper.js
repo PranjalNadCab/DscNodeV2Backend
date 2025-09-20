@@ -52,7 +52,8 @@ const generateDefaultAdminDoc = async () => {
                 stakeRatio: {
                     part1: 7,
                     part2: 3
-                }
+                },
+                lastUpdatedMonthForNodeValidators:process.env.STARTING_MONTH || "October"
             });
             await defaultAdmin.save();
             console.log("Default admin document created.");

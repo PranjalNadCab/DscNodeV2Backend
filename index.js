@@ -39,7 +39,7 @@ const server = app.listen(PORT, async () => {
         // await setLatestBlock();
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
-        await dscNodeListEvents();
+        // await dscNodeListEvents();
         await updateNodeValueAssurance();
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
         // await giveGapIncome("0x70E5EEc9877387cf3Fe46ec6a5E8b72A3330D2dE","100000000000000000000","Beginner","100000000000000000000","0");
