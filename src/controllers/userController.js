@@ -336,9 +336,9 @@ const withdrawIncomeDsc = async (req, res, next) => {
 const convertToNode = async (req, res, next) => {
     try {
 
-        let { userAddress, nodeName } = req.body;
-        if (!userAddress || !nodeName) throw new Error("Please provide all the required fields.");
-        if (typeof nodeName !== "string") throw new Error("Node name must be a string.");
+        let { userAddress, nodeNum } = req.body;
+        if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
+        if (typeof nodeNum !== "number") throw new Error("Node number must be a number");
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);

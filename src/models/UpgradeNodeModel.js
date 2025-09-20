@@ -16,10 +16,6 @@ const UpgradeNodeSchema = new mongoose.Schema({
         type:Number,
         default:null
     },
-    lastUsedNonce:{
-        type:Number,
-        required:true
-    },
     amountUsdtPaid:{
         type:String,
         required:true

@@ -342,6 +342,7 @@ const createDefaultOwnerRegDoc = async () => {
             await RegistrationModel.create({
                 userAddress: defaultOwnerAddress,
                 sponsorAddress: "0x0000000000000000000000000000000000000000",
+                uniqueRandomId:"000000",
                 teamCount: 0,
                 directCount: 0,
                 currentRank: ranks[0].rank,
@@ -607,10 +608,10 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
         const getUserDoc = await RegistrationModel.findOne({ userAddress: user });
         if (!getUserDoc) { console.log(`Invalid user address ${user}`); return };
 
-        let achievedNodes = getUserDoc.achievedNodes || [];
+        let purchasedNodes = getUserDoc.purchasedNodes || [];
         let currentNodeName = getUserDoc.currentNodeName || null;
 
-        const alreadyAchieved = achievedNodes.find(n => n.nodeName === nodeName);
+        const alreadyAchieved = purchasedNodes.find(n => n.nodeName === nodeName);
 
         if (alreadyAchieved) {
             console.log(`User ${user} has already achieved node ${nodeName}`);
@@ -626,15 +627,15 @@ const updateUserNodeInfo = async (user, nodeName, time) => {
             console.log(`Invalid node name ${nodeName}`);
             return;
         }
-        achievedNodes.push({
+        purchasedNodes.push({
             nodeName: nodeName,
-            achievedAt: time,
+            purchasedAt: time,
             reward: nodeInfo.reward
         });
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: user },
-            { $set: { achievedNodes: achievedNodes, currentNodeName: nodeName } },
+            { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeName } },
             { new: true }
         );
 

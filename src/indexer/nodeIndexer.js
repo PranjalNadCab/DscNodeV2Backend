@@ -224,7 +224,7 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeName, nodeNum, lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
+                    let { user, nodeName, nodeNum, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
@@ -233,7 +233,6 @@ async function processEvents(events) {
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
                         nodeName,
-                        lastUsedNonce: Number(lastUsedNonce),
                         nodeNum: Number(nodeNum),
                         oldBalance,
                         amountUsdtPaid,
@@ -262,7 +261,7 @@ async function processEvents(events) {
 
                     }
                     regDoc.currentNodeName = nodeName;
-                    regDoc.achievedNodes.push({ nodeName, achievedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
+                    regDoc.purchasedNodes.push({ nodeName, purchasedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
                     await regDoc.save();
 
                 } catch (error) {

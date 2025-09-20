@@ -72,10 +72,10 @@ const RegistrationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    achievedNodes:{
+    purchasedNodes:{
         type: [{
             nodeName: { type: String, required: true },
-            achievedAt: { type: Number, required: true },
+            purchasedAt: { type: Number, required: true },
             reward: { type: Number, required: true }
         }],
         default: []
