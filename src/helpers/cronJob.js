@@ -1,6 +1,7 @@
 const moment = require("moment");
 const Admin = require("../models/AdminModel");
 const { BigNumber } = require("bignumber.js");
+const { ct } = require("./helper");
 
 const updateNodeValueAssurance = async () => {
     try {
@@ -20,7 +21,7 @@ const updateNodeValueAssurance = async () => {
                 console.error("Admin settings not found.");
                 return;
             }
-
+            ct({lastUpdatedMonth: adminSettings.lastUpdatedMonthForNodeValidators, currentMonth: currentMonth});
             if (adminSettings.lastUpdatedMonthForNodeValidators === currentMonth) {
                 console.log(`Already updated for ${currentMonth} ✅`);
                 return;
@@ -41,7 +42,7 @@ const updateNodeValueAssurance = async () => {
                     ...node,
                     selfStaking: updatedSelfStaking,
                     baseMinAss: updatedBaseMinAss,
-                    nodeNum: node.nodeNum + 1, // still increment nodeNum
+                    nodeNum: node.nodeNum, // still increment nodeNum
                 };
             });
 
@@ -49,7 +50,7 @@ const updateNodeValueAssurance = async () => {
 
             await adminSettings.save();
 
-            console.log(`Current Node Value Assurance: ${currentNodeValueAssurance}`);
+            console.log("Updated node value assurance for all validators.");
 
         }
 

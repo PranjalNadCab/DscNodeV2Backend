@@ -53,7 +53,7 @@ const generateDefaultAdminDoc = async () => {
                     part1: 7,
                     part2: 3
                 },
-                lastUpdatedMonthForNodeValidators:process.env.STARTING_MONTH || "October"
+                lastUpdatedMonthForNodeValidators:process.env.START_MONTH || "October"
             });
             await defaultAdmin.save();
             console.log("Default admin document created.");
