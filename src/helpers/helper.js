@@ -795,7 +795,17 @@ const giveRoiToNodeHolders = async () => {
         for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
             const { nodeNum, userAddress, baseMinValue, baseMinAss, conversionMonth, time,lastRoiDistributed } = doc;
 
-            const daysPassed = (currTime - lastRoiDistributed)/(24*60*60);
+            let daysPassed = 0;
+            if(process.env.NODE_ENV === "development"){
+                //treat 2mins as 1 day
+
+                daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 120);
+
+            }else{
+
+                daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
+
+            }
             if(daysPassed<1){
                 console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
                 continue;
@@ -846,13 +856,15 @@ const giveRoiToNodeHolders = async () => {
                 nodeNum,
                 baseMinAss,
                 roiDscAssurance: dailyROI.toFixed(0), // still in 1e18 precision
-                time:moment().unix()
+                time:moment().unix(),
+                roiGeneratedForNumDay: daysPassed
             });
 
+            const updationTimeForRoiDistributed = process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix();
             // If you need to save/update currGenratedRoi back to Mongo:
             await NodeConverted.updateOne(
                 { _id: doc._id },
-                { $set: { currGenratedRoi: dailyROI.toFixed(0) } },
+                { $set: { currGenratedRoi: dailyROI.toFixed(0),lastRoiDistributed:updationTimeForRoiDistributed } },
                 { session }
             );
         }

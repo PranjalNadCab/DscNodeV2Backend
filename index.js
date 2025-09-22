@@ -11,6 +11,7 @@ const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
 const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, giveRoiToNodeHolders } = require("./src/helpers/helper");
 const { updateNodeValueAssurance } = require("./src/helpers/cronJob");
+const cron = require('node-cron');
 
 
 
@@ -28,6 +29,35 @@ app.get("/api/test", (req, res) => {
 app.use("/api", userRoutes);
 app.use(errorHandler);
 
+if(process.env.NODE_ENV!=="development"){
+    cron.schedule('1 0 * * *', async () => {
+        try {
+         console.log(`Cron job started at ${new Date().toLocaleString()}`);
+             await giveRoiToNodeHolders();
+
+        } catch (err) {
+            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+        }
+       
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
+
+}else{
+    cron.schedule('*/2 * * * *', async () => {
+        try {
+         console.log(`Cron job started at ${new Date().toLocaleString()}`);
+             await giveRoiToNodeHolders();
+
+        } catch (err) {
+            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+        }
+       
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
+}
+
 const server = app.listen(PORT, async () => {
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const unixServerTimeCheck = moment().unix();
@@ -40,7 +70,7 @@ const server = app.listen(PORT, async () => {
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
         // await dscNodeListEvents();
-        await giveRoiToNodeHolders();
+        // await giveRoiToNodeHolders();
         // await updateNodeValueAssurance();
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
         // await giveGapIncome("0x70E5EEc9877387cf3Fe46ec6a5E8b72A3330D2dE","100000000000000000000","Beginner","100000000000000000000","0");
