@@ -10,6 +10,7 @@ const Admin = require("../models/AdminModel");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const NodeConverted = require("../models/NodeConvertedModel");
+const { default: mongoose } = require("mongoose");
 
 
 const setLatestBlock = async () => {
@@ -40,21 +41,21 @@ const generateDefaultAdminDoc = async () => {
             const defaultAdmin = new AdminModel({
                 withdrawDeductionPercent: 5, // Default deduction percent
                 nodeValidators: [
-                    { name: "Pioneers", reward: 100, selfStaking: new BigNumber(3000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(90*1e18).toFixed(),nodeNum:1 },
-                    { name: "Guardians", reward: 200, selfStaking: new BigNumber(6000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(180*1e18).toFixed(),nodeNum:2 },
-                    { name: "Visionaries", reward: 300, selfStaking: new BigNumber(9000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(270*1e18).toFixed(),nodeNum:3 },
-                    { name: "Node Omega", reward: 400, selfStaking: new BigNumber(12000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(360*1e18).toFixed(),nodeNum:4 },
-                    { name: "Node Core", reward: 600, selfStaking: new BigNumber(18000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(540*1e18).toFixed(),nodeNum:5 },
-                    { name: "Node Apex", reward: 800, selfStaking: new BigNumber(24000).multipliedBy(1e18).toFixed(0) ,baseMinAss:new BigNumber(720*1e18).toFixed(),nodeNum:6},
-                    { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(1080*1e18).toFixed(),nodeNum:7 },
-                    { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(1440*1e18).toFixed(),nodeNum:8 },
-                    { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0),baseMinAss:new BigNumber(1800*1e18).toFixed(),nodeNum:9 },
+                    { name: "Pioneers", reward: 100, selfStaking: new BigNumber(3000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(90 * 1e18).toFixed(), nodeNum: 1 },
+                    { name: "Guardians", reward: 200, selfStaking: new BigNumber(6000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(180 * 1e18).toFixed(), nodeNum: 2 },
+                    { name: "Visionaries", reward: 300, selfStaking: new BigNumber(9000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(270 * 1e18).toFixed(), nodeNum: 3 },
+                    { name: "Node Omega", reward: 400, selfStaking: new BigNumber(12000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(360 * 1e18).toFixed(), nodeNum: 4 },
+                    { name: "Node Core", reward: 600, selfStaking: new BigNumber(18000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(540 * 1e18).toFixed(), nodeNum: 5 },
+                    { name: "Node Apex", reward: 800, selfStaking: new BigNumber(24000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(720 * 1e18).toFixed(), nodeNum: 6 },
+                    { name: "Node Nexus", reward: 1200, selfStaking: new BigNumber(36000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(1080 * 1e18).toFixed(), nodeNum: 7 },
+                    { name: "Node Fusion", reward: 1600, selfStaking: new BigNumber(48000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(1440 * 1e18).toFixed(), nodeNum: 8 },
+                    { name: "Node Dominion", reward: 2000, selfStaking: new BigNumber(60000).multipliedBy(1e18).toFixed(0), baseMinAss: new BigNumber(1800 * 1e18).toFixed(), nodeNum: 9 },
                 ],
                 stakeRatio: {
                     part1: 7,
                     part2: 3
                 },
-                lastUpdatedMonthForNodeValidators:process.env.START_MONTH || "October"
+                lastUpdatedMonthForNodeValidators: process.env.START_MONTH || "October"
             });
             await defaultAdmin.save();
             console.log("Default admin document created.");
@@ -177,7 +178,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
-function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, action,nodeNum,nodePurchasingBalance, currNonce, hash) {
+function giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct, action, nodeNum, nodePurchasingBalance, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -190,7 +191,7 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, act
                 action: action,
                 amountToDeduct,
                 nodeNum,
-                oldBalance:nodePurchasingBalance
+                oldBalance: nodePurchasingBalance
             };
 
 
@@ -212,7 +213,7 @@ function giveVrsForNodeConversionAndRegistration(userAddress,amountToDeduct, act
     });
 }
 
-function giveVrsForNodeConversion(userAddress,nodeNum, currNonce, hash) {
+function giveVrsForNodeConversion(userAddress, nodeNum, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -377,7 +378,7 @@ const createDefaultOwnerRegDoc = async () => {
             await RegistrationModel.create({
                 userAddress: defaultOwnerAddress,
                 sponsorAddress: "0x0000000000000000000000000000000000000000",
-                uniqueRandomId:"000000",
+                uniqueRandomId: "000000",
                 teamCount: 0,
                 directCount: 0,
                 currentRank: ranks[0].rank,
@@ -665,7 +666,7 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
             nodeName: nodeInfo.nodeName,
             purchasedAt: time,
             reward: nodeInfo.reward,
-            nodeConversionTime:moment().unix()
+            nodeConversionTime: moment().unix()
         });
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
@@ -673,16 +674,16 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
             { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeInfo.nodeName } },
             { new: true }
         );
-        const updateNode =await UpgradedNodes.updateOne(
+        const updateNode = await UpgradedNodes.updateOne(
             { userAddress: user, nodeNum },
             { $set: { nodeConversionTime: moment().unix() } },
-            { upsert:true }
+            { upsert: true }
         );
         const currentMonthName = moment().format("MMMM");
         const updateConvertedNode = await NodeConverted.updateOne(
             { userAddress: user, nodeNum },
-            { $set: { baseMinValue: nodeInfo.selfStaking,baseMinAss:nodeInfo.baseMinAss,conversionMonth:currentMonthName } },
-            { upsert:true }
+            { $set: { baseMinValue: nodeInfo.selfStaking, baseMinAss: nodeInfo.baseMinAss, conversionMonth: currentMonthName } },
+            { upsert: true }
         )
 
         if (!updatedUser) {
@@ -738,7 +739,7 @@ const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) =
     }
 }
 
- const generateRandomId = async () => {
+const generateRandomId = async () => {
     try {
         let newRandomId;
         let isUnique = false;
@@ -764,19 +765,45 @@ const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) =
     }
 };
 
-const giveAdminSettings = async ()=>{
-    try{
+const giveAdminSettings = async () => {
+    try {
 
-        const {withdrawDeductionPercent=null,nodeValidators=null,stakeRatio=null} = await Admin.findOne({});
+        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null } = await Admin.findOne({});
 
-         
 
-        return {withdrawDeductionPercent,nodeValidators,stakeRatio}
 
-    }catch(error){
+        return { withdrawDeductionPercent, nodeValidators, stakeRatio }
+
+    } catch (error) {
         console.log(error);
-        return {withdrawDeductionPercent:null,nodeValidators:null,stakeRatio:null} 
+        return { withdrawDeductionPercent: null, nodeValidators: null, stakeRatio: null }
     }
 }
 
-module.exports = {setLatestBlock,giveAdminSettings, manageUserWallet,generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness,giveVrsForNodeConversion }
+const giveRoiToNodeHolders = async () => {
+    let session;
+    try {
+        // Start a session
+        session = await mongoose.startSession();
+        session.startTransaction();
+
+        // Use cursor with session
+        const cursor = NodeConverted.find({}).cursor({ session });
+
+        for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
+            ct({ userAddress: doc.userAddress, nodeNum: doc.nodeNum });
+        }
+
+        // Commit transaction
+        await session.commitTransaction();
+        console.log("Transaction committed ✅");
+
+    } catch (error) {
+        if (session) await session.abortTransaction();
+        console.error("Error in giveRoiToNodeHolders:", error);
+    } finally {
+        if (session) session.endSession();
+    }
+};
+
+module.exports = { setLatestBlock,giveRoiToNodeHolders, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion }
