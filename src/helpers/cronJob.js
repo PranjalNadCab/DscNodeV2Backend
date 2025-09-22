@@ -5,6 +5,7 @@ const { ct } = require("./helper");
 const { default: mongoose } = require("mongoose");
 const NodeConverted = require("../models/NodeConvertedModel");
 const RoiModel = require("../models/RoiModel");
+const RegistrationModel = require("../models/RegistrationModel");
 
 const updateNodeValueAssurance = async () => {
     try {
@@ -95,20 +96,20 @@ const giveRoiToNodeHolders = async () => {
         const currTime = moment().unix();
 
         for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
-            const { nodeNum, userAddress, baseMinValue,currGenratedRoi, baseMinAss, conversionMonth, time,lastRoiDistributed } = doc;
+            const { nodeNum, userAddress, baseMinValue, currGenratedRoi, baseMinAss, conversionMonth, time, lastRoiDistributed } = doc;
 
             let daysPassed = 0;
-            if(process.env.NODE_ENV === "development"){
+            if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
 
                 daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 120);
 
-            }else{
+            } else {
 
                 daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
 
             }
-            if(daysPassed<1){
+            if (daysPassed < 1) {
                 console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
                 continue;
             }
@@ -142,14 +143,14 @@ const giveRoiToNodeHolders = async () => {
             // Daily ROI = monthly / 30
             const dailyROI = monthlyROI.div(30).multipliedBy(daysPassed); // still in 1e18 precision
 
-           
+
 
             await RoiModel.create({
                 userAddress,
                 nodeNum,
                 baseMinAss,
                 roiDscAssurance: dailyROI.toFixed(0), // still in 1e18 precision
-                time:moment().unix(),
+                time: moment().unix(),
                 roiGeneratedForNumDay: daysPassed
             });
 
@@ -159,7 +160,34 @@ const giveRoiToNodeHolders = async () => {
             // If you need to save/update currGenratedRoi back to Mongo:
             await NodeConverted.updateOne(
                 { _id: doc._id },
-                { $set: { currGenratedRoi: totalRoiTillNow.toFixed(0),lastRoiDistributed:updationTimeForRoiDistributed } },
+                { $set: { currGenratedRoi: totalRoiTillNow.toFixed(0), lastRoiDistributed: updationTimeForRoiDistributed } },
+                { session }
+            );
+
+
+            // Fetch current values of allTimeRoi and roiWithdrawWallet
+            const regDoc = await RegistrationModel.findOne({ userAddress }).session(session);
+
+            if (!regDoc) {
+                throw new Error(`Registration doc not found for userAddress: ${userAddress}`);
+            }
+
+            const currentAllTimeRoi = new BigNumber(regDoc.allTimeRoi || "0");
+            const currentRoiWithdrawWallet = new BigNumber(regDoc.roiWithdrawWallet || "0");
+
+            // Add dailyROI to both
+            const updatedAllTimeRoi = currentAllTimeRoi.plus(dailyROI);
+            const updatedRoiWithdrawWallet = currentRoiWithdrawWallet.plus(dailyROI);
+
+            // Update back in DB
+            await RegistrationModel.updateOne(
+                { userAddress },
+                {
+                    $set: {
+                        allTimeRoi: updatedAllTimeRoi.toFixed(0),
+                        roiWithdrawWallet: updatedRoiWithdrawWallet.toFixed(0)
+                    }
+                },
                 { session }
             );
         }
@@ -175,4 +203,4 @@ const giveRoiToNodeHolders = async () => {
     }
 };
 
-module.exports = { updateNodeValueAssurance,giveRoiToNodeHolders };
+module.exports = { updateNodeValueAssurance, giveRoiToNodeHolders };

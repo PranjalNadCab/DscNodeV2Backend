@@ -81,6 +81,14 @@ const RegistrationSchema = new mongoose.Schema({
         }],
         default: []
     },
+    roiWithdrawWallet:{
+        type:String,
+        default:"0"
+    },
+    allTimeRoi:{
+        type:String,
+        default:"0"
+    },
     currentNodeName:{
         type:String,
         default: null
