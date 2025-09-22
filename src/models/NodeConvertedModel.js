@@ -31,6 +31,14 @@ const NodeConvertedSchema = new mongoose.Schema({
         type:String,
         default:null
     },
+    currGenratedRoi:{
+        type:String,
+        default:""
+    },
+    lastRoiDistributed:{
+        type:Number,
+        default:()=>Math.floor(Date.now()/1000)
+    },
     baseMinAss:{
         type:String,
        default:null

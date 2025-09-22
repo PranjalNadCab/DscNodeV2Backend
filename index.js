@@ -36,16 +36,16 @@ const server = app.listen(PORT, async () => {
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
-        await setLatestBlock();
+        // await setLatestBlock();
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
-        await dscNodeListEvents();
+        // await dscNodeListEvents();
         await giveRoiToNodeHolders();
         // await updateNodeValueAssurance();
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
         // await giveGapIncome("0x70E5EEc9877387cf3Fe46ec6a5E8b72A3330D2dE","100000000000000000000","Beginner","100000000000000000000","0");
         //    splitByRatio("500000000000000000000","6000000000000000000","19000000000000000000",50000)
-
+        console.log("sdfsdrrfgdfg",moment().startOf("day").unix())
     } else {
 
 

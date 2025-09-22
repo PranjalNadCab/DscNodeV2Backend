@@ -170,7 +170,8 @@ async function processEvents(events) {
                         time: Number(timestampNormal),
                         lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
-                        transactionHash: transactionHash
+                        transactionHash: transactionHash,
+                        lastRoiDistributed:moment().startOf('day').unix()
                     });
 
                     console.log("Node converted doc created:", nodeConverted);
