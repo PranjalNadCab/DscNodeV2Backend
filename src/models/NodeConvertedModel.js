@@ -50,7 +50,7 @@ const NodeConvertedSchema = new mongoose.Schema({
 },{ timestamps: true });
 
 
-NodeConvertedSchema.index({ userAddress: 1,nodeName:1 },{unique:true});
+NodeConvertedSchema.index({ userAddress: 1,nodeNum:1 },{unique:true});
 
 const NodeConverted = mongoose.model("NodeConverted", NodeConvertedSchema);
 
