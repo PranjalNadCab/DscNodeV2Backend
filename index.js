@@ -9,8 +9,8 @@ const userRoutes = require("./src/routes/userRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, giveRoiToNodeHolders } = require("./src/helpers/helper");
-const { updateNodeValueAssurance } = require("./src/helpers/cronJob");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock } = require("./src/helpers/helper");
+const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 
 
@@ -29,30 +29,51 @@ app.get("/api/test", (req, res) => {
 app.use("/api", userRoutes);
 app.use(errorHandler);
 
-if(process.env.NODE_ENV!=="development"){
+if (process.env.NODE_ENV !== "development") {
     cron.schedule('1 0 * * *', async () => {
         try {
-         console.log(`Cron job started at ${new Date().toLocaleString()}`);
-             await giveRoiToNodeHolders();
+            console.log(`Cron job started at ${new Date().toLocaleString()}`);
+            await giveRoiToNodeHolders();
 
         } catch (err) {
             console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
         }
-       
+
     }, {
         timezone: 'Asia/Kolkata'
     });
 
-}else{
+    cron.schedule('1 0 1 * *', async () => {
+        try {
+            console.log(`Monthly Cron (12:01 AM 1st day) started at ${new Date().toLocaleString()}`);
+            await updateNodeValueAssurance();
+        } catch (err) {
+            console.error('Error in monthly cron job:', err);
+        }
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
+
+} else {
     cron.schedule('*/2 * * * *', async () => {
         try {
-         console.log(`Cron job started at ${new Date().toLocaleString()}`);
-             await giveRoiToNodeHolders();
+            console.log(`Cron job started at ${new Date().toLocaleString()}`);
+            await giveRoiToNodeHolders();
 
         } catch (err) {
             console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
         }
-       
+
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
+    cron.schedule('*/15 * * * *', async () => {
+        try {
+            console.log(`Cron (every 15 mins) started at ${new Date().toLocaleString()}`);
+            await updateNodeValueAssurance();
+        } catch (err) {
+            console.error('Error in 15-min cron job:', err);
+        }
     }, {
         timezone: 'Asia/Kolkata'
     });
@@ -75,7 +96,7 @@ const server = app.listen(PORT, async () => {
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
         // await giveGapIncome("0x70E5EEc9877387cf3Fe46ec6a5E8b72A3330D2dE","100000000000000000000","Beginner","100000000000000000000","0");
         //    splitByRatio("500000000000000000000","6000000000000000000","19000000000000000000",50000)
-        console.log("sdfsdrrfgdfg",moment().startOf("day").unix())
+        console.log("sdfsdrrfgdfg", moment().startOf("day").unix())
     } else {
 
 
