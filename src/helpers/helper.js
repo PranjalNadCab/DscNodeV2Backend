@@ -847,7 +847,7 @@ const giveRoiToNodeHolders = async () => {
                 baseMinAss,
                 roiDscAssurance: dailyROI.toFixed(0), // still in 1e18 precision
                 time:moment().unix()
-            })
+            });
 
             // If you need to save/update currGenratedRoi back to Mongo:
             await NodeConverted.updateOne(
