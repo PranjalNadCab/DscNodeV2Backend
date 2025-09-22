@@ -15,7 +15,7 @@ router.post("/get-gap-income-history",getGapIncomeHistory);
 router.post("/withdraw-income-history",getWithdrawIncomeHistory);
 router.post("/node-registration",nodeRegistration);
 router.post("/upgrade-node",purchaseNode);
-router.get("/roi-history",getRoiHistory)
+router.post("/roi-history",getRoiHistory)
 
 
 
