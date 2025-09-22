@@ -142,16 +142,7 @@ const giveRoiToNodeHolders = async () => {
             // Daily ROI = monthly / 30
             const dailyROI = monthlyROI.div(30).multipliedBy(daysPassed); // still in 1e18 precision
 
-            // Example output
-            console.log({
-                userAddress,
-                nodeNum,
-                baseMinValue,
-                baseMinAss,
-                conversionMonth, // e.g. "September"
-                monthIndex,
-                dailyROI: dailyROI.toFixed(0), // still in 1e18 precision
-            });
+           
 
             await RoiModel.create({
                 userAddress,
