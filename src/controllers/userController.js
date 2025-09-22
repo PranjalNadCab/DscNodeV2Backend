@@ -11,6 +11,7 @@ const Admin = require("../models/AdminModel");
 const NodeConverted = require("../models/NodeConvertedModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
+const RoiModel = require("../models/RoiModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -579,8 +580,54 @@ const purchaseNode = async (req, res, next) => {
     }
 }
 
+
+
+const getRoiHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Ensure numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (isNaN(limit) || limit < 1) limit = 10;
+
+        const skip = (page - 1) * limit;
+
+        // Fetch total count for pagination
+        const totalRecords = await RoiModel.countDocuments({ userAddress });
+
+        // Fetch paginated data, sorted by most recent first
+        const roiHistory = await RoiModel.find({ userAddress })
+            .sort({ time: -1 }) // most recent first
+            .skip(skip)
+            .limit(limit)
+            .lean(); // lean() gives plain JS objects
+
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        res.json({
+            success: true,
+            data: roiHistory,
+            pagination: {
+                page,
+                limit,
+                totalRecords,
+                totalPages
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     stakeVrs,
+    getRoiHistory,
     purchaseNode,
     getLiveDscPrice,
     getUserInfo,
