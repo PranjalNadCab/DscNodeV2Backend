@@ -31,7 +31,7 @@ const roiModelSchema = new mongoose.Schema({
 },{ timestamps: true });
 
 
-roiModelSchema.index({ userAddress: 1,nodeName:1,time:1 },{unique:true});
+roiModelSchema.index({ userAddress: 1,nodeNum:1,time:1 },{unique:true});
 
 const RoiModel = mongoose.model("Roi", roiModelSchema);
 
