@@ -95,7 +95,7 @@ const giveRoiToNodeHolders = async () => {
         const currTime = moment().unix();
 
         for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
-            const { nodeNum, userAddress, baseMinValue, baseMinAss, conversionMonth, time,lastRoiDistributed } = doc;
+            const { nodeNum, userAddress, baseMinValue,currGenratedRoi, baseMinAss, conversionMonth, time,lastRoiDistributed } = doc;
 
             let daysPassed = 0;
             if(process.env.NODE_ENV === "development"){
@@ -153,11 +153,13 @@ const giveRoiToNodeHolders = async () => {
                 roiGeneratedForNumDay: daysPassed
             });
 
+            const totalRoiTillNow = new BigNumber(currGenratedRoi || "0").plus(dailyROI);
+
             const updationTimeForRoiDistributed = process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix();
             // If you need to save/update currGenratedRoi back to Mongo:
             await NodeConverted.updateOne(
                 { _id: doc._id },
-                { $set: { currGenratedRoi: dailyROI.toFixed(0),lastRoiDistributed:updationTimeForRoiDistributed } },
+                { $set: { currGenratedRoi: totalRoiTillNow.toFixed(0),lastRoiDistributed:updationTimeForRoiDistributed } },
                 { session }
             );
         }
