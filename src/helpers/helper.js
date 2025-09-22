@@ -647,12 +647,12 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
 
         let purchasedNodes = getUserDoc.purchasedNodes || [];
 
-        const alreadyAchieved = purchasedNodes.find(n => n.nodeNum === nodeNum);
+        const myNode = purchasedNodes.find(n => n.nodeNum === nodeNum);
 
-        if (alreadyAchieved) {
-            console.log(`User ${user} has already achieved node ${nodeNum}`);
-            return;
-        }
+        // if (alreadyAchieved) {
+        //     console.log(`User ${user} has already achieved node ${nodeNum}`);
+        //     return;
+        // }
         const adminDoc = await AdminModel.findOne({});
         if (!adminDoc) {
             console.log("Admin doc not found");
@@ -660,11 +660,12 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
         }
         const nodeInfo = adminDoc.nodeValidators.find(n => n.nodeNum === nodeNum);
         if (!nodeInfo) {
-            console.log(`Invalid node name ${nodeName}`);
+            console.log(`Invalid node name ${nodeInfo.name}`);
             return;
         }
+        console.log("jksdhfgsdfghdfhed",nodeInfo)
         purchasedNodes.push({
-            nodeName: nodeInfo.nodeName,
+            nodeName: nodeInfo.name,
             purchasedAt: time,
             reward: nodeInfo.reward,
             nodeConversionTime: moment().unix()
@@ -672,8 +673,17 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: user },
-            { $set: { purchasedNodes: purchasedNodes, currentNodeName: nodeInfo.nodeName } },
-            { new: true }
+            {
+                $set: {
+                    "purchasedNodes.$[elem].nodeConversionTime": moment().unix()
+                }
+            },
+            {
+                new: true,
+                arrayFilters: [
+                    { "elem.nodeName": nodeInfo.name } // match the node you want to update
+                ]
+            }
         );
         const updateNode = await UpgradedNodes.updateOne(
             { userAddress: user, nodeNum },

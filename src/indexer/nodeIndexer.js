@@ -315,8 +315,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "54716604"; 
-        // toBlock = "54716604"
+        // lastSyncBlock = "66260963"; 
+        // toBlock = "66260963"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
