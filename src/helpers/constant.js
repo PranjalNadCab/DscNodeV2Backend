@@ -1,33 +1,35 @@
+const moment = require('moment');
+
 const ranks = [
     {
-        rank:"Beginner",
+        rank: "Beginner",
         lowerBound: 100,
         upperBound: 6000,
-        grade:1
+        grade: 1
     },
     {
-        rank:"Learner",
+        rank: "Learner",
         lowerBound: 6100,
         upperBound: 18000,
-        grade:2
+        grade: 2
     },
     {
-        rank:"Expert",
+        rank: "Expert",
         lowerBound: 18100,
         upperBound: 36000,
-        grade:3
+        grade: 3
     },
     {
-        rank:"Master",
+        rank: "Master",
         lowerBound: 36100,
         upperBound: 60000,
-        grade:4
+        grade: 4
     },
     {
-        rank:"Mentor",
+        rank: "Mentor",
         lowerBound: 60001,
         upperBound: 99999999999,
-        grade:5
+        grade: 5
     },
 ];
 
@@ -41,44 +43,76 @@ const gapIncome = {
     Mentor: 0.18
 }
 
-;
-const usdDscRatio = {
-    october:{
-        usd:55,
-        dsc:45
-    },
-    november:{
-        usd:60,
-        dsc:40
-    },
-    december:{
-        usd:65,
-        dsc:35
-    },
-    january:{
-        usd:70,
-        dsc:30
-    },
-    february:{
-        usd:75,
-        dsc:25
-    },
-    march:{
-        usd:80,
-        dsc:20
-    },
-    april:{
-        usd:85,
-        dsc:15
-    },
-    may:{
-        usd:90,
-        dsc:10
-    },
-    june:{
-        usd:95,
-        dsc:5
-    },
+
+// const usdDscRatio = {
+//     october:{
+//         usd:55,
+//         dsc:45
+//     },
+//     november:{
+//         usd:60,
+//         dsc:40
+//     },
+//     december:{
+//         usd:65,
+//         dsc:35
+//     },
+//     january:{
+//         usd:70,
+//         dsc:30
+//     },
+//     february:{
+//         usd:75,
+//         dsc:25
+//     },
+//     march:{
+//         usd:80,
+//         dsc:20
+//     },
+//     april:{
+//         usd:85,
+//         dsc:15
+//     },
+//     may:{
+//         usd:90,
+//         dsc:10
+//     },
+//     june:{
+//         usd:95,
+//         dsc:5
+//     },
+// }
+
+
+
+const ratioUsdDsc = () => {
+    const START_MONTH = process.env.START_MONTH || "2025-09"; // format YYYY-MM
+
+    // fixed 9 months
+    const MONTHS_COUNT = 9;
+
+    // base ratios (you can adjust increments however you want)
+    const baseUsd = 55;
+    const baseDsc = 45;
+    const increment = 5;
+
+    const startMoment = moment(START_MONTH, "YYYY-MM");
+
+    // Generate dynamic month ratio object
+    const usdDscRatio = {};
+
+    for (let i = 0; i < MONTHS_COUNT; i++) {
+        const monthName = startMoment.clone().add(i, "months").format("MMMM").toLowerCase();
+
+        usdDscRatio[monthName] = {
+            usd: baseUsd + i * increment,
+            dsc: baseDsc - i * increment
+        };
+    }
+
+    const monthKey = moment().format("MMMM").toLowerCase(); 
+    console.log(usdDscRatio[monthKey] )
+    return usdDscRatio[monthKey] || null;
 }
 
 
@@ -86,6 +120,6 @@ const usdDscRatio = {
 module.exports = {
     ranks,
     gapIncome,
-    usdDscRatio
-   
+    ratioUsdDsc
+
 };

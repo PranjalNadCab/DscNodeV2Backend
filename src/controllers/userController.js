@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -12,6 +12,7 @@ const NodeConverted = require("../models/NodeConvertedModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
+const { usdDscRatio, ratioUsdDsc } = require("../helpers/constant");
 
 
 
@@ -121,7 +122,7 @@ const stakeVrs = async (req, res, next) => {
 
 const stakeMix = async (req, res, next) => {
     try {
-        const { amountDsc, amountDscInUsd, amountUsdt } = req.body;
+        const { amountDsc, amountDscInUsd, amountUsdt,totalUsdStake } = req.body;
         let { user, sponsorAddress } = req.body;
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
@@ -145,6 +146,7 @@ const stakeMix = async (req, res, next) => {
         let pendingDsc=new BigNumber(0);
         const { price } = await LivePriceDsc.findOne();
         if (!price) throw new Error("Live price not found.");
+        const currRatio = ratioUsdDsc();
 
         if (anyPendingStake) {
             if (amountUsdt !== 0) {
@@ -169,33 +171,29 @@ const stakeMix = async (req, res, next) => {
             if (amountUsdt === 0) {
                 throw new Error("For mix staking, USDT amount must be greater than 0.");
             }
-            if (amountDsc === 0 || amountDscInUsd === 0) {
-                throw new Error("For mix staking, DSC amount must be greater than 0.");
-            }
+
+            let generatedDsc = amountDscInUsd / price;
+            generatedDsc = new BigNumber(generatedDsc).multipliedBy(1e18);
+
+            const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
+            if (totalUsdStake < 100) throw new Error("Total amount must be at least $100.");
+            if (totalUsdStake % 100 !== 0) throw new Error("You can only stake multiples of $100.");
+    
+            const {status, message} = validateStake(amountUsdt, amountDscInUsd,totalUsdStake,currRatio);
+            if(!status) throw new Error(message);
 
         }
 
+        const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed(0);
+        const amountDscIn1e18 = pendingDsc.isGreaterThan(0) ? pendingDsc.multipliedBy(1e18).toFixed(0) : new BigNumber(amountDsc).multipliedBy(1e18).toFixed(0);
+        const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18).toFixed(0);
+        const priceDscInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
+        const hash = null;
+        const nonce = null;
+        const vrs = giveVrsForMixStaking(amountDscInUsdIn1e18,amountDscIn1e18,amountUsdtIn1e18,priceDscInUsdIn1e18,user,hash,nonce);
 
 
-
-        const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
-        if (totalUsd < 100) throw new Error("Total amount must be at least $100.");
-        if (totalUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
-
-        const ratioUsdt = (Number(amountUsdt) * 100) / totalUsd;
-        const ratioDsc = (Number(amountDscInUsd) * 100) / totalUsd;
-
-        if (ratioUsdt < 30 || ratioUsdt > 70) throw new Error("For mix staking, USDT ratio must be between 30% to 70%");
-        if (ratioDsc < 30 || ratioDsc > 70) throw new Error("For mix staking, DSC ratio must be between 30% to 70%");
-
-
-        
-        const generatedAmountDsc = amountDscInUsd / price;
-        const generatedAmountDscInUsd = price * amountDsc;
-
-        if (Math.abs(generatedAmountDscInUsd - amountDscInUsd) > 0.02) {
-            throw new Error("DSC amount does not match the calculated amount based on USD value.");
-        }
+        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, generatedAmountDsc: pendingDsc.isGreaterThan(0) ? pendingDsc.dividedBy(1e18).toNumber() : amountDsc, sentAmountDsc: pendingDsc.isGreaterThan(0) ? pendingDsc.dividedBy(1e18).toNumber() : amountDsc, vrsSign: { ...vrs, sponsorAddress: sponsorDoc ? sponsorDoc.userAddress : null } });
 
     } catch (error) {
         next(error);

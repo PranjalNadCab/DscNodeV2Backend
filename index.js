@@ -12,6 +12,7 @@ const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
 const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
+const { ratioUsdDsc } = require("./src/helpers/constant");
 
 
 
@@ -55,28 +56,28 @@ if (process.env.NODE_ENV !== "development") {
     });
 
 } else {
-    cron.schedule('*/2 * * * *', async () => {
-        try {
-            console.log(`Cron job started at ${new Date().toLocaleString()}`);
-            await giveRoiToNodeHolders();
+    // cron.schedule('*/2 * * * *', async () => {
+    //     try {
+    //         console.log(`Cron job started at ${new Date().toLocaleString()}`);
+    //         await giveRoiToNodeHolders();
 
-        } catch (err) {
-            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
-        }
+    //     } catch (err) {
+    //         console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+    //     }
 
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
-    cron.schedule('*/15 * * * *', async () => {
-        try {
-            console.log(`Cron (every 15 mins) started at ${new Date().toLocaleString()}`);
-            await updateNodeValueAssurance();
-        } catch (err) {
-            console.error('Error in 15-min cron job:', err);
-        }
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
+    // cron.schedule('*/15 * * * *', async () => {
+    //     try {
+    //         console.log(`Cron (every 15 mins) started at ${new Date().toLocaleString()}`);
+    //         await updateNodeValueAssurance();
+    //     } catch (err) {
+    //         console.error('Error in 15-min cron job:', err);
+    //     }
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 }
 
 const server = app.listen(PORT, async () => {
@@ -90,6 +91,7 @@ const server = app.listen(PORT, async () => {
         // await setLatestBlock();
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
+        ratioUsdDsc();
         // await dscNodeListEvents();
         // await giveRoiToNodeHolders();
         // await updateNodeValueAssurance();

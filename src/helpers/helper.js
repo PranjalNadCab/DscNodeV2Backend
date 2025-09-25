@@ -109,6 +109,42 @@ function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e
     });
 }
 
+function giveVrsForMixStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+            ct({ amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce })
+
+            const data = {
+                hash: hash,
+                nonce: nonce,
+                user: user,
+                amountDscInUsdIn1e18,
+                amountDscIn1e18,
+                amountUsdtIn1e18,
+                priceDscInUsdIn1e18
+            };
+            console.log({ data })
+
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
 function giveVrsForWithdrawIncomeUsdt(amountUsdtIn1e18, user, hash, nonce, amountUsdtIn1e18AfterDeduction) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -663,7 +699,7 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
             console.log(`Invalid node name ${nodeInfo.name}`);
             return;
         }
-        console.log("jksdhfgsdfghdfhed",nodeInfo)
+        console.log("jksdhfgsdfghdfhed", nodeInfo)
         purchasedNodes.push({
             nodeName: nodeInfo.name,
             purchasedAt: time,
@@ -791,6 +827,29 @@ const giveAdminSettings = async () => {
     }
 }
 
+const validateStake = (amountUsdt, amountDscInUsd, totalUsdStake, currRatio) => {
+    const total = new BigNumber(totalUsdStake);
+
+    // expected fixed USDT portion
+    const requiredUsdt = total.multipliedBy(currRatio.usd).dividedBy(100);
+    // max DSC allowed
+    const maxDsc = total.multipliedBy(currRatio.dsc).dividedBy(100);
+
+    if (!new BigNumber(amountUsdt).isEqualTo(requiredUsdt)) {
+        return {status:false, message:`amountUsdt must be exactly ${requiredUsdt.toString()}`}
+    }
+    
+
+    if (new BigNumber(amountDscInUsd).isLessThan(0)) {
+        return {status:false, message:`amountDscInUsd cannot be negative`}
+    }
+
+    if (new BigNumber(amountDscInUsd).isGreaterThan(maxDsc)) {
+        return {status:false, message:`amountDscInUsd cannot be more than ${maxDsc.toString()}`}
+    }
+
+    return {status:true, message:"Valid stake amounts"};
+};
 
 
-module.exports = { setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion }
+module.exports = {validateStake, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion,giveVrsForMixStaking }
