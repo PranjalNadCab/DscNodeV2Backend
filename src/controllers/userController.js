@@ -3,7 +3,7 @@ const LivePriceDsc = require("../models/LiveDscPriceModel");
 const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
-const { dscNodeContract } = require("../web3/web3");
+const { dscNodeContract, web3 } = require("../web3/web3");
 const RegistrationModel = require("../models/RegistrationModel");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 const { isAddress } = require("web3-validator");
@@ -14,11 +14,13 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 
 
+
 const stakeVrs = async (req, res, next) => {
     try {
         // Extract user data from request body
 
-        const { user, amountDsc, amountDscInUsd, amountUsdt, priceDscInUsd, sponsorAddress } = req.body; //amounts will be in number
+        const { amountDsc, amountDscInUsd, amountUsdt, priceDscInUsd } = req.body; //amounts will be in number
+        let { user, sponsorAddress } = req.body;
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
         if (missingFields.length > 0) {
@@ -27,10 +29,16 @@ const stakeVrs = async (req, res, next) => {
 
         // if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
 
-        let formattedSponsor = giveCheckSummedAddress(sponsorAddress);
-        let formattedUser = giveCheckSummedAddress(user);
-        const sponsorDoc = await RegistrationModel.findOne({ userAddress: formattedSponsor });
-        if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+        user = giveCheckSummedAddress(user);
+        sponsorAddress = giveCheckSummedAddress(sponsorAddress);
+
+        const isUserExist = await RegistrationModel.findOne({ userAddress: user });
+        let sponsorDoc = null;
+        if (!isUserExist) {
+            sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
+            if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+        }
+
 
         const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
         if (totalUsd < 100) throw new Error("Total amount must be at least $100.");
@@ -109,6 +117,89 @@ const stakeVrs = async (req, res, next) => {
         next(error);
     }
 
+}
+
+const stakeMix = async (req, res, next) => {
+    try {
+        const { amountDsc, amountDscInUsd, amountUsdt } = req.body;
+        let { user, sponsorAddress } = req.body;
+
+        const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
+        if (missingFields.length > 0) {
+            throw new Error(`Please send these missing fields: ${missingFields.join(", ")}`);
+        }
+
+        user = giveCheckSummedAddress(user);
+        sponsorAddress = giveCheckSummedAddress(sponsorAddress);
+
+        const isUserExist = await RegistrationModel.findOne({ userAddress: user });
+        let sponsorDoc = null;
+        if (!isUserExist) {
+            sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
+            if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+        }
+
+        let userPendingStake = null;
+        const anyPendingStake = await dscNodeContract.methods.anyPendingStake(user).call();
+        let pendingDscInUsd = new BigNumber(0);
+        let pendingDsc=new BigNumber(0);
+        const { price } = await LivePriceDsc.findOne();
+        if (!price) throw new Error("Live price not found.");
+
+        if (anyPendingStake) {
+            if (amountUsdt !== 0) {
+                throw new Error("You have a pending mix 70:30 stake! Please send only remaining 0.5 DSC stake to complete it.");
+            }
+            userPendingStake = await StakingModel.findOne({ userAddress: user, isPendingStake: true });
+            if (!userPendingStake) throw new Error("Pending stake not found in database! Please contact support.");
+            const { totalAmountInUsd, amountInUsdt } = userPendingStake;
+             pendingDscInUsd = new BigNumber(totalAmountInUsd).minus(amountInUsdt).minus(amountDscInUsd);
+            if (pendingDscInUsd.isLessThanOrEqualTo(0)) throw new Error("You don't need to send any DSC! Please check your pending stake details.");
+            // cosnt ratioUsdToDsc = amountInUsdt/(totalAmountInUsd - amountInUsdt);
+            //manage above ratio in bigNumbers as amounts are in 1e18 string
+            const ratioUsdToDsc = new BigNumber(amountInUsdt).dividedBy(new BigNumber(totalAmountInUsd).minus(amountInUsdt));
+            console.log("ratio------->>>>>", ratioUsdToDsc.toFixed());
+            if (!pendingDscInUsd.isEqualTo(new BigNumber(amountDscInUsd))) {
+                throw new Error(`You need to send exactly ${pendingDscInUsd.dividedBy(1e18).toFixed()} USD worth of DSC to complete your pending stake.`);
+            }
+                pendingDsc = pendingDscInUsd.dividedBy(price);
+
+
+        } else {
+            if (amountUsdt === 0) {
+                throw new Error("For mix staking, USDT amount must be greater than 0.");
+            }
+            if (amountDsc === 0 || amountDscInUsd === 0) {
+                throw new Error("For mix staking, DSC amount must be greater than 0.");
+            }
+
+        }
+
+
+
+
+        const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
+        if (totalUsd < 100) throw new Error("Total amount must be at least $100.");
+        if (totalUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
+
+        const ratioUsdt = (Number(amountUsdt) * 100) / totalUsd;
+        const ratioDsc = (Number(amountDscInUsd) * 100) / totalUsd;
+
+        if (ratioUsdt < 30 || ratioUsdt > 70) throw new Error("For mix staking, USDT ratio must be between 30% to 70%");
+        if (ratioDsc < 30 || ratioDsc > 70) throw new Error("For mix staking, DSC ratio must be between 30% to 70%");
+
+
+        
+        const generatedAmountDsc = amountDscInUsd / price;
+        const generatedAmountDscInUsd = price * amountDsc;
+
+        if (Math.abs(generatedAmountDscInUsd - amountDscInUsd) > 0.02) {
+            throw new Error("DSC amount does not match the calculated amount based on USD value.");
+        }
+
+    } catch (error) {
+        next(error);
+    }
 }
 
 const getLiveDscPrice = async (req, res, next) => {
@@ -346,13 +437,13 @@ const convertToNode = async (req, res, next) => {
 
         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if(!isRegistered) throw new Error("You have not registered for node upgradation!");
+        if (!isRegistered) throw new Error("You have not registered for node upgradation!");
         //generate vrs
 
-        const myNode= await UpgradedNodes.findOne({userAddress,nodeNum:Number(nodeNum)});
-        if(!myNode) throw new Error("You have not purchased this node yet!");
+        const myNode = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
+        if (!myNode) throw new Error("You have not purchased this node yet!");
 
-        if(myNode.nodeConversionTime) throw new Error("You have already converted this node!");
+        if (myNode.nodeConversionTime) throw new Error("You have already converted this node!");
 
 
         const lastConversion = await NodeConverted.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
@@ -363,7 +454,7 @@ const convertToNode = async (req, res, next) => {
             prevNonce = Number(lastConversion.lastUsedNonce);
         }
         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
-        console.log({ prevNonce, currNonce:Number(currNonce) });
+        console.log({ prevNonce, currNonce: Number(currNonce) });
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous Node conversion not stored yet! Please try again later.");
         }
@@ -560,8 +651,8 @@ const purchaseNode = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForNodePurchasing(userAddress).call();
 
-        
-        
+
+
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
@@ -637,6 +728,7 @@ module.exports = {
     convertToNode,
     getGapIncomeHistory,
     getWithdrawIncomeHistory,
-    nodeRegistration
+    nodeRegistration,
+    stakeMix
 };
 

@@ -1,10 +1,11 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, convertToNode, getGapIncomeHistory, getWithdrawIncomeHistory, nodeRegistration, purchaseNode, getRoiHistory } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, convertToNode, getGapIncomeHistory, getWithdrawIncomeHistory, nodeRegistration, purchaseNode, getRoiHistory, stakeMix } = require("../controllers/userController");
 
 
 const router = express.Router();
 
 router.post("/stake-vrs", stakeVrs);
+router.post("/stake-mix",stakeMix);
 router.get("/get-dsc-price",getLiveDscPrice);
 router.post("/get-user-info",getUserInfo);
 router.post("/get-user-stakings",getUserStakings);
@@ -15,7 +16,7 @@ router.post("/get-gap-income-history",getGapIncomeHistory);
 router.post("/withdraw-income-history",getWithdrawIncomeHistory);
 router.post("/node-registration",nodeRegistration);
 router.post("/upgrade-node",purchaseNode);
-router.post("/roi-history",getRoiHistory)
+router.post("/roi-history",getRoiHistory);
 
 
 

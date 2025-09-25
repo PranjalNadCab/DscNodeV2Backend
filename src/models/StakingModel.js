@@ -13,11 +13,11 @@ const StakingSchema = new mongoose.Schema({
     },
     amountInDscInUsd:{
         type: String,
-        required: true
+        default:"0"
     },
     amountInDsc:{
         type: String,
-        required: true
+        defautl:"0"
     },
     amountInUsdt:{
         type: String,
@@ -30,6 +30,10 @@ const StakingSchema = new mongoose.Schema({
     time: {
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
+    },
+    isPendingStake:{
+        type:Boolean,
+        default:false
     },
     lastUsedNonce:{
         type:Number,
