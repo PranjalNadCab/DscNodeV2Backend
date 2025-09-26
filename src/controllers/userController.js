@@ -134,6 +134,7 @@ const stakeVrs = async (req, res, next) => {
 
         const { amountInUsd, currency, totalAmountInUsd } = req.body;
         let { user, sponsorAddress } = req.body;
+        if(!["USDT","DSC"].includes(currency)) throw new Error("Invalid currency");
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
         if (missingFields.length > 0) {
@@ -675,12 +676,94 @@ const getWithdrawIncomeHistory = async (req, res, next) => {
 
 
 
-const purchaseNode = async (req, res, next) => {
+// const upgradeNode = async (req, res, next) => {
+//     try {
+
+//         let { userAddress, nodeNum } = req.body;
+
+//         if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
+
+//         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+//         userAddress = giveCheckSummedAddress(userAddress);
+
+//         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+
+//         if (!isRegistered) throw new Error("You have not registered for node upgradation!");
+
+//         const regDoc = await RegistrationModel.findOne({ userAddress });
+//         if (!regDoc) throw new Error("Please do your first staking for registration");
+
+//         const { nodePurchasingBalance = "0" } = regDoc;
+//         console.log("kldsfgsdfg", nodePurchasingBalance, regDoc);
+
+//         const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
+
+//         if (isNodeAlreadyUpgraded) throw new Error("You have already upgraded this node!");
+
+//         const { nodeValidators } = await giveAdminSettings();
+
+//         const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+
+//         if (!myNode) throw new Error("Node not found");
+
+//         const baseNodeValue = new BigNumber(myNode.selfStaking);
+
+//         // if(new BigNumber(userTotalStakeInUsd).multipliedBy(1e18).isLessThan(baseNodeValue.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
+
+//         const percentToAdd = 0.1
+//         let amountToDeduct = baseNodeValue
+//             .minus(nodePurchasingBalance)   // subtract balance
+//             .plus(baseNodeValue.multipliedBy(percentToAdd)); // add 10%
+//         // if(new BigNumber(nodePurchasingBalance).isLessThan(baseNodeValue)) {
+//         //     amountToDeduct = BigNumber.max(baseNodeValue.multipliedBy(0.1).minus(nodePurchasingBalance), 0);
+//         //     console.log(amountToDeduct.toFixed())
+
+//         // }
+
+//         ct({ nodePurchasingBalance, baseNodeValue: baseNodeValue.toFixed() })
+
+//         const lastNode = await UpgradedNodes.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
+
+//         let prevNonce = 0;
+//         if (!lastNode) {
+//             prevNonce = -1;
+//         } else {
+//             prevNonce = Number(lastNode.lastUsedNonce);
+//         }
+//         const currNonce = await dscNodeContract.methods.userNoncesForNodePurchasing(userAddress).call();
+
+
+
+//         if ((prevNonce + 1) !== Number(currNonce)) {
+//             throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+//         }
+
+//         ct({ uid: "kdgsdrg", type: typeof amountToDeduct });
+//         const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(), myNode.name, myNode.nodeNum, nodePurchasingBalance).call();
+
+//         const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), myNode.name, myNode.nodeNum, nodePurchasingBalance, Number(currNonce), hash);
+
+
+
+//         return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs });
+
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+const upgradeNode = async (req, res, next) => {
     try {
 
-        let { userAddress, nodeNum } = req.body;
+        let { userAddress } = req.body;
+        const { nodeNum,amountInUsd,totalAmountInUsd,currency } = req.body;
 
-        if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
+        if(!["USDT","DSC"].includes(currency)) throw new Error("Invalid currency");
+
+        const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
+        if (missingFields.length > 0) {
+            throw new Error(`Please send these missing fields: ${missingFields.join(", ")}`);
+        }
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
@@ -707,17 +790,12 @@ const purchaseNode = async (req, res, next) => {
 
         const baseNodeValue = new BigNumber(myNode.selfStaking);
 
-        // if(new BigNumber(userTotalStakeInUsd).multipliedBy(1e18).isLessThan(baseNodeValue.toFixed())) throw new Error(`You need atleast $${Number(myNode.selfStaking)/1e18} of staking`)
 
         const percentToAdd = 0.1
         let amountToDeduct = baseNodeValue
             .minus(nodePurchasingBalance)   // subtract balance
             .plus(baseNodeValue.multipliedBy(percentToAdd)); // add 10%
-        // if(new BigNumber(nodePurchasingBalance).isLessThan(baseNodeValue)) {
-        //     amountToDeduct = BigNumber.max(baseNodeValue.multipliedBy(0.1).minus(nodePurchasingBalance), 0);
-        //     console.log(amountToDeduct.toFixed())
-
-        // }
+       
 
         ct({ nodePurchasingBalance, baseNodeValue: baseNodeValue.toFixed() })
 
@@ -750,7 +828,6 @@ const purchaseNode = async (req, res, next) => {
         next(error);
     }
 }
-
 
 
 const getRoiHistory = async (req, res, next) => {
@@ -799,7 +876,7 @@ const getRoiHistory = async (req, res, next) => {
 module.exports = {
     stakeVrs,
     getRoiHistory,
-    purchaseNode,
+    upgradeNode,
     getLiveDscPrice,
     getUserInfo,
     getUserStakings,
