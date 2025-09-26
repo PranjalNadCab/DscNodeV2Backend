@@ -20,7 +20,8 @@ const stakeVrs = async (req, res, next) => {
     try {
         // Extract user data from request body
 
-        const { amountDsc, amountDscInUsd, amountUsdt, priceDscInUsd } = req.body; //amounts will be in number
+        const { amountDsc, amountDscInUsd, amountUsdt } = req.body; //amounts will be in number
+        const {amountInUsd, currency,totalAmountInUsd} = req.body;
         let { user, sponsorAddress } = req.body;
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
@@ -34,16 +35,23 @@ const stakeVrs = async (req, res, next) => {
         sponsorAddress = giveCheckSummedAddress(sponsorAddress);
 
         const isUserExist = await RegistrationModel.findOne({ userAddress: user });
-        let sponsorDoc = null;
-        if (!isUserExist) {
-            sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
-            if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+
+        let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
+        if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+
+
+
+        // const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
+        if (totalAmountInUsd < 100) throw new Error("Total amount must be at least $100.");
+        if (totalAmountInUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
+
+        if(totalAmountInUsd === amountInUsd && currency === "USDT"){
+
+        }else if( totalAmountInUsd === amountInUsd && currency === "DSC"){
+            
+        }else{
+
         }
-
-
-        const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
-        if (totalUsd < 100) throw new Error("Total amount must be at least $100.");
-        if (totalUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
 
 
         // ✅ Ratio validation
@@ -122,7 +130,7 @@ const stakeVrs = async (req, res, next) => {
 
 const stakeMix = async (req, res, next) => {
     try {
-        const { amountDsc, amountDscInUsd, amountUsdt,totalUsdStake } = req.body;
+        const { amountDsc, amountDscInUsd, amountUsdt, totalUsdStake } = req.body;
         let { user, sponsorAddress } = req.body;
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
@@ -143,7 +151,7 @@ const stakeMix = async (req, res, next) => {
         let userPendingStake = null;
         const anyPendingStake = await dscNodeContract.methods.anyPendingStake(user).call();
         let pendingDscInUsd = new BigNumber(0);
-        let pendingDsc=new BigNumber(0);
+        let pendingDsc = new BigNumber(0);
         const { price } = await LivePriceDsc.findOne();
         if (!price) throw new Error("Live price not found.");
         const currRatio = ratioUsdDsc();
@@ -155,7 +163,7 @@ const stakeMix = async (req, res, next) => {
             userPendingStake = await StakingModel.findOne({ userAddress: user, isPendingStake: true });
             if (!userPendingStake) throw new Error("Pending stake not found in database! Please contact support.");
             const { totalAmountInUsd, amountInUsdt } = userPendingStake;
-             pendingDscInUsd = new BigNumber(totalAmountInUsd).minus(amountInUsdt).minus(amountDscInUsd);
+            pendingDscInUsd = new BigNumber(totalAmountInUsd).minus(amountInUsdt).minus(amountDscInUsd);
             if (pendingDscInUsd.isLessThanOrEqualTo(0)) throw new Error("You don't need to send any DSC! Please check your pending stake details.");
             // cosnt ratioUsdToDsc = amountInUsdt/(totalAmountInUsd - amountInUsdt);
             //manage above ratio in bigNumbers as amounts are in 1e18 string
@@ -164,7 +172,7 @@ const stakeMix = async (req, res, next) => {
             if (!pendingDscInUsd.isEqualTo(new BigNumber(amountDscInUsd))) {
                 throw new Error(`You need to send exactly ${pendingDscInUsd.dividedBy(1e18).toFixed()} USD worth of DSC to complete your pending stake.`);
             }
-                pendingDsc = pendingDscInUsd.dividedBy(price);
+            pendingDsc = pendingDscInUsd.dividedBy(price);
 
 
         } else {
@@ -178,9 +186,9 @@ const stakeMix = async (req, res, next) => {
             const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
             if (totalUsdStake < 100) throw new Error("Total amount must be at least $100.");
             if (totalUsdStake % 100 !== 0) throw new Error("You can only stake multiples of $100.");
-    
-            const {status, message} = validateStake(amountUsdt, amountDscInUsd,totalUsdStake,currRatio);
-            if(!status) throw new Error(message);
+
+            const { status, message } = validateStake(amountUsdt, amountDscInUsd, totalUsdStake, currRatio);
+            if (!status) throw new Error(message);
 
         }
 
@@ -190,7 +198,7 @@ const stakeMix = async (req, res, next) => {
         const priceDscInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
         const hash = null;
         const nonce = null;
-        const vrs = giveVrsForMixStaking(amountDscInUsdIn1e18,amountDscIn1e18,amountUsdtIn1e18,priceDscInUsdIn1e18,user,hash,nonce);
+        const vrs = giveVrsForMixStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce);
 
 
         return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, generatedAmountDsc: pendingDsc.isGreaterThan(0) ? pendingDsc.dividedBy(1e18).toNumber() : amountDsc, sentAmountDsc: pendingDsc.isGreaterThan(0) ? pendingDsc.dividedBy(1e18).toNumber() : amountDsc, vrsSign: { ...vrs, sponsorAddress: sponsorDoc ? sponsorDoc.userAddress : null } });
