@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -757,7 +757,7 @@ const upgradeNode = async (req, res, next) => {
 
         let { userAddress } = req.body;
         const { nodeNum, amountInUsd, totalAmountInUsd, currency } = req.body;
-        
+
 
         if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(nodeNum))) throw new Error("Invalid node number");
 
@@ -803,9 +803,13 @@ const upgradeNode = async (req, res, next) => {
             const lastNode = userNodes[0];
 
             if (Number(nodeNum) > Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) {
-                // all good, this is upgrade transaction
+
+                const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
+                if (!status) throw new Error(message);
+
             } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) {
                 // all good , this is mix transaction
+
             }
             else if (Number(nodeNum) < Number(lastNode.nodeNum)) { throw new Error("You cannot upgrade to a lower node than your last upgraded node.") }
             else if (Number(nodeNum) === Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) { throw new Error("You have already upgraded this node!") }
@@ -815,21 +819,25 @@ const upgradeNode = async (req, res, next) => {
             }
 
         } else {
-            if((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
-                //all good initiate 100% usdt or dsc tx
+            //     if((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
+            //         //all good initiate 100% usdt or dsc tx
+            //         amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+            //         mixTxHash = "NA";
 
-            }else if(currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-                mixTxHash = zeroAddressTxhash;
-            }
-           else  if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
-                throw new Error("For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC.");
-            } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
-                throw new Error("For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT.");
-            } else {
-                mixTxHash = "NA";
-            }
+            //     }else if(currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+            //         amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+            //         mixTxHash = zeroAddressTxhash;
+            //     }
+            //    else  if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
+            //         throw new Error("For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC.");
+            //     } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
+            //         throw new Error("For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT.");
+            //     } else {
+            //         throw new Error("Invalid node or amount!");
+            //     }
 
+            const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
+            if (!status) throw new Error(message);
         }
 
 
@@ -844,11 +852,11 @@ const upgradeNode = async (req, res, next) => {
 
 
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
-        
 
-        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress,amountInUsdIn1e18.toFixed(), Number(nodeNum), mixTxHash, rateDollarPerDsc).call();
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountInUsdIn1e18.toFixed(0), Number(nodeNum), Number(currNonce), hash);
+        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, amountInUsdIn1e18.toFixed(), Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18.toFixed()).call();
+
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
 
 
 

@@ -836,20 +836,47 @@ const validateStake = (amountUsdt, amountDscInUsd, totalUsdStake, currRatio) => 
     const maxDsc = total.multipliedBy(currRatio.dsc).dividedBy(100);
 
     if (!new BigNumber(amountUsdt).isEqualTo(requiredUsdt)) {
-        return {status:false, message:`amountUsdt must be exactly ${requiredUsdt.toString()}`}
+        return { status: false, message: `amountUsdt must be exactly ${requiredUsdt.toString()}` }
     }
-    
+
 
     if (new BigNumber(amountDscInUsd).isLessThan(0)) {
-        return {status:false, message:`amountDscInUsd cannot be negative`}
+        return { status: false, message: `amountDscInUsd cannot be negative` }
     }
 
     if (new BigNumber(amountDscInUsd).isGreaterThan(maxDsc)) {
-        return {status:false, message:`amountDscInUsd cannot be more than ${maxDsc.toString()}`}
+        return { status: false, message: `amountDscInUsd cannot be more than ${maxDsc.toString()}` }
     }
 
-    return {status:true, message:"Valid stake amounts"};
+    return { status: true, message: "Valid stake amounts" };
 };
 
+const validateUpgradeNodeConditions = (totalAmountInUsd, amountInUsd, currency,amountToDeduct) => {
+    if(!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct){
+        return {status:false,message:"Invalid parameters"}
+    }
+    let amountToDeductInBN = amountToDeduct;
+    let mixTxHash = "NA";
+    let amountInUsdIn1e18 = new BigNumber(amountInUsd).multipliedBy(1e18);
+    if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
+        //all good initiate 100% usdt or dsc tx
+        amountToDeductInBN = amountToDeductInBN.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+        mixTxHash = "NA";
 
-module.exports = {validateStake, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion,giveVrsForMixStaking }
+        return {status:true, message:"calculated", amountToDeductInBn:amountToDeductInBN.toFixed(), mixTxHash};
+
+    } else if (currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+        amountToDeductInBN = amountToDeductInBN.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+        mixTxHash = zeroAddressTxhash;
+        return {status:true, message:"calculated", amountToDeductInBn:amountToDeductInBN.toFixed(), mixTxHash};
+    }
+    else if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
+        return {status:false,message:"For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC."}
+    } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
+        return {status:false, message:"For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT."}
+    } else {
+        return {staus:false, message:"Invalid currency or amount"}
+    }
+}
+
+module.exports = { validateStake, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
