@@ -7,6 +7,11 @@ const StakingSchema = new mongoose.Schema({
         required: true,
         
     },
+    currency:{
+        type: String,
+        enum: ['USDT', 'DSC'],
+        required: true
+    },
     totalAmountInUsd: {
         type: String,
         required: true
@@ -21,7 +26,7 @@ const StakingSchema = new mongoose.Schema({
     },
     amountInUsdt:{
         type: String,
-        required: true
+        default:"0"
     },
     rateDollarPerDsc:{
         type: String,
@@ -38,6 +43,10 @@ const StakingSchema = new mongoose.Schema({
     lastUsedNonce:{
         type:Number,
         default: 0
+    },
+    mixTxHash:{
+        type: String,
+        default:"NA"
     },
     transactionHash:{
         type: String,

@@ -115,11 +115,13 @@ const ratioUsdDsc = () => {
     return usdDscRatio[monthKey] || null;
 }
 
+const zeroAddressTxhash = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 
 module.exports = {
     ranks,
     gapIncome,
-    ratioUsdDsc
+    ratioUsdDsc,
+    zeroAddressTxhash
 
 };

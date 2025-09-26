@@ -7,11 +7,6 @@ const UpgradeNodeSchema = new mongoose.Schema({
         trim:true,
         requried:true
     },
-    nodeName: {
-        type: String,
-        required: true,
-        trim:true
-    },
     nodeNum:{
         type:Number,
         default:null
@@ -24,25 +19,9 @@ const UpgradeNodeSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    majorIncome:{
-        type:String,
-        required:true
-    },
-    minor4Income:{
-        type:String,
-        required:true
-    },
-    oldBalance:{
-        type:String,
-        required:true
-    },
     time:{
         type:Number,
         default:()=>Math.floor(Date.now()/1000)
-    },
-    nodeConversionTime:{
-        type:Number,
-        default:null
     },
     block:{
         type:Number,

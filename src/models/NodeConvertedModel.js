@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 
-const NodeConvertedSchema = new mongoose.Schema({   
+const nodeDeployedSchema = new mongoose.Schema({   
     nodeNum: {
         type: Number,
         required: true,
@@ -50,8 +50,8 @@ const NodeConvertedSchema = new mongoose.Schema({
 },{ timestamps: true });
 
 
-NodeConvertedSchema.index({ userAddress: 1,nodeNum:1 },{unique:true});
+nodeDeployedSchema.index({ userAddress: 1,nodeNum:1 },{unique:true});
 
-const NodeConverted = mongoose.model("NodeConverted", NodeConvertedSchema);
+const NodeDeployedModel = mongoose.model("NodeDeployed", nodeDeployedSchema);
 
-module.exports = NodeConverted;
+module.exports = NodeDeployedModel;

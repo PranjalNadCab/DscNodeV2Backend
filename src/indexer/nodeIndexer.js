@@ -5,10 +5,11 @@ const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncom
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
-const NodeConverted = require("../models/NodeConvertedModel.js");
 const NodesRegistered = require("../models/NodeRegistrationModel.js");
 const UpgradedNodes = require("../models/UpgradeNodeModel.js");
 const moment = require("moment");
+const { zeroAddressTxhash } = require("../helpers/constant.js");
+const NodeDeployedModel = require("../models/NodeConvertedModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -59,44 +60,61 @@ async function processEvents(events) {
 
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
-            if (event == "Staked") {
+            if (event == "RegisterUser") {
+                const { userAddress, sponsorAddress } = returnValues;
+                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress)
+            }
+            else if (event == "Staked") {
                 try {
 
-                    let { userAddress, amount, sponsor, currency, rateDollarPerDsc, lastUsedNonce, mixTxHash } = returnValues;
+                    let { userAddress, amount, totalAmountInUsd, currency, rateDollarPerDsc, lastUsedNonce, mixTxHash } = returnValues;
 
-                    amount = new BigNumber(amount).toFixed();   
+                    amount = new BigNumber(amount).toFixed();
+                    totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed();
                     lastUsedNonce = Number(lastUsedNonce);
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
 
-                    const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
+                    // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
+
+                    const isPendingStkae = mixTxHash === "NA" ? false : true;
+                    let amountInUsdt = "0";
+                    let amountInDscInUsd = "0";
+                    if (currency === "USDT") {
+                        amountInUsdt = amount;
+                    }
+                    else {
+                        amountInDscInUsd = amount;
+                    }
+
+
+
                     const newStake = await StakingModel.create({
                         userAddress,
-                        totalAmountInUsd: totalUsd,
-                        amountInDscInUsd: amountDscInUsd,
-                        amountInDsc: amountDsc,
-                        amountInUsdt: amountUsdt,
+                        currency,
+                        totalAmountInUsd: totalAmountInUsd,
+                        amountInDscInUsd: amountInDscInUsd,
+                        // amountInDsc: amountDsc,
+                        amountInUsdt: amountInUsdt,
                         rateDollarPerDsc: rateDollarPerDsc,
                         time: Number(timestampNormal),
                         lastUsedNonce,
                         block: Number(block),
-                        transactionHash: transactionHash
+                        transactionHash: transactionHash,
+                        mixTxHash: mixTxHash,
+                        isPendingStkae,
                     });
 
                     console.log("New stake created:", newStake);
 
                     let rankDuringStaking = null;
                     const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
-                    if (!userDoc) {
-                        await registerUser(userAddress, Number(timestampNormal), sponsor);
-                    } else {
-                        rankDuringStaking = userDoc.currentRank;
-                    }
 
+                    rankDuringStaking = userDoc.currentRank;
 
-                    await updateUserTotalSelfStakeUsdt(userAddress, totalUsd);
-                    await updateDirectBusiness(totalUsd, userAddress)
+                    await updateUserTotalSelfStakeUsdt(userAddress, amount);
+                    await updateDirectBusiness(amount, userAddress);
                     await manageRank(userAddress);
-                    await giveGapIncome(userAddress, totalUsd, rankDuringStaking, amountUsdt, amountDscInUsd);
+                    // await giveGapIncome(userAddress, amount, rankDuringStaking, amountUsdt, amountDscInUsd);
 
 
                 } catch (error) {
@@ -159,21 +177,20 @@ async function processEvents(events) {
                     continue;
                 }
             }
-            else if (event == "ConvertToNode") {
+            else if (event == "NodeDeployed") {
                 try {
-                    const { user, nodeNum, lastUsedNonce } = returnValues;
+                    const { user, nodeNum } = returnValues;
 
-                    const nodeConverted = await NodeConverted.create({
+                    const nodeConverted = await NodeDeployedModel.create({
                         userAddress: user,
                         nodeNum: Number(nodeNum),
                         time: Number(timestampNormal),
-                        lastUsedNonce: Number(lastUsedNonce),
                         block: Number(block),
                         transactionHash: transactionHash,
-                        lastRoiDistributed:moment().startOf('day').unix()
+                        lastRoiDistributed: moment().startOf('day').unix()
                     });
 
-                    console.log("Node converted doc created:", nodeConverted);
+                    console.log("Node deployed-->>", nodeConverted);
 
                     await updateUserNodeInfo(user, Number(nodeNum), Number(timestampNormal));
 
@@ -185,18 +202,16 @@ async function processEvents(events) {
             }
             else if (event == "NodeRegistered") {
                 try {
-                    let { user, amountUsdtPaid, majorIncome, minor4Income, nodeNum, oldBalance } = returnValues;
+                    let { user, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
                     amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
-                    oldBalance = new BigNumber(oldBalance).toFixed(0);
 
                     const newReg = await NodesRegistered.create({
                         userAddress: user,
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,
-                        oldBalance,
                         nodeNum: Number(nodeNum),
                         time: Number(timestampNormal),
                         block: Number(block),
@@ -208,9 +223,9 @@ async function processEvents(events) {
                     if (!regDoc) {
                         console.log("No registration doc found for user while registering node:", user);
                     }
-                    const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
+                    // const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
 
-                    regDoc.nodePurchasingBalance = updatedBalance;
+                    // regDoc.nodePurchasingBalance = updatedBalance;
                     regDoc.isNodeRegDone = true;
                     await regDoc.save();
 
@@ -224,21 +239,17 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeName, nodeNum,lastUsedNonce, amountUsdtPaid, majorIncome, minor4Income, oldBalance } = returnValues;
-                    amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
+                    let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd } = returnValues;
+                    amountUsdtPaid = new BigNumber(amount).toFixed(0);
                     majorIncome = new BigNumber(majorIncome).toFixed(0);
                     minor4Income = new BigNumber(minor4Income).toFixed(0);
-                    oldBalance = new BigNumber(oldBalance).toFixed(0);
+                    totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
 
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
-                        nodeName,
                         nodeNum: Number(nodeNum),
-                        oldBalance,
                         amountUsdtPaid,
-                        lastUsedNonce:Number(lastUsedNonce),
-                        majorIncome,
-                        minor4Income,
+                        lastUsedNonce: Number(lastUsedNonce),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash
