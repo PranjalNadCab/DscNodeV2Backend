@@ -28,6 +28,10 @@ const UpgradeNodeSchema = new mongoose.Schema({
         enum: ['USDT', 'DSC'],
         required: true
     },
+    isPaymentCompleted:{
+        type:Boolean,
+        default:true
+    },
     rateDollarPerDsc:{
         type: String,
         required: true

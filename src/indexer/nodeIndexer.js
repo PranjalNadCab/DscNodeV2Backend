@@ -258,7 +258,8 @@ async function processEvents(events) {
                         transactionHash: transactionHash,
                         currency,
                         rateDollarPerDsc:rate,
-                        mixTransactionHash: mixTxHash 
+                        mixTransactionHash: mixTxHash,
+                        isPaymentCompleted:true
                     });
 
                     console.log("Node upgraded doc created:", upgradeNode);
