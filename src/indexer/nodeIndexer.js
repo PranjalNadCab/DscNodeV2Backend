@@ -62,11 +62,9 @@ async function processEvents(events) {
             if (event == "Staked") {
                 try {
 
-                    let { sponsor, amountDsc, amountDscInUsd, amountUsdt, rateDollarPerDsc, userAddress, lastUsedNonce } = returnValues;
+                    let { userAddress, amount, sponsor, currency, rateDollarPerDsc, lastUsedNonce, mixTxHash } = returnValues;
 
-                    amountDsc = new BigNumber(amountDsc).toFixed();
-                    amountDscInUsd = new BigNumber(amountDscInUsd).toFixed();
-                    amountUsdt = new BigNumber(amountUsdt).toFixed();
+                    amount = new BigNumber(amount).toFixed();   
                     lastUsedNonce = Number(lastUsedNonce);
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
 
