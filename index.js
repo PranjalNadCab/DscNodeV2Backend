@@ -91,7 +91,7 @@ const server = app.listen(PORT, async () => {
         // await setLatestBlock();
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
-        ratioUsdDsc();
+        // ratioUsdDsc();
         // await dscNodeListEvents();
         // await giveRoiToNodeHolders();
         // await updateNodeValueAssurance();
