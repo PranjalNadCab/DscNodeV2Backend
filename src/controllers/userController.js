@@ -134,7 +134,7 @@ const stakeVrs = async (req, res, next) => {
 
         const { amountInUsd, currency, totalAmountInUsd } = req.body;
         let { user, sponsorAddress } = req.body;
-        if(!["USDT","DSC"].includes(currency)) throw new Error("Invalid currency");
+        if (!["USDT", "DSC"].includes(currency)) throw new Error("Invalid currency");
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
         if (missingFields.length > 0) {
@@ -171,29 +171,29 @@ const stakeVrs = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsd, currency, rateDollarPerDsc, "NA", totalAmountInUsd).call();
-        let mixTxHash="NA";
+        let mixTxHash = "NA";
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
         if (totalAmountInUsd === amountInUsd && currency === "USDT") {
 
-            
+
         } else if (totalAmountInUsd === amountInUsd && currency === "DSC") {
             const generatedAmountDsc = amountInUsd / price;
             ct({ generatedAmountDsc, totalAmountInUsd, amountInUsd });
         } else {
             //call another helper function
-            
+
         }
 
-        const vrsSign = await giveVrsForStaking(user, amountInUsd, currency, rateDollarPerDsc,mixTxHash,totalAmountInUsd, hash, Number(currNonce));
+        const vrsSign = await giveVrsForStaking(user, amountInUsd, currency, rateDollarPerDsc, mixTxHash, totalAmountInUsd, hash, Number(currNonce));
 
 
 
 
 
-        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price,vrsSign,sponsorAddress });
+        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress });
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);
@@ -756,9 +756,11 @@ const upgradeNode = async (req, res, next) => {
     try {
 
         let { userAddress } = req.body;
-        const { nodeNum,amountInUsd,totalAmountInUsd,currency } = req.body;
+        const { nodeNum, amountInUsd, totalAmountInUsd, currency } = req.body;
 
-        if(!["USDT","DSC"].includes(currency)) throw new Error("Invalid currency");
+        if(![1,2,3,4,5,6,7,8,9].includes(Number(nodeNum))) throw new Error("Invalid node number");
+
+        if (!["USDT", "DSC"].includes(currency)) throw new Error("Invalid currency");
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
         if (missingFields.length > 0) {
@@ -768,61 +770,89 @@ const upgradeNode = async (req, res, next) => {
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
-        const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
-
-        if (!isRegistered) throw new Error("You have not registered for node upgradation!");
-
         const regDoc = await RegistrationModel.findOne({ userAddress });
         if (!regDoc) throw new Error("Please do your first staking for registration");
-
         const { nodePurchasingBalance = "0" } = regDoc;
-        console.log("kldsfgsdfg", nodePurchasingBalance, regDoc);
 
-        const isNodeAlreadyUpgraded = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
+        const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if (isNodeAlreadyUpgraded) throw new Error("You have already upgraded this node!");
+        if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
+
+        const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
+        if (isUserNodeDeployed) throw new Error("You have already deployed your node.");
 
         const { nodeValidators } = await giveAdminSettings();
+        const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+        const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
+        if (userNodes.length > 0) {
+            const lastNode = userNodes[0];
 
-        const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+            if (Number(nodeNum) > Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) {
+                // all good, this is upgrade transaction
+            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) {
+                // all good , this is mix transaction
+            }
+            else if (Number(nodeNum) < Number(lastNode.nodeNum)) { throw new Error("You cannot upgrade to a lower node than your last upgraded node.") }
+            else if (Number(nodeNum) === Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) { throw new Error("You have already upgraded this node!") }
+            else if (Number(nodeNum) > Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) { throw new Error(`You have not completed your payments for ${nodeToUpgrade.name} node!`) }
+            else {
+                throw new Error("Invalid Node upgrade");
+            }
 
-        if (!myNode) throw new Error("Node not found");
-
-        const baseNodeValue = new BigNumber(myNode.selfStaking);
-
-
-        const percentToAdd = 0.1
-        let amountToDeduct = baseNodeValue
-            .minus(nodePurchasingBalance)   // subtract balance
-            .plus(baseNodeValue.multipliedBy(percentToAdd)); // add 10%
-       
-
-        ct({ nodePurchasingBalance, baseNodeValue: baseNodeValue.toFixed() })
-
-        const lastNode = await UpgradedNodes.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
-
-        let prevNonce = 0;
-        if (!lastNode) {
-            prevNonce = -1;
         } else {
-            prevNonce = Number(lastNode.lastUsedNonce);
-        }
-        const currNonce = await dscNodeContract.methods.userNoncesForNodePurchasing(userAddress).call();
 
 
 
-        if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
         }
 
-        ct({ uid: "kdgsdrg", type: typeof amountToDeduct });
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(), myNode.name, myNode.nodeNum, nodePurchasingBalance).call();
-
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), myNode.name, myNode.nodeNum, nodePurchasingBalance, Number(currNonce), hash);
 
 
 
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs });
+
+
+        // if (isNodeAlreadyUpgraded) throw new Error("You have already upgraded this node!");
+
+        // const { nodeValidators } = await giveAdminSettings();
+
+        // const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+
+        // if (!myNode) throw new Error("Node not found");
+
+        // const baseNodeValue = new BigNumber(myNode.selfStaking);
+
+
+        // const percentToAdd = 0.1
+        // let amountToDeduct = baseNodeValue
+        //     .minus(nodePurchasingBalance)   // subtract balance
+        //     .plus(baseNodeValue.multipliedBy(percentToAdd)); // add 10%
+
+
+        // ct({ nodePurchasingBalance, baseNodeValue: baseNodeValue.toFixed() })
+
+        // const lastNode = await UpgradedNodes.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
+
+        // let prevNonce = 0;
+        // if (!lastNode) {
+        //     prevNonce = -1;
+        // } else {
+        //     prevNonce = Number(lastNode.lastUsedNonce);
+        // }
+        // const currNonce = await dscNodeContract.methods.userNoncesForNodePurchasing(userAddress).call();
+
+
+
+        // if ((prevNonce + 1) !== Number(currNonce)) {
+        //     throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+        // }
+
+        // ct({ uid: "kdgsdrg", type: typeof amountToDeduct });
+        // const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct.toFixed(), myNode.name, myNode.nodeNum, nodePurchasingBalance).call();
+
+        // const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), myNode.name, myNode.nodeNum, nodePurchasingBalance, Number(currNonce), hash);
+
+
+
+        // return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs });
 
     } catch (error) {
         next(error);
