@@ -79,11 +79,13 @@ async function processEvents(events) {
                     const isPendingStkae = mixTxHash === "NA" ? false : true;
                     let amountInUsdt = "0";
                     let amountInDscInUsd = "0";
+                    let amountDsc = "0"
                     if (currency === "USDT") {
                         amountInUsdt = amount;
                     }
                     else {
                         amountInDscInUsd = amount;
+                        amountDsc = new BigNumber(amount).dividedBy(rateDollarPerDsc).multipliedBy(1e18).toFixed(0);
                     }
 
 
@@ -93,7 +95,7 @@ async function processEvents(events) {
                         currency,
                         totalAmountInUsd: totalAmountInUsd,
                         amountInDscInUsd: amountInDscInUsd,
-                        // amountInDsc: amountDsc,
+                        amountInDsc: amountDsc,
                         amountInUsdt: amountInUsdt,
                         rateDollarPerDsc: rateDollarPerDsc,
                         time: Number(timestampNormal),
