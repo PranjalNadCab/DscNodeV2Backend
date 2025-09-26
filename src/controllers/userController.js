@@ -630,48 +630,50 @@ const getWithdrawIncomeHistory = async (req, res, next) => {
     }
 }
 
-const nodeRegistration = async (req, res, next) => {
-    try {
-        let { userAddress } = req.body;
-        const { nodeName } = req.body;
-        if (!userAddress) throw new Error("Please provide all the required fields.");
+// const nodeRegistration = async (req, res, next) => {
+//     try {
+//         let { userAddress } = req.body;
+//         const { nodeName } = req.body;
+//         if (!userAddress) throw new Error("Please provide all the required fields.");
 
-        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
-        userAddress = giveCheckSummedAddress(userAddress);
+//         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+//         userAddress = giveCheckSummedAddress(userAddress);
 
-        const userDoc = await RegistrationModel.findOne({ userAddress });
+//         const userDoc = await RegistrationModel.findOne({ userAddress });
 
-        if (!userDoc) throw new Error("User not found.");
+//         if (!userDoc) throw new Error("User not found.");
 
-        const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+//         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if (isRegistered) throw new Error("You have already registered!");
+//         if (isRegistered) throw new Error("You have already registered!");
 
-        const { nodeValidators } = await giveAdminSettings();
-        // [0].selfStaking*0.1
-        let amountToDeduct = new BigNumber(nodeValidators.find(n => n.nodeNum === 1).selfStaking * 0.1).toFixed() || new BigNumber(300).multipliedBy(1e18).toFixed();
+//         const { nodeValidators } = await giveAdminSettings();
+//         // [0].selfStaking*0.1
+//         let amountToDeduct = new BigNumber(nodeValidators.find(n => n.nodeNum === 1).selfStaking * 0.1).toFixed() || new BigNumber(300).multipliedBy(1e18).toFixed();
 
-        const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
+//         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
 
-        if (Number(currNonce) !== 0) throw new Error("You have already registered!");
+//         if (Number(currNonce) !== 0) throw new Error("You have already registered!");
 
-        const action = "Registration";
-        const nodeNum = 0;
-        const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance).call();
-
-
-        //make VRS
-
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance, Number(currNonce), hash);
+//         const action = "Registration";
+//         const nodeNum = 0;
+//         const hash = await dscNodeContract.methods.getHashForNodeRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance).call();
 
 
+//         //make VRS
 
-        return res.status(200).json({ success: true, message: "Node registration is in process", vrs });
+//         const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct, action, nodeNum, userDoc.nodePurchasingBalance, Number(currNonce), hash);
 
-    } catch (error) {
-        next(error);
-    }
-}
+
+
+//         return res.status(200).json({ success: true, message: "Node registration is in process", vrs });
+
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+
 
 const purchaseNode = async (req, res, next) => {
     try {
@@ -806,7 +808,6 @@ module.exports = {
     convertToNode,
     getGapIncomeHistory,
     getWithdrawIncomeHistory,
-    nodeRegistration,
     stakeMix
 };
 
