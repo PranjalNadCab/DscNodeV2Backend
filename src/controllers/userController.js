@@ -12,7 +12,7 @@ const NodeConverted = require("../models/NodeConvertedModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
-const { usdDscRatio, ratioUsdDsc } = require("../helpers/constant");
+const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
 
 
 
@@ -757,6 +757,7 @@ const upgradeNode = async (req, res, next) => {
 
         let { userAddress } = req.body;
         const { nodeNum, amountInUsd, totalAmountInUsd, currency } = req.body;
+        
 
         if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(nodeNum))) throw new Error("Invalid node number");
 
@@ -769,6 +770,9 @@ const upgradeNode = async (req, res, next) => {
 
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
+
+        const amountInUsdIn1e18 = new BigNumber(amountInUsd).multipliedBy(1e18);
+        const totalAmountInUsdIn1e18 = new BigNumber(totalAmountInUsd).multipliedBy(1e18);
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
         if (!regDoc) throw new Error("Please do your first staking for registration");
@@ -784,13 +788,17 @@ const upgradeNode = async (req, res, next) => {
         const { price } = await LivePriceDsc.findOne();
 
         if (!price) throw new Error("Live price not found.");
+        let mixTxHash = "NA"
+        const nbdAmount = nbdAmounts[nodeNum - 1];
+        const nbdAmountIn1e18 = new BigNumber(nbdAmount).multipliedBy(1e18);
+        let amountToDeduct = new BigNumber(0).plus(nbdAmountIn1e18);
+
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
         const { nodeValidators } = await giveAdminSettings();
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
         const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
         let lastNode = userNodes.length > 0 ? userNodes[0] : null;
-        let mixTxHash = "NA"
         if (lastNode) {
             const lastNode = userNodes[0];
 
@@ -807,7 +815,14 @@ const upgradeNode = async (req, res, next) => {
             }
 
         } else {
-            if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
+            if((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
+                //all good initiate 100% usdt or dsc tx
+
+            }else if(currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                mixTxHash = zeroAddressTxhash;
+            }
+           else  if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
                 throw new Error("For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC.");
             } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
                 throw new Error("For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT.");
@@ -828,13 +843,12 @@ const upgradeNode = async (req, res, next) => {
 
 
 
-        if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
-        }
+        if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+        
 
-        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, new BigNumber(amountInUsd * 1e18).toFixed(0), Number(nodeNum), mixTxHash, rateDollarPerDsc).call();
+        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress,amountInUsdIn1e18.toFixed(), Number(nodeNum), mixTxHash, rateDollarPerDsc).call();
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, new BigNumber(amountInUsd * 1e18), Number(nodeNum), Number(currNonce), hash);
+        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountInUsdIn1e18.toFixed(0), Number(nodeNum), Number(currNonce), hash);
 
 
 

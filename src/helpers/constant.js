@@ -117,11 +117,15 @@ const ratioUsdDsc = () => {
 
 const zeroAddressTxhash = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
+const nbdAmounts=[
+    300,600,900,1200,1800,2400,3600,4800,6000
+]
 
 module.exports = {
     ranks,
     gapIncome,
     ratioUsdDsc,
-    zeroAddressTxhash
+    zeroAddressTxhash,
+    nbdAmounts
 
 };
