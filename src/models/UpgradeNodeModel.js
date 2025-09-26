@@ -23,6 +23,15 @@ const UpgradeNodeSchema = new mongoose.Schema({
         type:Number,
         default:()=>Math.floor(Date.now()/1000)
     },
+    currency:{
+        type: String,
+        enum: ['USDT', 'DSC'],
+        required: true
+    },
+    rateDollarPerDsc:{
+        type: String,
+        required: true
+    },
     block:{
         type:Number,
         required:true
@@ -30,6 +39,10 @@ const UpgradeNodeSchema = new mongoose.Schema({
     transactionHash:{
         type:String,
         required:true,
+    },
+    mixTransactionHash:{
+        type:String,
+        default:"NA"
     }
 },{ timestamps: true });
 
