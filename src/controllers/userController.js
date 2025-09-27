@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPay } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -157,6 +157,10 @@ const stakeVrs = async (req, res, next) => {
         if (totalAmountInUsd < 100) throw new Error("Total amount must be at least $100.");
         if (totalAmountInUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
 
+        const totalAmountInUsdIn1e18 = new BigNumber(totalAmountInUsd).multipliedBy(1e18);
+        const amountInUsdIn1e18 = new BigNumber(amountInUsd).multipliedBy(1e18);
+
+
         const { price } = await LivePriceDsc.findOne();
 
         if (!price) throw new Error("Live price not found.");
@@ -172,18 +176,45 @@ const stakeVrs = async (req, res, next) => {
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsd, currency, rateDollarPerDsc, "NA", totalAmountInUsd).call();
         let mixTxHash = "NA";
+        let amountToDeduct = new BigNumber(0);
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
-        if (totalAmountInUsd === amountInUsd && currency === "USDT") {
+        const {nodeValidators} = await giveAdminSettings();
+        if(!nodeValidators) throw new Error("Didn't found node prices!");
 
+        if (totalAmountInUsd === amountInUsd && (currency === "USDT" || currency === "DSC")) {
+            amountToDeduct = totalAmountInUsdIn1e18;
+            mixTxHash = "NA";
 
-        } else if (totalAmountInUsd === amountInUsd && currency === "DSC") {
-            const generatedAmountDsc = amountInUsd / price;
-            ct({ generatedAmountDsc, totalAmountInUsd, amountInUsd });
-        } else {
-            //call another helper function
+        } else if((totalAmountInUsd !== amountInUsd) ) {
+
+            const userLastPendingStake = await StakingModel.find({userAddress:user,isPendingStake:true,mixTxHash:{$ne:"NA"}}).sort({time:-1});
+            const isAnyPendingStake  = userLastPendingStake.length > 0 ? true :false;
+            if(isAnyPendingStake && currency=="DSC"){
+            const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(totalAmountInUsdIn1e18,userLastPendingStake);
+            amountToDeduct = remainingDscInUsdToPay;
+            mixTxHash = userLastPendingStake.find((stake)=>stake.currency==="USDT").transactionHash;
+
+            }else if(isAnyPendingStake && currency === "USDT"){
+                throw new Error("You have a pending DSC to pay!");
+            }else if(!isAnyPendingStake && currency === "DSC"){
+                throw new Error("Please first stake USDT for staking in ratio");
+            }else if(!isAnyPendingStake && currency === "USDT"){
+                const currRatio = ratioUsdDsc();
+                const reqUsdAmount  = totalAmountInUsdIn1e18.multipliedBy(currRatio.usd);
+                if(!amountInUsdIn1e18.isEqualTo(reqUsdAmount)){
+                    throw new Error(`You need to stake $${reqUsdAmount}`);
+                }
+                amountToDeduct = reqUsdAmount;
+                mixTxHash = zeroAddressTxhash;
+
+                
+
+            }else{
+
+            }
 
         }
 
@@ -826,9 +857,9 @@ const upgradeNode = async (req, res, next) => {
 
                 // },new BigNumber(0));
                 // all good , this is mix transaction
-                const remainingUsd = getRemainingDscToPay(totalAmountInUsdIn1e18,userNodes,nodeNum,rateDollarPerDsc);
+                const remainingUsd = getRemainingDscToPayInUsd(totalAmountInUsdIn1e18,userNodes,nodeNum,rateDollarPerDsc);
                 amountToDeduct = remainingUsd;
-                
+
 
 
             }

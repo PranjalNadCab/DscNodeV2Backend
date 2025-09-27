@@ -16,6 +16,10 @@ const StakingSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    amountUsdPaid:{
+        type:String,
+        required:true
+    },
     amountInDscInUsd:{
         type: String,
         default:"0"

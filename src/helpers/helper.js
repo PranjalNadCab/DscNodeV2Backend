@@ -895,7 +895,7 @@ const giveUsdDscRatioParts = ( totalAmountInUsdIn1e18) => {
     return { usd: usdRatioAmount.toFixed(), dsc: dscRatioAmount.toFixed() };
 };
 
-function getRemainingDscToPay( totalAmountInUsd, userNodes, nodeNum, rateDollarPerDsc ) {
+function getRemainingDscToPayInUsd( totalAmountInUsd, userNodes, nodeNum, rateDollarPerDsc ) {
     const totalUsd = new BigNumber(totalAmountInUsd); // in 1e18
     const rate = new BigNumber(rateDollarPerDsc);     // in 1e18
 
@@ -928,8 +928,33 @@ function getRemainingDscToPay( totalAmountInUsd, userNodes, nodeNum, rateDollarP
     return remainingUsd; // DSC amount (1e18 precision)
 }
 
+const  getRemainingDscUsdToPayForStaking = ( totalAmountInUsd, userStakes ) =>{
+    const totalUsd = new BigNumber(totalAmountInUsd); // in 1e18
+
+    // 1. USDT paid (USD terms)
+    const usdtPaidUsd = userStakes
+        .filter(item => item.currency === "USDT")
+        .reduce((sum, item) => sum.plus(new BigNumber(item.amountUsdPaid || "0")), new BigNumber(0));
+
+    // 2. DSC obligation = total - USDT paid
+    const dscObligationUsd = totalUsd.minus(usdtPaidUsd);
+
+    if (dscObligationUsd.lte(0)) {
+        return new BigNumber(0); // nothing owed in DSC
+    }
+
+    // 3. Already paid in DSC (USD terms)
+    const dscPaidUsd = userStakes
+        .filter(item => item.currency === "DSC")
+        .reduce((sum, item) => sum.plus(new BigNumber(item.amountUsdPaid || "0")), new BigNumber(0));
+
+    // 4. Remaining DSC obligation in USD terms
+    const remainingUsd = dscObligationUsd.minus(dscPaidUsd);
+
+    return remainingUsd.lte(0) ? new BigNumber(0) : remainingUsd;
+}
 
 
 
 
-module.exports = {getRemainingDscToPay, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
+module.exports = {getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }

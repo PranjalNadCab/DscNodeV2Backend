@@ -95,6 +95,7 @@ async function processEvents(events) {
                         currency,
                         totalAmountInUsd: totalAmountInUsd,
                         amountInDscInUsd: amountInDscInUsd,
+                        amountUsdPaid:amount,
                         amountInDsc: amountDsc,
                         amountInUsdt: amountInUsdt,
                         rateDollarPerDsc: rateDollarPerDsc,
