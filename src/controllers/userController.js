@@ -72,13 +72,18 @@ const stakeVrs = async (req, res, next) => {
         } else if((totalAmountInUsd !== amountInUsd) ) {
 
             const userLastPendingStake = await StakingModel.find({userAddress:user,isPendingStake:true,mixTxHash:{$ne:"NA"}}).sort({time:-1});
-            console.log("---->>",userLastPendingStake)
             const isAnyPendingStake  = userLastPendingStake.length > 0 ? true :false;
+            console.log("---->>",isAnyPendingStake)
             if(isAnyPendingStake && currency=="DSC"){
-            const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(totalAmountInUsdIn1e18,userLastPendingStake);
-            amountToDeduct = remainingDscInUsdToPay;
-            mixTxHash = userLastPendingStake.find((stake)=>stake.currency==="USDT").transactionHash;
-            generatedDsc = remainingDscInUsdToPay.dividedBy(price);
+                const userUsdtPartStake = userLastPendingStake.find((stake)=>stake.currency==="USDT");
+                const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(userUsdtPartStake.totalAmountInUsd,userLastPendingStake);
+                if(amountInUsdIn1e18.isGreaterThan(remainingDscInUsdToPay))throw new Error(`You have to only pay $${remainingDscInUsdToPay.dividedBy(1e18).toFixed()} of DSC`);
+                amountToDeduct = amountInUsdIn1e18 ;
+                mixTxHash = userUsdtPartStake.transactionHash;
+            generatedDsc = amountToDeduct.dividedBy(price);
+            ct({uid:'dfgasdgfdg',amountToDeduct:amountToDeduct.toFixed()});
+            if(!totalAmountInUsdIn1e18.isEqualTo(userUsdtPartStake.totalAmountInUsd)) throw new Error(`Your stake target is $${new BigNumber(userUsdtPartStake.totalAmountInUsd).dividedBy(1e18).toFixed()} & $${remainingDscInUsdToPay.dividedBy(1e18).toFixed() } of DSC is pending!`)
+            if(!amountInUsdIn1e18.isEqualTo(amountToDeduct)) throw new Error(`You have to stake $${remainingDscInUsdToPay.dividedBy(1e18).toFixed() } of DSC`)
 
             }else if(isAnyPendingStake && currency === "USDT"){
                 throw new Error("You have a pending DSC to pay!");
@@ -109,12 +114,12 @@ const stakeVrs = async (req, res, next) => {
             prevNonce = Number(lastStake.lastUsedNonce);
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
-        const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed()).call();
+        const hash = await dscNodeContract.methods.getHashForStaking(user, amountToDeduct.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed()).call();
              if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
-        const vrsSign = await giveVrsForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed(), hash, Number(currNonce));
+        const vrsSign = await giveVrsForStaking(user, amountToDeduct.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed(), hash, Number(currNonce));
 
 
 

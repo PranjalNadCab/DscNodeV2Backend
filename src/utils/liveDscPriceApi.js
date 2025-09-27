@@ -19,7 +19,7 @@ const url = "https://explorer.pancakeswap.com/api/cached/pools/v2/bsc/list/top?t
                 
                 currentRate = new BigNumber(currentRate).multipliedBy(1e18).toFixed(0);
                 if(process.env.NODE_ENV === "development"){
-                    currentRateInNumber = 50000
+                    currentRateInNumber = 5000000
                     console.log("currentRateInNumber",currentRateInNumber);
                 }
 
