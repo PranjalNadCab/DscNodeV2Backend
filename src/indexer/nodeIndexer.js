@@ -82,12 +82,13 @@ async function processEvents(events) {
                         mixTxHash = transactionHash
                     }else if((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)){
                         const userPendingStakes  = await StakingModel.find({userAddress:userAddress,isPendingStake:true,mixTxHash:mixTxHash});
-                        const amountUsdPaidForDsc = userPendingStakes.filter((stake)=>stake.currency==="DSC").reduce((sum,item)=>{
+                        let amountUsdPaidForDsc = userPendingStakes.filter((stake)=>stake.currency==="DSC").reduce((sum,item)=>{
                             return sum.plus(item.amountUsdPaid)
                         },new BigNumber(0));
+                        amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
                         const userUsdtStakePart = userPendingStakes.find((item)=>item.currency === "USDT");
-                        const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc);
-                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false :true
+                        const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
+                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false :true;
 
                     }
 
@@ -293,8 +294,8 @@ async function processEvents(events) {
                         regDoc.nodePurchasingBalance = "0";
 
                     }
-                    regDoc.currentNodeName = nodeName;
-                    regDoc.purchasedNodes.push({ nodeName, purchasedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
+                    // regDoc.currentNodeName = nodeName;
+                    // regDoc.purchasedNodes.push({ nodeName, purchasedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
                     await regDoc.save();
 
                 } catch (error) {
@@ -345,8 +346,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "66855595"; 
-        // toBlock = "66855595"
+        lastSyncBlock = "66867271"; 
+        toBlock = "66867271"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
