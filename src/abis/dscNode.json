@@ -321,45 +321,6 @@
             },
             {
                 "internalType": "uint256",
-                "name": "amountDsc",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "amountDscInUsd",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "amountUsdt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "rate",
-                "type": "uint256"
-            }
-        ],
-        "name": "getHashForStaking",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_user",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
             },
