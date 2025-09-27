@@ -76,7 +76,8 @@ async function processEvents(events) {
 
                     // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
 
-                    const isPendingStkae = mixTxHash === "NA" ? false : true;
+                    let isPendingStake = mixTxHash !== "NA";
+
                     let amountInUsdt = "0";
                     let amountInDscInUsd = "0";
                     let amountDsc = "0"
@@ -104,7 +105,7 @@ async function processEvents(events) {
                         block: Number(block),
                         transactionHash: transactionHash,
                         mixTxHash: mixTxHash,
-                        isPendingStkae,
+                        isPendingStake,
                     });
 
                     console.log("New stake created:", newStake);
@@ -331,8 +332,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "66260963"; 
-        // toBlock = "66260963"
+        lastSyncBlock = "66855595"; 
+        toBlock = "66855595"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
