@@ -923,9 +923,17 @@ const validateStake = (amountUsdt, amountDscInUsd, totalUsdStake, currRatio) => 
     return { status: true, message: "Valid stake amounts" };
 };
 
-const validateUpgradeNodeConditions = (totalAmountInUsd, amountInUsd, currency,amountToDeduct) => {
+const validateUpgradeNodeConditions =  (totalAmountInUsd, amountInUsd, currency,amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators) => {
     if(!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct){
         return {status:false,message:"Invalid parameters"}
+    }
+
+    const selectedNode= nodeValidators.find((item)=>item.nodeNum === Number(nodeNum));
+    const nodePriceInBn = new BigNumber(selectedNode);
+
+    if(!lastNode) {
+        
+        if(currency === "USDT" && (totalAmountInUsd !== amountInUsd || amo)) return {status:false, message:`You are `}
     }
 
 

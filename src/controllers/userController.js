@@ -653,7 +653,7 @@ const upgradeNode = async (req, res, next) => {
 
         } else {
 
-            const { status, message } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
+            const { status, message } = validateUpgradeNodeConditions(totalAmountInUsdIn1e18, amountInUsdIn1e18, currency, amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators)
             if (!status) throw new Error(message);
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {

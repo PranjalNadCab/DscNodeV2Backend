@@ -92,7 +92,7 @@ const server = app.listen(PORT, async () => {
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
         // ratioUsdDsc();
-        await dscNodeListEvents();
+        // await dscNodeListEvents();
         // await giveRoiToNodeHolders();
         // await updateNodeValueAssurance();
         // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
