@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -14,119 +14,6 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
 
-
-
-// const stakeVrs = async (req, res, next) => {
-//     try {
-//         // Extract user data from request body
-
-//         const { amountDsc, amountDscInUsd, amountUsdt } = req.body; //amounts will be in number
-//         const {amountInUsd, currency,totalAmountInUsd} = req.body;
-//         let { user, sponsorAddress } = req.body;
-
-//         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
-//         if (missingFields.length > 0) {
-//             throw new Error(`Please send these missing fields: ${missingFields.join(", ")}`);
-//         }
-
-//         // if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
-
-//         user = giveCheckSummedAddress(user);
-//         sponsorAddress = giveCheckSummedAddress(sponsorAddress);
-
-//         const isUserExist = await RegistrationModel.findOne({ userAddress: user });
-
-//         let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
-//         if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
-
-
-
-//         // const totalUsd = Number(amountDscInUsd) + Number(amountUsdt);
-//         if (totalAmountInUsd < 100) throw new Error("Total amount must be at least $100.");
-//         if (totalAmountInUsd % 100 !== 0) throw new Error("You can only stake multiples of $100.");
-
-//         if(totalAmountInUsd === amountInUsd && currency === "USDT"){
-
-//         }else if( totalAmountInUsd === amountInUsd && currency === "DSC"){
-
-//         }else{
-
-//         }
-
-
-//         // ✅ Ratio validation
-//         const ratioUsdt = (Number(amountUsdt) * 100) / totalUsd;
-//         const ratioDsc = (Number(amountDscInUsd) * 100) / totalUsd;
-
-//         const adminDoc = await Admin.findOne({});
-
-//         if (!adminDoc) throw new Error("Admin not found.");
-//         const { stakeRatio } = adminDoc;
-
-//         const totalParts = stakeRatio.part1 + stakeRatio.part2;
-
-//         // calculate expected ratios
-//         const expectedUsdt = (stakeRatio.part1 / totalParts) * 100;
-//         const expectedDsc = (stakeRatio.part2 / totalParts) * 100;
-
-//         ct({ ratioUsdt, ratioDsc, expectedUsdt, expectedDsc });
-//         // tolerance margin for floating point errors
-//         const tolerance = 0.01;
-
-//         const validUsdtOnly = ratioUsdt === 100 && ratioDsc === 0;
-//         const validDscOnly = ratioDsc === 100 && ratioUsdt === 0;
-//         const validMix =
-//             Math.abs(ratioUsdt - expectedUsdt) < tolerance &&
-//             Math.abs(ratioDsc - expectedDsc) < tolerance;
-
-//         if (!(validUsdtOnly || validDscOnly || validMix)) {
-//             throw new Error(
-//                 `You can only stake 100% USDT, 100% DSC, or ${expectedUsdt}% USDT + ${expectedDsc}% DSC.`
-//             );
-//         }
-
-//         const { price } = await LivePriceDsc.findOne();
-
-//         if (!price) throw new Error("Live price not found.");
-
-//         const generatedAmountDsc = amountDscInUsd / price;
-//         const generatedAmountDscInUsd = price * amountDsc;
-
-//         ct({ generatedAmountDsc, amountDsc, generatedAmountDscInUsd, amountDscInUsd });
-//         if (Math.abs(generatedAmountDscInUsd - amountDscInUsd) > 0.02) {
-//             throw new Error("DSC amount does not match the calculated amount based on USD value.");
-//         }
-
-
-//         const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed(0);
-//         const amountDscIn1e18 = new BigNumber(generatedAmountDsc).multipliedBy(1e18).toFixed(0);
-//         const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18).toFixed(0);
-//         const priceDscInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
-
-//         const lastStake = await StakingModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
-//         let prevNonce = 0;
-//         if (!lastStake) {
-//             prevNonce = -1;
-//         } else {
-//             prevNonce = Number(lastStake.lastUsedNonce);
-//         }
-//         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
-//         if ((prevNonce + 1) !== Number(currNonce)) {
-//             throw new Error("Your previous stake is not stored yet! Please try again later.");
-//         }
-
-//         const hash = await dscNodeContract.methods.getHashForStaking(user, amountDscIn1e18, amountDscInUsdIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18).call();
-
-//         const vrsSign = await giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, Number(currNonce));
-
-
-//         return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, generatedAmountDsc, sentAmountDsc: amountDsc, vrsSign: { ...vrsSign, sponsorAddress: sponsorDoc.userAddress } });
-//     } catch (error) {
-//         console.error("Error in stakeVrs:", error);
-//         next(error);
-//     }
-
-// }
 
 const stakeVrs = async (req, res, next) => {
     try {
@@ -218,7 +105,7 @@ const stakeVrs = async (req, res, next) => {
 
         }
 
-        const vrsSign = await giveVrsForStaking(user, amountInUsd, currency, rateDollarPerDsc, mixTxHash, totalAmountInUsd, hash, Number(currNonce));
+        const vrsSign = await giveVrsForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18, hash, Number(currNonce));
 
 
 
@@ -791,7 +678,7 @@ const upgradeNode = async (req, res, next) => {
 
         const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, amountInUsdIn1e18.toFixed(), Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18.toFixed()).call();
 
-        const vrs = await giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
+        const vrs = await giveVrsForNodeUpgradation(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
 
 
 
