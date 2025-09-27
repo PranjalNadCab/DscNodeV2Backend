@@ -61,7 +61,7 @@ const stakeVrs = async (req, res, next) => {
             prevNonce = Number(lastStake.lastUsedNonce);
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
-        const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsd, currency, rateDollarPerDsc, "NA", totalAmountInUsd).call();
+        const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, "NA", totalAmountInUsdIn1e18.toFixed()).call();
         let mixTxHash = "NA";
         let amountToDeduct = new BigNumber(0);
         let generatedDsc = new BigNumber(0);
@@ -109,7 +109,7 @@ const stakeVrs = async (req, res, next) => {
 
         }
 
-        const vrsSign = await giveVrsForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18, hash, Number(currNonce));
+        const vrsSign = await giveVrsForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed(), hash, Number(currNonce));
 
 
 
