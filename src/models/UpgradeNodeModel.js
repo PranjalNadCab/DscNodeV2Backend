@@ -15,7 +15,11 @@ const UpgradeNodeSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
-    amountUsdtPaid:{
+    totalAmountInUsd:{
+        type:String,
+        required:true
+    },
+    amountUsdPaid:{
         type:String,
         required:true
     },

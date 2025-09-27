@@ -1,7 +1,7 @@
 const RegistrationModel = require("../models/RegistrationModel");
 const { web3 } = require("../web3/web3")
 const BigNumber = require("bignumber.js");
-const { ranks, gapIncome } = require("./constant");
+const { ranks, gapIncome, ratioUsdDsc } = require("./constant");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const moment = require("moment");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
@@ -855,22 +855,9 @@ const validateUpgradeNodeConditions = (totalAmountInUsd, amountInUsd, currency,a
     if(!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct){
         return {status:false,message:"Invalid parameters"}
     }
-    let amountToDeductInBN = amountToDeduct;
-    let mixTxHash = "NA";
-    let amountInUsdIn1e18 = new BigNumber(amountInUsd).multipliedBy(1e18);
-    if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
-        //all good initiate 100% usdt or dsc tx
-        amountToDeductInBN = amountToDeductInBN.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-        mixTxHash = "NA";
 
-        return {status:true, message:"calculated", amountToDeductInBn:amountToDeductInBN.toFixed(), mixTxHash};
 
-    } else if (currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-        amountToDeductInBN = amountToDeductInBN.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-        mixTxHash = zeroAddressTxhash;
-        return {status:true, message:"calculated", amountToDeductInBn:amountToDeductInBN.toFixed(), mixTxHash};
-    }
-    else if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
+     if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
         return {status:false,message:"For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC."}
     } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
         return {status:false, message:"For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT."}
@@ -879,4 +866,70 @@ const validateUpgradeNodeConditions = (totalAmountInUsd, amountInUsd, currency,a
     }
 }
 
-module.exports = { validateStake, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
+const giveUsdDscRatioParts = ( totalAmountInUsdIn1e18) => {
+    const { usd: expectedUsdRatio, dsc: expectedDscRatio } = ratioUsdDsc();
+
+    ct({ usd: expectedUsdRatio, dsc: expectedDscRatio });
+
+    // Convert to BigNumber
+    const totalUsd = new BigNumber(totalAmountInUsdIn1e18);
+
+    if (totalUsd.isZero()) {
+        throw new Error("Total amount cannot be zero");
+    }
+
+
+    const usdRatioAmount = totalUsd.multipliedBy(expectedUsdRatio).dividedBy(100);
+    const dscRatioAmount = totalUsd.multipliedBy(expectedDscRatio).dividedBy(100);
+
+    ct({usdRatioAmount:usdRatioAmount.toFixed(),dscRatioAmount:dscRatioAmount.toFixed()})
+
+
+    console.log("Calculated Ratios:", {
+        usd: usdRatioAmount.toString(),
+        dsc: dscRatioAmount.toString()
+    });
+
+    
+
+    return { usd: usdRatioAmount.toFixed(), dsc: dscRatioAmount.toFixed() };
+};
+
+function getRemainingDscToPay( totalAmountInUsd, userNodes, nodeNum, rateDollarPerDsc ) {
+    const totalUsd = new BigNumber(totalAmountInUsd); // in 1e18
+    const rate = new BigNumber(rateDollarPerDsc);     // in 1e18
+
+    // 1. Find how much was paid in USDT (for this node)
+    const usdtPaidUsd = userNodes
+        .filter(item => item.nodeNum === nodeNum && item.currency === "USDT")
+        .reduce((sum, item) => sum.plus(new BigNumber(item.amountUsdPaid)), new BigNumber(0));
+
+    // 2. Calculate DSC obligation (in USD terms)
+    const dscObligationUsd = totalUsd.minus(usdtPaidUsd);
+
+    if (dscObligationUsd.lte(0)) {
+        return new BigNumber(0); // nothing owed in DSC
+    }
+
+    // 3. Find DSC already paid (in USD terms)
+    const dscPaidUsd = userNodes
+        .filter(item => item.nodeNum === nodeNum && item.currency === "DSC")
+        .reduce((sum, item) => sum.plus(new BigNumber(item.amountUsdPaid)), new BigNumber(0));
+
+    // 4. Remaining DSC in USD
+    const remainingUsd = dscObligationUsd.minus(dscPaidUsd);
+    if (remainingUsd.lte(0)) {
+        return new BigNumber(0); // fully paid
+    }
+
+    // 5. Convert USD to DSC tokens
+    const remainingDscTokens = remainingUsd.dividedBy(rate).multipliedBy(1e18);
+
+    return remainingUsd; // DSC amount (1e18 precision)
+}
+
+
+
+
+
+module.exports = {getRemainingDscToPay, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, giveVrsForNodeConversionAndRegistration, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }

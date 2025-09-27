@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPay } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -807,8 +807,29 @@ const upgradeNode = async (req, res, next) => {
                 const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
                 if (!status) throw new Error(message);
 
-            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) {
+                if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
+                    //all good initiate 100% usdt or dsc tx
+                    amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                    mixTxHash = "NA";
+
+
+
+                } else if (currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                    amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                    mixTxHash = zeroAddressTxhash;
+                }
+
+            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted && (mixTransactionHash!=="NA")) {
+                // const userThisNodes = userNodes.map((nodeItem)=> (nodeItem.nodeNum==nodeNum));
+                // const paidDscAmounts = userThisNodes.filter
+                // ((item)=>item.currency==="DSC").reduce((sum,item)=>{
+
+                // },new BigNumber(0));
                 // all good , this is mix transaction
+                const remainingUsd = getRemainingDscToPay(totalAmountInUsdIn1e18,userNodes,nodeNum,rateDollarPerDsc);
+                amountToDeduct = remainingUsd;
+                
+
 
             }
             else if (Number(nodeNum) < Number(lastNode.nodeNum)) { throw new Error("You cannot upgrade to a lower node than your last upgraded node.") }
@@ -819,25 +840,28 @@ const upgradeNode = async (req, res, next) => {
             }
 
         } else {
-            //     if((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
-            //         //all good initiate 100% usdt or dsc tx
-            //         amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-            //         mixTxHash = "NA";
 
-            //     }else if(currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-            //         amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-            //         mixTxHash = zeroAddressTxhash;
-            //     }
-            //    else  if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
-            //         throw new Error("For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC.");
-            //     } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
-            //         throw new Error("For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT.");
-            //     } else {
-            //         throw new Error("Invalid node or amount!");
-            //     }
-
-            const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
+            const { status, message } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct)
             if (!status) throw new Error(message);
+
+            if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                //all good initiate 100% usdt or dsc tx
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                mixTxHash = "NA";
+
+
+
+            } else if (currency === "USDT" && (!amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+
+                const {usdtRatioAmount,dscRatioAmount} = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+
+                if(!(new BigNumber(usdtRatioAmount).isEqualTo(amountInUsdIn1e18))){
+                    throw new Error(`Only 100% USDT or 100% DSC or only $${usdtRatioAmount} is allowed!`);
+                }
+
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                mixTxHash = zeroAddressTxhash;
+            }
         }
 
 

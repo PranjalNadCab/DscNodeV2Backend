@@ -243,19 +243,18 @@ async function processEvents(events) {
                 try {
                     let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd,mixTxHash,currency,rate } = returnValues;
                     amountUsdtPaid = new BigNumber(amount).toFixed(0);
-                    majorIncome = new BigNumber(majorIncome).toFixed(0);
-                    minor4Income = new BigNumber(minor4Income).toFixed(0);
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
                         nodeNum: Number(nodeNum),
-                        amountUsdtPaid,
+                        amountUsdPaid:amountUsdtPaid,
                         lastUsedNonce: Number(lastUsedNonce),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash,
+                        totalAmountInUsd,
                         currency,
                         rateDollarPerDsc:rate,
                         mixTransactionHash: mixTxHash,
