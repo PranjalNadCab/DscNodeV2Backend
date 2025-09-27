@@ -72,6 +72,7 @@ const stakeVrs = async (req, res, next) => {
         } else if((totalAmountInUsd !== amountInUsd) ) {
 
             const userLastPendingStake = await StakingModel.find({userAddress:user,isPendingStake:true,mixTxHash:{$ne:"NA"}}).sort({time:-1});
+            console.log("---->>",userLastPendingStake)
             const isAnyPendingStake  = userLastPendingStake.length > 0 ? true :false;
             if(isAnyPendingStake && currency=="DSC"){
             const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(totalAmountInUsdIn1e18,userLastPendingStake);
