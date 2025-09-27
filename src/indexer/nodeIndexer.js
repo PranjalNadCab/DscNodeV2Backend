@@ -75,20 +75,20 @@ async function processEvents(events) {
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
 
                     // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
-
+                    let closePrevStake = false;
                     let isPendingStake = false;
-                    if(mixTxHash == zeroAddressTxhash) {
+                    if (mixTxHash == zeroAddressTxhash) {
                         isPendingStake = true;
                         mixTxHash = transactionHash
-                    }else if((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)){
-                        const userPendingStakes  = await StakingModel.find({userAddress:userAddress,isPendingStake:true,mixTxHash:mixTxHash});
-                        let amountUsdPaidForDsc = userPendingStakes.filter((stake)=>stake.currency==="DSC").reduce((sum,item)=>{
+                    } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
+                        const userPendingStakes = await StakingModel.find({ userAddress: userAddress, isPendingStake: true, mixTxHash: mixTxHash });
+                        let amountUsdPaidForDsc = userPendingStakes.filter((stake) => stake.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
-                        },new BigNumber(0));
+                        }, new BigNumber(0));
                         amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
-                        const userUsdtStakePart = userPendingStakes.find((item)=>item.currency === "USDT");
+                        const userUsdtStakePart = userPendingStakes.find((item) => item.currency === "USDT");
                         const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
-                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false :true;
+                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false : true;
 
                     }
 
@@ -110,7 +110,7 @@ async function processEvents(events) {
                         currency,
                         totalAmountInUsd: totalAmountInUsd,
                         amountInDscInUsd: amountInDscInUsd,
-                        amountUsdPaid:amount,
+                        amountUsdPaid: amount,
                         amountInDsc: amountDsc,
                         amountInUsdt: amountInUsdt,
                         rateDollarPerDsc: rateDollarPerDsc,
@@ -123,6 +123,13 @@ async function processEvents(events) {
                     });
 
                     console.log("New stake created:", newStake);
+
+                    if (!isPendingStake && mixTxHash !== "NA") {
+                        await StakingModel.updateMany(
+                            { userAddress, mixTxHash },
+                            { $set: { isPendingStake: false } }
+                        );
+                    }
 
                     let rankDuringStaking = null;
                     const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
@@ -257,7 +264,7 @@ async function processEvents(events) {
             }
             else if (event == "UpgradeNode") {
                 try {
-                    let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd,mixTxHash,currency,rate } = returnValues;
+                    let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd, mixTxHash, currency, rate } = returnValues;
                     amountUsdtPaid = new BigNumber(amount).toFixed(0);
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
@@ -265,16 +272,16 @@ async function processEvents(events) {
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
                         nodeNum: Number(nodeNum),
-                        amountUsdPaid:amountUsdtPaid,
+                        amountUsdPaid: amountUsdtPaid,
                         lastUsedNonce: Number(lastUsedNonce),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash,
                         totalAmountInUsd,
                         currency,
-                        rateDollarPerDsc:rate,
+                        rateDollarPerDsc: rate,
                         mixTransactionHash: mixTxHash,
-                        isPaymentCompleted:true
+                        isPaymentCompleted: true
                     });
 
                     console.log("Node upgraded doc created:", upgradeNode);
@@ -346,8 +353,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        lastSyncBlock = "66867271"; 
-        toBlock = "66867271"
+        // lastSyncBlock = "66867271"; 
+        // toBlock = "66867271"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
