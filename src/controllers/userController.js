@@ -54,20 +54,12 @@ const stakeVrs = async (req, res, next) => {
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
         const lastStake = await StakingModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
-        let prevNonce = 0;
-        if (!lastStake) {
-            prevNonce = -1;
-        } else {
-            prevNonce = Number(lastStake.lastUsedNonce);
-        }
-        const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
-        const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, "NA", totalAmountInUsdIn1e18.toFixed()).call();
+     
+        ct({user,amountInUsdIn1e18:amountInUsdIn1e18.toFixed(),currency,rateDollarPerDsc,})
         let mixTxHash = "NA";
         let amountToDeduct = new BigNumber(0);
         let generatedDsc = new BigNumber(0);
-        if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous stake is not stored yet! Please try again later.");
-        }
+   
 
         const {nodeValidators} = await giveAdminSettings();
         if(!nodeValidators) throw new Error("Didn't found node prices!");
@@ -107,6 +99,18 @@ const stakeVrs = async (req, res, next) => {
 
             }
 
+        }
+
+           let prevNonce = 0;
+        if (!lastStake) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(lastStake.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
+        const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed()).call();
+             if ((prevNonce + 1) !== Number(currNonce)) {
+            throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
         const vrsSign = await giveVrsForStaking(user, amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed(), hash, Number(currNonce));
