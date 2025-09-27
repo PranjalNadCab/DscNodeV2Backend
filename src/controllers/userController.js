@@ -35,7 +35,7 @@ const stakeVrs = async (req, res, next) => {
 
         const isUserExist = await RegistrationModel.findOne({ userAddress: user });
 
-        let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsor });
+        let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsorAddress });
         if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
 
 
@@ -64,6 +64,7 @@ const stakeVrs = async (req, res, next) => {
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountInUsd, currency, rateDollarPerDsc, "NA", totalAmountInUsd).call();
         let mixTxHash = "NA";
         let amountToDeduct = new BigNumber(0);
+        let generatedDsc = new BigNumber(0);
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
@@ -72,6 +73,7 @@ const stakeVrs = async (req, res, next) => {
         if(!nodeValidators) throw new Error("Didn't found node prices!");
 
         if (totalAmountInUsd === amountInUsd && (currency === "USDT" || currency === "DSC")) {
+            generatedDsc = amountInUsdIn1e18.dividedBy(price);
             amountToDeduct = totalAmountInUsdIn1e18;
             mixTxHash = "NA";
 
@@ -83,19 +85,21 @@ const stakeVrs = async (req, res, next) => {
             const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(totalAmountInUsdIn1e18,userLastPendingStake);
             amountToDeduct = remainingDscInUsdToPay;
             mixTxHash = userLastPendingStake.find((stake)=>stake.currency==="USDT").transactionHash;
+            generatedDsc = remainingDscInUsdToPay.dividedBy(price);
 
             }else if(isAnyPendingStake && currency === "USDT"){
                 throw new Error("You have a pending DSC to pay!");
             }else if(!isAnyPendingStake && currency === "DSC"){
-                throw new Error("Please first stake USDT for staking in ratio");
+                throw new Error("USDT is required to initiate mix ratio transactions!");
             }else if(!isAnyPendingStake && currency === "USDT"){
                 const currRatio = ratioUsdDsc();
-                const reqUsdAmount  = totalAmountInUsdIn1e18.multipliedBy(currRatio.usd);
+                const reqUsdAmount  = totalAmountInUsdIn1e18.multipliedBy(currRatio.usd).dividedBy(100);
                 if(!amountInUsdIn1e18.isEqualTo(reqUsdAmount)){
-                    throw new Error(`You need to stake $${reqUsdAmount}`);
+                    throw new Error(`You need to stake in usd dsc ratio of ${currRatio.usd}:${currRatio.dsc},you need $${reqUsdAmount.dividedBy(1e18).toFixed(3)}!`);
                 }
                 amountToDeduct = reqUsdAmount;
                 mixTxHash = zeroAddressTxhash;
+                generatedDsc = reqUsdAmount.dividedBy(price);
 
                 
 
@@ -111,7 +115,7 @@ const stakeVrs = async (req, res, next) => {
 
 
 
-        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress });
+        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress,generatedDsc:generatedDsc.toFixed() });
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);
@@ -573,7 +577,7 @@ const upgradeNode = async (req, res, next) => {
         const totalAmountInUsdIn1e18 = new BigNumber(totalAmountInUsd).multipliedBy(1e18);
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
-        if (!regDoc) throw new Error("Please do your first staking for registration");
+        if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
         const { nodePurchasingBalance = "0" } = regDoc;
 
         const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
