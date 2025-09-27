@@ -1,0 +1,11 @@
+{
+  "name": "My Express App",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Express Backend",
+      "onAutoForward": "openBrowser",
+      "visibility": "public"
+    }
+  }
+}
