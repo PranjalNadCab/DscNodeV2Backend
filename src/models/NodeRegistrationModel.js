@@ -19,10 +19,6 @@ const NodeRegisteredSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    nodeNum:{
-        type:Number,
-        default:null
-    },
     time:{
         type:Number,
         default:()=>Math.floor(Date.now()/1000)

@@ -237,7 +237,6 @@ async function processEvents(events) {
                         amountUsdtPaid,
                         majorIncome,
                         minor4Income,
-                        nodeNum: Number(nodeNum),
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash
@@ -353,8 +352,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "66867271"; 
-        // toBlock = "66867271"
+        // lastSyncBlock = "66872032"; 
+        // toBlock = "66872032"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
