@@ -247,9 +247,9 @@ async function processEvents(events) {
                     if (!regDoc) {
                         console.log("No registration doc found for user while registering node:", user);
                     }
-                    // const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
+                    const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
 
-                    // regDoc.nodePurchasingBalance = updatedBalance;
+                    regDoc.nodePurchasingBalance = updatedBalance;
                     regDoc.isNodeRegDone = true;
                     await regDoc.save();
 

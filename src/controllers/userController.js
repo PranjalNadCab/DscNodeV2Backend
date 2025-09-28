@@ -54,60 +54,60 @@ const stakeVrs = async (req, res, next) => {
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
         const lastStake = await StakingModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
-     
-        ct({user,amountInUsdIn1e18:amountInUsdIn1e18.toFixed(),currency,rateDollarPerDsc,})
+
+        ct({ user, amountInUsdIn1e18: amountInUsdIn1e18.toFixed(), currency, rateDollarPerDsc, })
         let mixTxHash = "NA";
         let amountToDeduct = new BigNumber(0);
         let generatedDsc = new BigNumber(0);
-   
 
-        const {nodeValidators} = await giveAdminSettings();
-        if(!nodeValidators) throw new Error("Didn't found node prices!");
+
+        const { nodeValidators } = await giveAdminSettings();
+        if (!nodeValidators) throw new Error("Didn't found node prices!");
 
         if (totalAmountInUsd === amountInUsd && (currency === "USDT" || currency === "DSC")) {
             generatedDsc = amountInUsdIn1e18.dividedBy(price);
             amountToDeduct = totalAmountInUsdIn1e18;
             mixTxHash = "NA";
 
-        } else if((totalAmountInUsd !== amountInUsd) ) {
+        } else if ((totalAmountInUsd !== amountInUsd)) {
 
-            const userLastPendingStake = await StakingModel.find({userAddress:user,isPendingStake:true,mixTxHash:{$ne:"NA"}}).sort({time:-1});
-            const isAnyPendingStake  = userLastPendingStake.length > 0 ? true :false;
-            console.log("---->>",isAnyPendingStake)
-            if(isAnyPendingStake && currency=="DSC"){
-                const userUsdtPartStake = userLastPendingStake.find((stake)=>stake.currency==="USDT");
-                const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(userUsdtPartStake.totalAmountInUsd,userLastPendingStake);
-                if(amountInUsdIn1e18.isGreaterThan(remainingDscInUsdToPay))throw new Error(`You have to only pay $${remainingDscInUsdToPay.dividedBy(1e18).toFixed()} of DSC`);
-                amountToDeduct = amountInUsdIn1e18 ;
+            const userLastPendingStake = await StakingModel.find({ userAddress: user, isPendingStake: true, mixTxHash: { $ne: "NA" } }).sort({ time: -1 });
+            const isAnyPendingStake = userLastPendingStake.length > 0 ? true : false;
+            console.log("---->>", isAnyPendingStake)
+            if (isAnyPendingStake && currency == "DSC") {
+                const userUsdtPartStake = userLastPendingStake.find((stake) => stake.currency === "USDT");
+                const remainingDscInUsdToPay = getRemainingDscUsdToPayForStaking(userUsdtPartStake.totalAmountInUsd, userLastPendingStake);
+                if (amountInUsdIn1e18.isGreaterThan(remainingDscInUsdToPay)) throw new Error(`You have to only pay $${remainingDscInUsdToPay.dividedBy(1e18).toFixed()} of DSC`);
+                amountToDeduct = amountInUsdIn1e18;
                 mixTxHash = userUsdtPartStake.transactionHash;
-            generatedDsc = amountToDeduct.dividedBy(price);
-            ct({uid:'dfgasdgfdg',amountToDeduct:amountToDeduct.toFixed()});
-            if(!totalAmountInUsdIn1e18.isEqualTo(userUsdtPartStake.totalAmountInUsd)) throw new Error(`Your stake target is $${new BigNumber(userUsdtPartStake.totalAmountInUsd).dividedBy(1e18).toFixed()} & $${remainingDscInUsdToPay.dividedBy(1e18).toFixed() } of DSC is pending!`)
-            if(!amountInUsdIn1e18.isEqualTo(amountToDeduct)) throw new Error(`You have to stake $${remainingDscInUsdToPay.dividedBy(1e18).toFixed() } of DSC`)
+                generatedDsc = amountToDeduct.dividedBy(price);
+                ct({ uid: 'dfgasdgfdg', amountToDeduct: amountToDeduct.toFixed() });
+                if (!totalAmountInUsdIn1e18.isEqualTo(userUsdtPartStake.totalAmountInUsd)) throw new Error(`Your stake target is $${new BigNumber(userUsdtPartStake.totalAmountInUsd).dividedBy(1e18).toFixed()} & $${remainingDscInUsdToPay.dividedBy(1e18).toFixed()} of DSC is pending!`)
+                if (!amountInUsdIn1e18.isEqualTo(amountToDeduct)) throw new Error(`You have to stake $${remainingDscInUsdToPay.dividedBy(1e18).toFixed()} of DSC`)
 
-            }else if(isAnyPendingStake && currency === "USDT"){
+            } else if (isAnyPendingStake && currency === "USDT") {
                 throw new Error("You have a pending DSC to pay!");
-            }else if(!isAnyPendingStake && currency === "DSC"){
+            } else if (!isAnyPendingStake && currency === "DSC") {
                 throw new Error("USDT is required to initiate mix ratio transactions!");
-            }else if(!isAnyPendingStake && currency === "USDT"){
+            } else if (!isAnyPendingStake && currency === "USDT") {
                 const currRatio = ratioUsdDsc();
-                const reqUsdAmount  = totalAmountInUsdIn1e18.multipliedBy(currRatio.usd).dividedBy(100);
-                if(!amountInUsdIn1e18.isEqualTo(reqUsdAmount)){
+                const reqUsdAmount = totalAmountInUsdIn1e18.multipliedBy(currRatio.usd).dividedBy(100);
+                if (!amountInUsdIn1e18.isEqualTo(reqUsdAmount)) {
                     throw new Error(`You need to stake in usd dsc ratio of ${currRatio.usd}:${currRatio.dsc},you need $${reqUsdAmount.dividedBy(1e18).toFixed(3)}!`);
                 }
                 amountToDeduct = reqUsdAmount;
                 mixTxHash = zeroAddressTxhash;
                 generatedDsc = reqUsdAmount.dividedBy(price);
 
-                
 
-            }else{
+
+            } else {
 
             }
 
         }
 
-           let prevNonce = 0;
+        let prevNonce = 0;
         if (!lastStake) {
             prevNonce = -1;
         } else {
@@ -115,7 +115,7 @@ const stakeVrs = async (req, res, next) => {
         }
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(user).call();
         const hash = await dscNodeContract.methods.getHashForStaking(user, amountToDeduct.toFixed(), currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18.toFixed()).call();
-             if ((prevNonce + 1) !== Number(currNonce)) {
+        if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous stake is not stored yet! Please try again later.");
         }
 
@@ -125,7 +125,7 @@ const stakeVrs = async (req, res, next) => {
 
 
 
-        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress,generatedDsc:generatedDsc.toFixed() });
+        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress, generatedDsc: generatedDsc.toFixed() });
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);
@@ -588,7 +588,7 @@ const upgradeNode = async (req, res, next) => {
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
         if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
-    const { nodePurchasingBalance = "0" } = regDoc;
+        const { nodePurchasingBalance = "0" } = regDoc;
 
         const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
@@ -608,6 +608,7 @@ const upgradeNode = async (req, res, next) => {
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
         const { nodeValidators } = await giveAdminSettings();
+        let generatedDsc = "0";
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
         const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
         let lastNode = userNodes.length > 0 ? userNodes[0] : null;
@@ -631,14 +632,14 @@ const upgradeNode = async (req, res, next) => {
                     mixTxHash = zeroAddressTxhash;
                 }
 
-            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted && (mixTransactionHash!=="NA")) {
+            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted && (mixTransactionHash !== "NA")) {
                 // const userThisNodes = userNodes.map((nodeItem)=> (nodeItem.nodeNum==nodeNum));
                 // const paidDscAmounts = userThisNodes.filter
                 // ((item)=>item.currency==="DSC").reduce((sum,item)=>{
 
                 // },new BigNumber(0));
                 // all good , this is mix transaction
-                const remainingUsd = getRemainingDscToPayInUsd(totalAmountInUsdIn1e18,userNodes,nodeNum,rateDollarPerDsc);
+                const remainingUsd = getRemainingDscToPayInUsd(totalAmountInUsdIn1e18, userNodes, nodeNum, rateDollarPerDsc);
                 amountToDeduct = remainingUsd;
 
 
@@ -653,27 +654,42 @@ const upgradeNode = async (req, res, next) => {
 
         } else {
 
-            const { status, message } = validateUpgradeNodeConditions(totalAmountInUsdIn1e18, amountInUsdIn1e18, currency, amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators)
-            if (!status) throw new Error(message);
+            // const { status, message } = validateUpgradeNodeConditions(totalAmountInUsdIn1e18, amountInUsdIn1e18, currency, amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators)
+            // if (!status) throw new Error(message);
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
                 mixTxHash = "NA";
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
 
 
 
-            } else if (currency === "USDT" && (!amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-
-                const {usdtRatioAmount,dscRatioAmount} = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
-
-                if(!(new BigNumber(usdtRatioAmount).isEqualTo(amountInUsdIn1e18))){
-                    throw new Error(`Only 100% USDT or 100% DSC or only $${usdtRatioAmount} is allowed!`);
-                }
-
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+            } else if ((totalAmountInUsd !== amountInUsd) && (currency === "USDT") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                //for doing x% usdt and later dsc will be paid
+                const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+                if (!amountInUsdIn1e18.isEqualTo(usd)) throw new Error(`For upgrading node by mix ratio, you need to send $${new BigNumber(usd).dividedBy(1e18).toFixed()}`);
+                amountToDeduct = amountToDeduct.plus(usd).minus(nodePurchasingBalance);
                 mixTxHash = zeroAddressTxhash;
             }
+            else if ((totalAmountInUsd !== amountInUsd) && (currency === "DSC") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+                throw new Error(`For upgrading node by mix ratio, you need to send ${new BigNumber(usd).dividedBy(1e18).toFixed()} USDT.`);
+
+            }else{
+                throw new Error("Invalid Transaction! please verify you are sending correct node and amounts!");
+            }
+            // else if (currency === "USDT" && (!amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+
+            //     const { usdtRatioAmount, dscRatioAmount } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+
+            //     if (!(new BigNumber(usdtRatioAmount).isEqualTo(amountInUsdIn1e18))) {
+            //         throw new Error(`Only 100% USDT or 100% DSC or only $${usdtRatioAmount} is allowed!`);
+            //     }
+
+            //     amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+            //     mixTxHash = zeroAddressTxhash;
+            // }
         }
 
 
@@ -696,7 +712,7 @@ const upgradeNode = async (req, res, next) => {
 
 
 
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs });
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs,generatedDsc });
 
     } catch (error) {
         next(error);
