@@ -65,11 +65,13 @@ const stakeVrs = async (req, res, next) => {
         if (!nodeValidators) throw new Error("Didn't found node prices!");
 
         if (totalAmountInUsd === amountInUsd && (currency === "USDT" || currency === "DSC")) {
+            //100% USDT or 100% DSC
             generatedDsc = amountInUsdIn1e18.dividedBy(price);
             amountToDeduct = totalAmountInUsdIn1e18;
             mixTxHash = "NA";
 
         } else if ((totalAmountInUsd !== amountInUsd)) {
+            //only for mix tx
 
             const userLastPendingStake = await StakingModel.find({ userAddress: user, isPendingStake: true, mixTxHash: { $ne: "NA" } }).sort({ time: -1 });
             const isAnyPendingStake = userLastPendingStake.length > 0 ? true : false;
@@ -98,8 +100,6 @@ const stakeVrs = async (req, res, next) => {
                 amountToDeduct = reqUsdAmount;
                 mixTxHash = zeroAddressTxhash;
                 generatedDsc = reqUsdAmount.dividedBy(price);
-
-
 
             } else {
 
@@ -612,8 +612,12 @@ const upgradeNode = async (req, res, next) => {
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
         const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
         let lastNode = userNodes.length > 0 ? userNodes[0] : null;
-        if (lastNode) {
+        if (lastNode && lastNode.isPaymentCompleted) {
+            //Only 100% USDT or 100% DSC or x% USDT is allowed
             const lastNode = userNodes[0];
+              const userUsdtPartTx = userNodes.filter((item)=>{
+                    item.currency === "USDT"
+                });
 
             if (Number(nodeNum) > Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) {
 
@@ -632,25 +636,36 @@ const upgradeNode = async (req, res, next) => {
                     mixTxHash = zeroAddressTxhash;
                 }
 
-            } else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted && (mixTransactionHash !== "NA")) {
-                // const userThisNodes = userNodes.map((nodeItem)=> (nodeItem.nodeNum==nodeNum));
-                // const paidDscAmounts = userThisNodes.filter
-                // ((item)=>item.currency==="DSC").reduce((sum,item)=>{
+            }else if(lastNode && !lastNode.isPaymentCompleted && currency === "DSC" && totalAmountInUsdIn1e18.isEqualTo(userUsdtPartTx.totalAmountInUsd) && nodeNum==userUsdtPartTx.nodeNum){
+              
 
-                // },new BigNumber(0));
-                // all good , this is mix transaction
                 const remainingUsd = getRemainingDscToPayInUsd(totalAmountInUsdIn1e18, userNodes, nodeNum, rateDollarPerDsc);
-                amountToDeduct = remainingUsd;
-
-
+                
+                if(amountInUsdIn1e18.isGreaterThan(remainingUsd)) throw new Error(`You have to pay $${remainingUsd} of DSC only`)
+                amountToDeduct = amountInUsdIn1e18; 
+                mixTxHash = userUsdtPartTx.transactionHash;
+                
 
             }
-            else if (Number(nodeNum) < Number(lastNode.nodeNum)) { throw new Error("You cannot upgrade to a lower node than your last upgraded node.") }
-            else if (Number(nodeNum) === Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) { throw new Error("You have already upgraded this node!") }
-            else if (Number(nodeNum) > Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) { throw new Error(`You have not completed your payments for ${nodeToUpgrade.name} node!`) }
-            else {
-                throw new Error("Invalid Node upgrade");
-            }
+            //  else if (Number(nodeNum) === Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted && (mixTransactionHash !== "NA")) {
+            //     // const userThisNodes = userNodes.map((nodeItem)=> (nodeItem.nodeNum==nodeNum));
+            //     // const paidDscAmounts = userThisNodes.filter
+            //     // ((item)=>item.currency==="DSC").reduce((sum,item)=>{
+
+            //     // },new BigNumber(0));
+            //     // all good , this is mix transaction
+            //     const remainingUsd = getRemainingDscToPayInUsd(totalAmountInUsdIn1e18, userNodes, nodeNum, rateDollarPerDsc);
+            //     amountToDeduct = remainingUsd;
+
+
+
+            // }
+            // else if (Number(nodeNum) < Number(lastNode.nodeNum)) { throw new Error("You cannot upgrade to a lower node than your last upgraded node.") }
+            // else if (Number(nodeNum) === Number(lastNode.nodeNum) && lastNode.isPaymentCompleted) { throw new Error("You have already upgraded this node!") }
+            // else if (Number(nodeNum) > Number(lastNode.nodeNum) && !lastNode.isPaymentCompleted) { throw new Error(`You have not completed your payments for ${nodeToUpgrade.name} node!`) }
+            // else {
+            //     throw new Error("Invalid Node upgrade");
+            // }
 
         } else {
 
