@@ -123,12 +123,7 @@ async function processEvents(events) {
 
                     console.log("New stake created:", newStake);
 
-                    if (!isPendingStake && mixTxHash !== "NA") {
-                        await StakingModel.updateMany(
-                            { userAddress, mixTxHash },
-                            { $set: { isPendingStake: false } }
-                        );
-                    }
+                   
 
                     let rankDuringStaking = null;
                     const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
@@ -138,7 +133,20 @@ async function processEvents(events) {
                     await updateUserTotalSelfStakeUsdt(userAddress, amount);
                     await updateDirectBusiness(amount, userAddress);
                     await manageRank(userAddress);
-                    // await giveGapIncome(userAddress, amount, rankDuringStaking, amountUsdt, amountDscInUsd);
+                    if (!isPendingStake && mixTxHash !== "NA") {
+                        const userTotalStakes = await StakingModel.find({ userAddress: userAddress, mixTxHash: mixTxHash });
+                        const stakingAmountIn1e18 = userTotalStakes.find((item) =>{return item.currency === "USDT"}).totalAmountInUsd;
+                        const usdtStakedIn1e18 = userTotalStakes.find((item) =>{return item.currency === "USDT"}).amountUsdPaid;
+                        const dscStakedInUsdtIn1e18 = userTotalStakes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
+                            return sum.plus(item.amountUsdPaid)
+                        }, new BigNumber(0));
+                        
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18);
+                        await StakingModel.updateMany(
+                            { userAddress, mixTxHash },
+                            { $set: { isPendingStake: false } }
+                        );
+                    }
 
 
                 } catch (error) {
