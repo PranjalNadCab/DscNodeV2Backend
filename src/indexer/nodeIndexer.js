@@ -314,13 +314,18 @@ async function processEvents(events) {
                         regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
 
                     } else {
-                        //update nodepurchasing balance to zero
                         regDoc.nodePurchasingBalance = "0";
 
                     }
-                    // regDoc.currentNodeName = nodeName;
-                    // regDoc.purchasedNodes.push({ nodeName, purchasedAt: Number(timestampNormal), reward: myNode ? myNode.reward : 0 });
+                    
                     await regDoc.save();
+
+                    if (isPaymentCompleted && mixTxHash !== "NA") {
+                        await UpgradedNodes.updateMany(
+                            { userAddress:user, mixTxHash },
+                            { $set: { isPaymentCompleted: true } }
+                        );
+                    }
 
                 } catch (error) {
                     console.log(error);
