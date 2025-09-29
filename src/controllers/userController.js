@@ -995,6 +995,34 @@ const deployNode = async (req, res, next) => {
     }
 }
 
+const getUserPendingStake = async(req,res,next)=>{
+    try{
+        let {userAddress} = req.body;
+        if (!userAddress) throw new Error("Please provide user address.");
+        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const regDoc = await RegistrationModel.findOne({ userAddress });
+        if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
+
+        const pendingStake = await StakingModel.find({userAddress, isPendingStake:true});
+        const usdtPartStakeDoc = pendingStake.find(item=>{ return item.currency==="USDT"});
+        const targetStake = usdtPartStakeDoc.totalAmountInUsd;
+        const paidUsdtPart = usdtPartStakeDoc.amountUsdPaid;
+        const paidDscPartInUsd = pendingStake.filter(item=>item.currency==="DSC").reduce((sum,item)=>{
+            return sum.plus(new BigNumber(item.amountUsdPaid));
+        },new BigNumber(0));
+        const targetDscInUsd = new BigNumber(targetStake).minus(paidUsdtPart);
+        const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd);
+
+
+        return res.status(200).json({success:true,pendingStake:new BigNumber(remainingDscInUsd).dividedBy(1e18).toFixed()});
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
     deployNode,
@@ -1008,6 +1036,7 @@ module.exports = {
     convertToNode,
     getGapIncomeHistory,
     getWithdrawIncomeHistory,
-    stakeMix
+    stakeMix,
+    getUserPendingStake
 };
 
