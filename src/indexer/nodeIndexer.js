@@ -146,6 +146,9 @@ async function processEvents(events) {
                             { userAddress, mixTxHash },
                             { $set: { isPendingStake: false } }
                         );
+                    }else{
+                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd);
+
                     }
 
 
