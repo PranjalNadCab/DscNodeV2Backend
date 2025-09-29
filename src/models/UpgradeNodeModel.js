@@ -55,7 +55,7 @@ const UpgradeNodeSchema = new mongoose.Schema({
 },{ timestamps: true });
 
 
-UpgradeNodeSchema.index({ userAddress: 1,nodeName:1 },{unique:true});
+UpgradeNodeSchema.index({ userAddress: 1,nodeName:1,mixTxHash:1,transactionHash:1 },{unique:true});
 
 const UpgradedNodes = mongoose.model("UpgradedNodes", UpgradeNodeSchema);
 

@@ -267,19 +267,22 @@ async function processEvents(events) {
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
-                    let isPendingStake = false;
+                    let isPaymentCompleted = false;
                     if (mixTxHash == zeroAddressTxhash) {
-                        isPendingStake = true;
+                        isPaymentCompleted = true;
                         mixTxHash = transactionHash
                     } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
-                        const userPendingUpgradeNodes = await UpgradedNodes.find({ userAddress: userAddress, isPaymentCompleted: true, mixTxHash: mixTxHash });
+                        const userPendingUpgradeNodes = await UpgradedNodes.find({ userAddress: user, isPaymentCompleted: false, mixTxHash: mixTxHash });
                         let amountUsdPaidForDsc = userPendingUpgradeNodes.filter((stake) => stake.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
                         amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
-                        const userUsdtStakePart = userPendingUpgradeNodes.find((item) => item.currency === "USDT");
+                        const userUsdtStakePart = userPendingUpgradeNodes.find((item) => {
+                            return item.currency === "USDT";
+                          });
                         const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
-                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false : true;
+
+                        isPaymentCompleted = remainingUsdToPay.isEqualTo(0) ? true : false;
 
                     }
 
@@ -295,7 +298,7 @@ async function processEvents(events) {
                         currency,
                         rateDollarPerDsc: rate,
                         mixTransactionHash: mixTxHash,
-                        isPaymentCompleted: isPendingStake
+                        isPaymentCompleted: isPaymentCompleted
                     });
 
                     console.log("Node upgraded doc created:", upgradeNode);
