@@ -834,43 +834,35 @@ const upgradeNode = async (req, res, next) => {
             generatedDsc = amountToDeduct.dividedBy(price).toFixed();
 
 
-        } else {
-            throw new Error("Invalid transaction!");
+        } 
+        else {
+
+
+
+            if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                //all good initiate 100% usdt or dsc tx
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                mixTxHash = "NA";
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
+
+
+
+            } else if ((totalAmountInUsd !== amountInUsd) && (currency === "USDT") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                //for doing x% usdt and later dsc will be paid
+                const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+                if (!amountInUsdIn1e18.isEqualTo(usd)) throw new Error(`For upgrading node by mix ratio, you need to send $${new BigNumber(usd).dividedBy(1e18).toFixed()}`);
+                amountToDeduct = amountToDeduct.plus(usd).minus(nodePurchasingBalance);
+                mixTxHash = zeroAddressTxhash;
+            }
+            else if ((totalAmountInUsd !== amountInUsd) && (currency === "DSC") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+                const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
+                throw new Error(`For upgrading node by mix ratio, you need to send ${new BigNumber(usd).dividedBy(1e18).toFixed()} USDT.`);
+
+            } else {
+                throw new Error("Invalid Transaction! please verify you are sending correct node and amounts!");
+            }
+
         }
-
-
-        // else if (lastNode && !lastNode.isPaymentCompleted) {
-        //     if (currency === "USDT") throw new Error("You have a pending DSC to pay for your last node upgradation!");
-        // }
-
-        // else {
-
-
-
-        //     if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-        //         //all good initiate 100% usdt or dsc tx
-        //         amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-        //         mixTxHash = "NA";
-        //         generatedDsc = amountToDeduct.dividedBy(price).toFixed();
-
-
-
-        //     } else if ((totalAmountInUsd !== amountInUsd) && (currency === "USDT") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-        //         //for doing x% usdt and later dsc will be paid
-        //         const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
-        //         if (!amountInUsdIn1e18.isEqualTo(usd)) throw new Error(`For upgrading node by mix ratio, you need to send $${new BigNumber(usd).dividedBy(1e18).toFixed()}`);
-        //         amountToDeduct = amountToDeduct.plus(usd).minus(nodePurchasingBalance);
-        //         mixTxHash = zeroAddressTxhash;
-        //     }
-        //     else if ((totalAmountInUsd !== amountInUsd) && (currency === "DSC") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-        //         const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
-        //         throw new Error(`For upgrading node by mix ratio, you need to send ${new BigNumber(usd).dividedBy(1e18).toFixed()} USDT.`);
-
-        //     } else {
-        //         throw new Error("Invalid Transaction! please verify you are sending correct node and amounts!");
-        //     }
-
-        // }
 
 
         let prevNonce = 0;
