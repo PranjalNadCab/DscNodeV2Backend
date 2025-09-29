@@ -329,6 +329,14 @@ async function processEvents(events) {
                     await regDoc.save();
 
                     if (isPaymentCompleted && mixTxHash !== "NA") {
+                         const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: userAddress, mixTxHash: mixTxHash });
+                        const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) =>{return item.currency === "USDT"}).totalAmountInUsd;
+                        const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) =>{return item.currency === "USDT"}).amountUsdPaid;
+                        const dscStakedInUsdtIn1e18 = userTotalUpgradeDocs.filter((item) => item.currency === "DSC").reduce((sum, item) => {
+                            return sum.plus(item.amountUsdPaid)
+                        }, new BigNumber(0));
+                        
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed());
                         await UpgradedNodes.updateMany(
                             { userAddress:user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
