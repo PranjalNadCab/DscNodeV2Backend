@@ -727,7 +727,7 @@ const upgradeNode = async (req, res, next) => {
 
 
 
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs,generatedDsc });
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs:{...vrs,currency},generatedDsc });
 
     } catch (error) {
         next(error);
