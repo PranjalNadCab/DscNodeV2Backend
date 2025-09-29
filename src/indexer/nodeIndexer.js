@@ -75,7 +75,6 @@ async function processEvents(events) {
                     rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
 
                     // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
-                    let closePrevStake = false;
                     let isPendingStake = false;
                     if (mixTxHash == zeroAddressTxhash) {
                         isPendingStake = true;
@@ -268,6 +267,22 @@ async function processEvents(events) {
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
+                    let isPendingStake = false;
+                    if (mixTxHash == zeroAddressTxhash) {
+                        isPendingStake = true;
+                        mixTxHash = transactionHash
+                    } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
+                        const userPendingUpgradeNodes = await UpgradedNodes.find({ userAddress: userAddress, isPaymentCompleted: true, mixTxHash: mixTxHash });
+                        let amountUsdPaidForDsc = userPendingUpgradeNodes.filter((stake) => stake.currency === "DSC").reduce((sum, item) => {
+                            return sum.plus(item.amountUsdPaid)
+                        }, new BigNumber(0));
+                        amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
+                        const userUsdtStakePart = userPendingUpgradeNodes.find((item) => item.currency === "USDT");
+                        const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
+                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false : true;
+
+                    }
+
                     const upgradeNode = await UpgradedNodes.create({
                         userAddress: user,
                         nodeNum: Number(nodeNum),
@@ -280,7 +295,7 @@ async function processEvents(events) {
                         currency,
                         rateDollarPerDsc: rate,
                         mixTransactionHash: mixTxHash,
-                        isPaymentCompleted: true
+                        isPaymentCompleted: isPendingStake
                     });
 
                     console.log("Node upgraded doc created:", upgradeNode);
