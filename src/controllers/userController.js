@@ -837,7 +837,7 @@ const upgradeNode = async (req, res, next) => {
             generatedDsc = amountToDeduct.dividedBy(price).toFixed();
 
 
-        } 
+        }
         else {
 
 
@@ -938,8 +938,66 @@ const getRoiHistory = async (req, res, next) => {
     }
 };
 
+const deployNode = async (req, res, next) => {
+    try {
+        let { userAddress,nodeNum } = req.body;
+        if (!userAddress) throw new Error("Please provide user address.");
+        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const isUserExist = await dscNodeContract.methods.isUserRegistered(userAddress).call();
+        if(!isUserExist) throw new Error("You have not registered yet! Please register first.");
+        const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+        if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
+        const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
+        if (isUserNodeDeployed) throw new Error("You have already deployed your node.");
+
+        const userLastNode = await UpgradedNodes.findOne({ userAddress }).sort({ time: -1 });
+
+        if (!userLastNode || !userLastNode.isPaymentCompleted) throw new Error("You have not upgraded any node or your last upgraded node payment is not completed yet!");
+        //all good
+
+        if(Number(nodeNum) !== userLastNode.nodeNum) throw new Error("You can only deploy your last upgraded node!");
+
+        const gasEstimate = await web3.eth.estimateGas({
+            from: process.env.PRICE_OPERATOR_ADDRESS,
+            to: process.env.DSCNODE_CONTRACT_ADDRESS,
+            data: dscNodeContract.methods
+                .deployNode(userAddress, userLastNode.nodeNum)
+                .encodeABI(),
+        });
+
+        const tx = {
+            from: process.env.PRICE_OPERATOR_ADDRESS,
+            to: process.env.DSCNODE_CONTRACT_ADDRESS,
+            gas: gasEstimate, // Use the estimated gas limit
+            data: dscNodeContract.methods
+                .deployNode(userAddress, userLastNode.nodeNum)
+                .encodeABI(),
+        };
+        const gasPrice = await web3.eth.getGasPrice();
+        tx.gasPrice = gasPrice; // Consider using the original gas price without multiplication
+
+        // Sign and send the transaction
+        const signedTx = await web3.eth.accounts.signTransaction(
+            tx,
+            process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+        );
+        const receipt = await web3.eth.sendSignedTransaction(
+            signedTx.rawTransaction
+        );
+        console.log("Transaction receipt:", receipt);
+
+
+        return res.status(200).json({ success: true, message: "Congratulations! You have deployed your node." });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    deployNode,
     getRoiHistory,
     upgradeNode,
     getLiveDscPrice,

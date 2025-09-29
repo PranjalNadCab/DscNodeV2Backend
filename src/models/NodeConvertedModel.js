@@ -15,10 +15,6 @@ const nodeDeployedSchema = new mongoose.Schema({
         type:Number,
         default:()=>Math.floor(Date.now()/1000)
     },
-    lastUsedNonce:{
-        type:Number,
-        required:true
-    },
     block:{
         type:Number,
         required:true
