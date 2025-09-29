@@ -1002,12 +1002,20 @@ const getUserPendingStake = async(req,res,next)=>{
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
+        let userStakeInfo = {
+            targetDscInUsd:0,
+            paidDscPartInUsd:0,
+            paidUsdtPart:0,
+            targetStake:0,
+            remainingDscInUsd:0
+        };
+
         const regDoc = await RegistrationModel.findOne({ userAddress });
         if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
         const ratio = ratioUsdDsc();
         const pendingStake = await StakingModel.find({userAddress, isPendingStake:true});
-        if(pendingStake.length===0) return res.status(200).json({success:true,remainingDscInUsd:0,message:"You have no pending stakes.",ratio});
+        if(pendingStake.length===0) return res.status(200).json({success:true,remainingDscInUsd:0,message:"You have no pending stakes.",ratio,userStakeInfo});
 
         const usdtPartStakeDoc = pendingStake.find(item=>{ return item.currency==="USDT"});
         const targetStake = usdtPartStakeDoc.totalAmountInUsd;
@@ -1018,8 +1026,16 @@ const getUserPendingStake = async(req,res,next)=>{
         const targetDscInUsd = new BigNumber(targetStake).minus(paidUsdtPart);
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
 
+        userStakeInfo = {
+            targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
+            paidDscPartInUsd:paidDscPartInUsd.dividedBy(1e18).toNumber(),
+            paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
+            targetStake:new BigNumber(targetStake).dividedBy(1e18).toNumber(),
+            remainingDscInUsd:Number(remainingDscInUsd)
+        }
 
-        return res.status(200).json({success:true,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,remainingDscInUsd:Number(remainingDscInUsd),ratio});
+
+        return res.status(200).json({success:true,userStakeInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
 
     }catch(error){
         next(error);
