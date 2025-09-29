@@ -823,7 +823,10 @@ const upgradeNode = async (req, res, next) => {
             console.log("sdfasdf", userNodes);
             const targetTotalAmount = userUsdtPartTx.totalAmountInUsd;
             const userUsdtPaymentAlreadyPaid = userUsdtPartTx.amountUsdPaid;
-            const userRemainingUsdToPay = new BigNumber(targetTotalAmount).minus(userUsdtPaymentAlreadyPaid);
+            const userDscAlreadyPaid = userNodes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
+                return sum.plus(new BigNumber(item.amountUsdPaid));
+            }, new BigNumber(0));
+            const userRemainingUsdToPay = new BigNumber(targetTotalAmount).minus(userUsdtPaymentAlreadyPaid).minus(userDscAlreadyPaid);
             if ((amountInUsd === 0) || amountInUsdIn1e18.isGreaterThan(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
             if (!totalAmountInUsdIn1e18.isEqualTo(targetTotalAmount)) throw new Error("You cannot change total amount in mix transaction!");
 
