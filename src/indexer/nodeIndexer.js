@@ -331,6 +331,17 @@ async function processEvents(events) {
                     
                     await regDoc.save();
 
+                    let amountInUsdt = "0";
+                    let amountInDscInUsd = "0";
+                    let amountDsc = "0"
+                    if (currency === "USDT") {
+                        amountInUsdt = amount;
+                    }
+                    else {
+                        amountInDscInUsd = amount;
+                        amountDsc = new BigNumber(amount).dividedBy(rate).multipliedBy(1e18).toFixed(0);
+                    }
+
                     if (isPaymentCompleted && mixTxHash !== "NA") {
                          const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: userAddress, mixTxHash: mixTxHash });
                         const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) =>{return item.currency === "USDT"}).totalAmountInUsd;
@@ -344,7 +355,11 @@ async function processEvents(events) {
                             { userAddress:user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
-                    }
+                    }else{
+                            await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd);
+    
+                        }
+                    
 
                 } catch (error) {
                     console.log(error);
