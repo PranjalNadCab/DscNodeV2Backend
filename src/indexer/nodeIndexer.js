@@ -141,7 +141,7 @@ async function processEvents(events) {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
                         
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18);
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed());
                         await StakingModel.updateMany(
                             { userAddress, mixTxHash },
                             { $set: { isPendingStake: false } }
