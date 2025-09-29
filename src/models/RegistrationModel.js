@@ -72,14 +72,13 @@ const RegistrationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    purchasedNodes:{
-        type: [{
-            nodeName: { type: String, required: true },
-            purchasedAt: { type: Number, required: true },
-            reward: { type: Number, required: true },
-            nodeConversionTime: { type: Number, default: null }
-        }],
-        default: []
+    myNode:{
+        type:{
+            nodeName:{type:String},
+            deployedAt:{type:Number},
+            nodeNum:{type:Number}
+        },
+        default:null
     },
     roiWithdrawWallet:{
         type:String,
@@ -89,10 +88,7 @@ const RegistrationSchema = new mongoose.Schema({
         type:String,
         default:"0"
     },
-    currentNodeName:{
-        type:String,
-        default: null
-    }
+   
 }, { timestamps: true, collection: 'registration' });
 
 RegistrationSchema.index({ userAddress: 1, sponsorAddress: 1 }, { unique: true });

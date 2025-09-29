@@ -1005,7 +1005,10 @@ const getUserPendingStake = async(req,res,next)=>{
         const regDoc = await RegistrationModel.findOne({ userAddress });
         if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
+
         const pendingStake = await StakingModel.find({userAddress, isPendingStake:true});
+        if(pendingStake.length===0) return res.status(200).json({success:true,remainingDscInUsd:"0"});
+
         const usdtPartStakeDoc = pendingStake.find(item=>{ return item.currency==="USDT"});
         const targetStake = usdtPartStakeDoc.totalAmountInUsd;
         const paidUsdtPart = usdtPartStakeDoc.amountUsdPaid;
@@ -1016,7 +1019,7 @@ const getUserPendingStake = async(req,res,next)=>{
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd);
 
 
-        return res.status(200).json({success:true,pendingStake:new BigNumber(remainingDscInUsd).dividedBy(1e18).toFixed()});
+        return res.status(200).json({success:true,message:`You have a pending stake of $${new BigNumber(remainingDscInUsd).dividedBy(1e18).toFixed()} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,remainingDscInUsd:new BigNumber(remainingDscInUsd).dividedBy(1e18).toFixed()});
 
     }catch(error){
         next(error);

@@ -755,12 +755,8 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
 
         let purchasedNodes = getUserDoc.purchasedNodes || [];
 
-        const myNode = purchasedNodes.find(n => n.nodeNum === nodeNum);
 
-        // if (alreadyAchieved) {
-        //     console.log(`User ${user} has already achieved node ${nodeNum}`);
-        //     return;
-        // }
+        
         const adminDoc = await AdminModel.findOne({});
         if (!adminDoc) {
             console.log("Admin doc not found");
@@ -772,33 +768,29 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
             return;
         }
         console.log("jksdhfgsdfghdfhed", nodeInfo)
-        purchasedNodes.push({
+        // purchasedNodes.push({
+        //     nodeName: nodeInfo.name,
+        //     purchasedAt: time,
+        //     reward: nodeInfo.reward,
+        //     nodeConversionTime: moment().unix()
+        // });
+        const myNode = {
             nodeName: nodeInfo.name,
-            purchasedAt: time,
-            reward: nodeInfo.reward,
-            nodeConversionTime: moment().unix()
-        });
+            deployedAt: time,
+            nodeNum: nodeNum,
+        }
 
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: user },
             {
                 $set: {
-                    "purchasedNodes.$[elem].nodeConversionTime": moment().unix()
+                    myNode: myNode
                 }
-            },
-            {
-                new: true,
-                arrayFilters: [
-                    { "elem.nodeName": nodeInfo.name } // match the node you want to update
-                ]
             }
+           
         );
-        const updateNode = await UpgradedNodes.updateOne(
-            { userAddress: user, nodeNum },
-            { $set: { nodeConversionTime: moment().unix() } },
-            { upsert: true }
-        );
-        const currentMonthName = moment().format("MMMM");
+   
+        const currentMonthName = moment.unix(time).format("MMMM");
         const updateConvertedNode = await NodeConverted.updateOne(
             { userAddress: user, nodeNum },
             { $set: { baseMinValue: nodeInfo.selfStaking, baseMinAss: nodeInfo.baseMinAss, conversionMonth: currentMonthName } },
