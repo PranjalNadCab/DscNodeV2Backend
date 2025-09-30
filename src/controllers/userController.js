@@ -13,6 +13,7 @@ const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
+const NodeDeployedModel = require("../models/NodeConvertedModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -1051,6 +1052,12 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
         userAddress = giveCheckSummedAddress(userAddress);
 
         let userCompletedNodes = [];
+        let userDeployedNodes = [];
+        userDeployedNodes = await NodeDeployedModel.find({userAddress}).select("-_id nodeNum").sort({time:-1});
+        userCompletedNodes = await UpgradedNodes.find({userAddress, isPaymentCompleted:true}).select("-_id nodeNum").sort({time:-1});
+        const uniqueNodes = new Set(userCompletedNodes.map(item=>item.nodeNum));
+        userCompletedNodes = Array.from(uniqueNodes);
+
 
         let userNodesInfo = {
             targetDscInUsd:0,
@@ -1058,15 +1065,17 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
             paidUsdtPart:0,
             targetNodeUpgrade:0,
             remainingDscInUsd:0,
-            userCompletedNodes
-        };
+            userCompletedNodes:userCompletedNodes,
+            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null
+
+        }
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
         // if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
         const ratio = ratioUsdDsc();
         const pendingSNodeUpgrade = await UpgradedNodes.find({userAddress, isPaymentCompleted:false});
-        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userNodesInfo});
+        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending upgrades.",ratio,userNodesInfo});
 
         const usdtPartUpgradationDoc = pendingSNodeUpgrade.find(item=>{ return item.currency==="USDT"});
         const targetNodeUpgrade = usdtPartUpgradationDoc.totalAmountInUsd;
@@ -1077,7 +1086,6 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
         const targetDscInUsd = new BigNumber(targetNodeUpgrade).minus(paidUsdtPart);
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
         
-         userCompletedNodes = await UpgradedNodes.find({userAddress, isPaymentCompleted:true}).select("-_id nodeNum").sort({time:-1});
 
         userNodesInfo = {
             targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
@@ -1085,7 +1093,8 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
             paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
             targetNodeUpgrade:new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
             remainingDscInUsd:Number(remainingDscInUsd),
-            userCompletedNodes
+            userCompletedNodes,
+            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null
         }
 
 
