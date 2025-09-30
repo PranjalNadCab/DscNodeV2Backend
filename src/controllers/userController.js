@@ -1042,6 +1042,55 @@ const getUserPendingStake = async(req,res,next)=>{
     }
 }
 
+
+const getUserPendingNodeUpgrades = async(req,res,next)=>{
+    try{
+        let {userAddress} = req.body;
+        if (!userAddress) throw new Error("Please provide user address.");
+        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        let userStakeInfo = {
+            targetDscInUsd:0,
+            paidDscPartInUsd:0,
+            paidUsdtPart:0,
+            targetNodeUpgrade:0,
+            remainingDscInUsd:0
+        };
+
+        const regDoc = await RegistrationModel.findOne({ userAddress });
+        // if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
+
+        const ratio = ratioUsdDsc();
+        const pendingSNodeUpgrade = await UpgradedNodes.find({userAddress, isPaymentCompleted:false});
+        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userStakeInfo});
+
+        const usdtPartUpgradationDoc = pendingSNodeUpgrade.find(item=>{ return item.currency==="USDT"});
+        const targetNodeUpgrade = usdtPartUpgradationDoc.totalAmountInUsd;
+        const paidUsdtPart = usdtPartUpgradationDoc.amountUsdPaid;
+        const paidDscPartInUsd = pendingSNodeUpgrade.filter(item=>item.currency==="DSC").reduce((sum,item)=>{
+            return sum.plus(new BigNumber(item.amountUsdPaid));
+        },new BigNumber(0));
+        const targetDscInUsd = new BigNumber(targetNodeUpgrade).minus(paidUsdtPart);
+        const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
+
+        userStakeInfo = {
+            targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
+            paidDscPartInUsd:paidDscPartInUsd.dividedBy(1e18).toNumber(),
+            paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
+            targetNodeUpgrade:new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
+            remainingDscInUsd:Number(remainingDscInUsd)
+        }
+
+
+        return res.status(200).json({success:true,userStakeInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
+
+    }catch(error){
+        next(error);
+    }
+}
+
+
 const getUsdDscRatio = async (req,res,next)=>{
     try{
 
@@ -1068,6 +1117,7 @@ module.exports = {
     getGapIncomeHistory,
     getWithdrawIncomeHistory,
     stakeMix,
-    getUserPendingStake
+    getUserPendingStake,
+    getUserPendingNodeUpgrades
 };
 
