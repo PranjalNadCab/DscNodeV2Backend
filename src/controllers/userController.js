@@ -1050,12 +1050,15 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
-        let userStakeInfo = {
+        let userCompletedNodes = [];
+
+        let userNodesInfo = {
             targetDscInUsd:0,
             paidDscPartInUsd:0,
             paidUsdtPart:0,
             targetNodeUpgrade:0,
-            remainingDscInUsd:0
+            remainingDscInUsd:0,
+            userCompletedNodes
         };
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
@@ -1063,7 +1066,7 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
 
         const ratio = ratioUsdDsc();
         const pendingSNodeUpgrade = await UpgradedNodes.find({userAddress, isPaymentCompleted:false});
-        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userStakeInfo});
+        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userNodesInfo});
 
         const usdtPartUpgradationDoc = pendingSNodeUpgrade.find(item=>{ return item.currency==="USDT"});
         const targetNodeUpgrade = usdtPartUpgradationDoc.totalAmountInUsd;
@@ -1073,17 +1076,21 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
         },new BigNumber(0));
         const targetDscInUsd = new BigNumber(targetNodeUpgrade).minus(paidUsdtPart);
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
+        
+         userCompletedNodes = await UpgradedNodes.find({userAddress, isPaymentCompleted:true}).select("-_id nodeNum").sort({time:-1});
 
-        userStakeInfo = {
+        userNodesInfo = {
             targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
             paidDscPartInUsd:paidDscPartInUsd.dividedBy(1e18).toNumber(),
             paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
             targetNodeUpgrade:new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
-            remainingDscInUsd:Number(remainingDscInUsd)
+            remainingDscInUsd:Number(remainingDscInUsd),
+            userCompletedNodes
         }
 
 
-        return res.status(200).json({success:true,userStakeInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
+
+        return res.status(200).json({success:true,userNodesInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
 
     }catch(error){
         next(error);

@@ -265,7 +265,7 @@ async function processEvents(events) {
                     regDoc.isNodeRegDone = true;
                     await regDoc.save();
 
-                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income);
+                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income,Number(timestampNormal) );
 
                 } catch (error) {
                     console.log(error);
