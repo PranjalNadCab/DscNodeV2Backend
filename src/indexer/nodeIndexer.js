@@ -123,7 +123,7 @@ async function processEvents(events) {
 
                     console.log("New stake created:", newStake);
 
-                   
+
 
                     let rankDuringStaking = null;
                     const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
@@ -135,20 +135,22 @@ async function processEvents(events) {
                     await manageRank(userAddress);
                     if (!isPendingStake && mixTxHash !== "NA") {
                         const userTotalStakes = await StakingModel.find({ userAddress: userAddress, mixTxHash: mixTxHash });
-                        const stakingAmountIn1e18 = userTotalStakes.find((item) =>{return item.currency === "USDT"}).totalAmountInUsd;
-                        const usdtStakedIn1e18 = userTotalStakes.find((item) =>{return item.currency === "USDT"}).amountUsdPaid;
+                        const stakingAmountIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
+                        const usdtStakedIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
                         const dscStakedInUsdtIn1e18 = userTotalStakes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
-                        
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(),"stake");
+
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "stake");
                         await StakingModel.updateMany(
                             { userAddress, mixTxHash },
                             { $set: { isPendingStake: false } }
                         );
-                    }else{
-                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd,"stake");
+                    } else if (mixTxHash === "NA") {
+                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "stake");
 
+                    } else {
+                        console.log("do nothing for incomeplete stakes");
                     }
 
 
@@ -292,7 +294,7 @@ async function processEvents(events) {
                         amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
                         const userUsdtStakePart = userPendingUpgradeNodes.find((item) => {
                             return item.currency === "USDT";
-                          });
+                        });
                         const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
 
                         isPaymentCompleted = remainingUsdToPay.isEqualTo(0) ? true : false;
@@ -330,7 +332,7 @@ async function processEvents(events) {
                         regDoc.nodePurchasingBalance = "0";
 
                     }
-                    
+
                     await regDoc.save();
 
                     let amountInUsdt = "0";
@@ -341,27 +343,29 @@ async function processEvents(events) {
                     }
                     else {
                         amountInDscInUsd = amount;
-                        amountDsc = new BigNumber(amount).dividedBy(rate).multipliedBy(1e18).toFixed(0);
+                        amountDsc = new BigNumber(amount).dividedBy(rate).multipliedBy(1e18).toFixed(0);s
                     }
 
                     if (isPaymentCompleted && mixTxHash !== "NA") {
-                         const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: userAddress, mixTxHash: mixTxHash });
-                        const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) =>{return item.currency === "USDT"}).totalAmountInUsd;
-                        const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) =>{return item.currency === "USDT"}).amountUsdPaid;
+                        const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: userAddress, mixTxHash: mixTxHash });
+                        const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
+                        const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
                         const dscStakedInUsdtIn1e18 = userTotalUpgradeDocs.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
-                        
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(),"node");
+
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node");
                         await UpgradedNodes.updateMany(
-                            { userAddress:user, mixTxHash },
+                            { userAddress: user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
-                    }else{
-                            await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd,"node");
-    
-                        }
-                    
+                    } else if (mixTxHash === "NA") {
+                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node");
+
+                    } else {
+                        console.log("do nothing for incomeplete node upgrades");
+                    }
+
 
                 } catch (error) {
                     console.log(error);
