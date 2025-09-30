@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -262,6 +262,8 @@ async function processEvents(events) {
                     regDoc.nodePurchasingBalance = updatedBalance;
                     regDoc.isNodeRegDone = true;
                     await regDoc.save();
+
+                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income);
 
                 } catch (error) {
                     console.log(error);
