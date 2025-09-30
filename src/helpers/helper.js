@@ -671,7 +671,9 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 senderAddress: senderAddress,
                 senderRank: rankDuringStaking,
                 totalGapIncomeInUsd: gapIncomeGenerated,
-                senderTotalStakedUsd: senderDoc.userTotalStakeInUsd || 0,
+                senderTotalStakedUsd: Number(
+                    new BigNumber(stakingAmountIn1e18).dividedBy(1e18).toFixed(4)
+                  ) || 0,
                 gapIncomeInUsd: usdt,
                 gapIncomeInDsc: tokenUnits,
                 gapIncomeInDscInUsd: tokenUsd,
