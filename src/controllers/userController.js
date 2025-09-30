@@ -1011,11 +1011,11 @@ const getUserPendingStake = async(req,res,next)=>{
         };
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
-        if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
+        // if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
         const ratio = ratioUsdDsc();
         const pendingStake = await StakingModel.find({userAddress, isPendingStake:true});
-        if(pendingStake.length===0) return res.status(200).json({success:true,remainingDscInUsd:0,message:"You have no pending stakes.",ratio,userStakeInfo});
+        if(pendingStake.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userStakeInfo});
 
         const usdtPartStakeDoc = pendingStake.find(item=>{ return item.currency==="USDT"});
         const targetStake = usdtPartStakeDoc.totalAmountInUsd;
@@ -1042,8 +1042,20 @@ const getUserPendingStake = async(req,res,next)=>{
     }
 }
 
+const getUsdDscRatio = async (req,res,next)=>{
+    try{
+
+        const ratio = ratioUsdDsc();
+        return res.status(200).json({success:true,ratio,message:"Ratio found!"});
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    getUsdDscRatio,
     deployNode,
     getRoiHistory,
     upgradeNode,
