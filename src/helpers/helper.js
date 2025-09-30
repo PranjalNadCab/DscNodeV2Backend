@@ -12,6 +12,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const NodeConverted = require("../models/NodeConvertedModel");
 const { default: mongoose } = require("mongoose");
 const RoiModel = require("../models/RoiModel");
+const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 
 
 const setLatestBlock = async () => {
@@ -1026,7 +1027,125 @@ const  getRemainingDscUsdToPayForStaking = ( totalAmountInUsd, userStakes ) =>{
     return remainingUsd.lte(0) ? new BigNumber(0) : remainingUsd;
 }
 
+const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income)=>{
+    try{
+        if(!senderAddress || (!majorIncome && !minor4Income)) return {status:false, message:"Invalid parameters"};
+        senderAddress = giveCheckSummedAddress(senderAddress);
+        const senderUpline = await RegistrationModel.aggregate([
+            { $match: { userAddress: senderAddress } },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "sponsorAddress",
+                    connectToField: "userAddress",
+                    as: "upline",
+                    maxDepth: 5,
+                    depthField: "level"
+                }
+            },
+            { $unwind: "$upline" },
+            { 
+                $match: { 
+                    "upline.level": { $gt: 0 },                // ✅ exclude root
+                    "upline.userAddress": { $ne: senderAddress } // ✅ double safety
+                } 
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userAddress: "$upline.userAddress",
+                    currentRank: "$upline.currentRank",
+                    level: "$upline.level"
+                }
+            },
+            { $sort: { level: 1 } }
+        ]);
+        console.log("senderUpline", senderUpline);
+
+        const major = new BigNumber(majorIncome || "0");
+        const minor = new BigNumber(minor4Income || "0");
+
+        // Split minor into 4 equal parts
+        const part = minor.dividedBy(4);
+
+        // Map slots → level
+        const slots = {
+            1: major, // level 1 → majorIncome
+            2: part,  // level 2 → 1st part
+            3: part,  // level 3 → 2nd part
+            4: part,  // level 4 → 3rd part
+            5: part   // level 5 → 4th part
+        };
+
+        // Prepare payouts (skip missing levels automatically)
+        const payouts = senderUpline
+            .map(u => {
+                const income = slots[u.level] || new BigNumber(0);
+                if (income.isZero()) return null;
+                return {
+                    userAddress: u.userAddress,
+                    level: u.level,
+                    income: income.toFixed(), // keep as 1e18 string
+                    currentRank: u.currentRank
+                };
+            })
+            .filter(Boolean);
+
+        console.log("Final payouts:", payouts);
+
+        // Update user wallets in bulk
+        const bulkOps = await Promise.all(
+            payouts.map(async p => {
+                // Get current values (as strings)
+                const user = await RegistrationModel.findOne(
+                    { userAddress: p.userAddress },
+                    { usdtIncomeWallet: 1, totalIncomeUsdtReceived: 1 }
+                ).lean();
+        
+                const currentWallet = new BigNumber(user?.usdtIncomeWallet || "0");
+                const currentTotal = new BigNumber(user?.totalIncomeUsdtReceived || "0");
+        
+                const income = new BigNumber(p.income);
+        
+                // Add income
+                const newWallet = currentWallet.plus(income).toFixed();
+                const newTotal = currentTotal.plus(income).toFixed();
+        
+                return {
+                    updateOne: {
+                        filter: { userAddress: p.userAddress },
+                        update: {
+                            $set: {
+                                usdtIncomeWallet: newWallet,
+                                totalIncomeUsdtReceived: newTotal
+                            }
+                        }
+                    }
+                };
+            })
+        );
+
+        const incomeDocs = payouts.map(p => ({
+            senderAddress: senderAddress,   // original node purchaser
+            receiverAddress: p.userAddress, // upline user
+            amount: p.income
+        }));
+        if (incomeDocs.length > 0) {
+            await NodeRegIncomeModel.insertMany(incomeDocs);
+        }
+        
+        // Execute bulkWrite
+        if (bulkOps.length > 0) {
+            await RegistrationModel.bulkWrite(bulkOps);
+        }
+
+
+    }catch(error){
+        console.log(error);
+    }
+}
 
 
 
-module.exports = {giveVrsForNodeUpgradation,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
+module.exports = {giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
