@@ -72,6 +72,11 @@ const gapIncomeSchema = new mongoose.Schema({
         type: Number,
         default: null
     },
+    incomeType:{
+        type: String,
+        enum: ["node", "stake"],
+        default:"stake"
+    }
 
 },
     { timestamps: true}

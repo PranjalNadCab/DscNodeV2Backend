@@ -565,7 +565,7 @@ const manageRank = async (userAddress) => {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18) => {
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18,incomeType) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -682,7 +682,8 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     .dividedBy(1e18)
                     .toFixed(),
                 transactionHash: null,
-                blockNumber: null
+                blockNumber: null,
+                incomeType: incomeType || "stake"
             });
 
             const regDoc = await RegistrationModel.findOne({ userAddress: user.userAddress });
