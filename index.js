@@ -31,29 +31,29 @@ app.use("/api", userRoutes);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "development") {
-    cron.schedule('1 0 * * *', async () => {
-        try {
-            console.log(`Cron job started at ${new Date().toLocaleString()}`);
-            await giveRoiToNodeHolders();
+    // cron.schedule('1 0 * * *', async () => {
+    //     try {
+    //         console.log(`Cron job started at ${new Date().toLocaleString()}`);
+    //         await giveRoiToNodeHolders();
 
-        } catch (err) {
-            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
-        }
+    //     } catch (err) {
+    //         console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+    //     }
 
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 
-    cron.schedule('1 0 1 * *', async () => {
-        try {
-            console.log(`Monthly Cron (12:01 AM 1st day) started at ${new Date().toLocaleString()}`);
-            await updateNodeValueAssurance();
-        } catch (err) {
-            console.error('Error in monthly cron job:', err);
-        }
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // cron.schedule('1 0 1 * *', async () => {
+    //     try {
+    //         console.log(`Monthly Cron (12:01 AM 1st day) started at ${new Date().toLocaleString()}`);
+    //         await updateNodeValueAssurance();
+    //     } catch (err) {
+    //         console.error('Error in monthly cron job:', err);
+    //     }
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 
 } else {
     // cron.schedule('*/2 * * * *', async () => {
@@ -88,16 +88,10 @@ const server = app.listen(PORT, async () => {
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
-        // await setLatestBlock();
         await generateDefaultAdminDoc();
         await createDefaultOwnerRegDoc();
-        // ratioUsdDsc();
         await dscNodeListEvents();
-        // await giveRoiToNodeHolders();
-        // await updateNodeValueAssurance();
-        // await manageRank("0x83a364Ac454f715B0F6292483F6D44aEfA1a049d");
-        // await giveGapIncome("0x70E5EEc9877387cf3Fe46ec6a5E8b72A3330D2dE","100000000000000000000","Beginner","100000000000000000000","0");
-        //    splitByRatio("500000000000000000000","6000000000000000000","19000000000000000000",50000)
+      
     } else {
 
 
