@@ -992,7 +992,7 @@ const deployNode = async (req, res, next) => {
 
 
         let prevNonce = 0;
-        if (!lastNode) {
+        if (!userLastNode) {
             prevNonce = -1;
         } else {
             prevNonce = Number(userLastNode.lastUsedNonce);
@@ -1007,7 +1007,7 @@ const deployNode = async (req, res, next) => {
 
 
 
-        return res.status(200).json({ success: true, message: "Congratulations! You have deployed your node.",vrs });
+        return res.status(200).json({ success: true, message: "Node deployment is in process!",vrs });
     } catch (error) {
         next(error);
     }
