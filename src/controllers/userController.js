@@ -941,13 +941,13 @@ const getRoiHistory = async (req, res, next) => {
 
 const deployNode = async (req, res, next) => {
     try {
-        let { userAddress,nodeNum } = req.body;
+        let { userAddress, nodeNum } = req.body;
         if (!userAddress) throw new Error("Please provide user address.");
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
         const isUserExist = await dscNodeContract.methods.isUserRegistered(userAddress).call();
-        if(!isUserExist) throw new Error("You have not registered yet! Please register first.");
+        if (!isUserExist) throw new Error("You have not registered yet! Please register first.");
         const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
         if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
         const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
@@ -958,7 +958,7 @@ const deployNode = async (req, res, next) => {
         if (!userLastNode || !userLastNode.isPaymentCompleted) throw new Error("You have not upgraded any node or your last upgraded node payment is not completed yet!");
         //all good
 
-        if(Number(nodeNum) !== userLastNode.nodeNum) throw new Error("You can only deploy your last upgraded node!");
+        if (Number(nodeNum) !== userLastNode.nodeNum) throw new Error("You can only deploy your last upgraded node!");
 
         const gasEstimate = await web3.eth.estimateGas({
             from: process.env.PRICE_OPERATOR_ADDRESS,
@@ -996,77 +996,77 @@ const deployNode = async (req, res, next) => {
     }
 }
 
-const getUserPendingStake = async(req,res,next)=>{
-    try{
-        let {userAddress} = req.body;
+const getUserPendingStake = async (req, res, next) => {
+    try {
+        let { userAddress } = req.body;
         if (!userAddress) throw new Error("Please provide user address.");
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
         let userStakeInfo = {
-            targetDscInUsd:0,
-            paidDscPartInUsd:0,
-            paidUsdtPart:0,
-            targetStake:0,
-            remainingDscInUsd:0
+            targetDscInUsd: 0,
+            paidDscPartInUsd: 0,
+            paidUsdtPart: 0,
+            targetStake: 0,
+            remainingDscInUsd: 0
         };
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
         // if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
         const ratio = ratioUsdDsc();
-        const pendingStake = await StakingModel.find({userAddress, isPendingStake:true});
-        if(pendingStake.length===0) return res.status(200).json({success:true,message:"You have no pending stakes.",ratio,userStakeInfo});
+        const pendingStake = await StakingModel.find({ userAddress, isPendingStake: true });
+        if (pendingStake.length === 0) return res.status(200).json({ success: true, message: "You have no pending stakes.", ratio, userStakeInfo });
 
-        const usdtPartStakeDoc = pendingStake.find(item=>{ return item.currency==="USDT"});
+        const usdtPartStakeDoc = pendingStake.find(item => { return item.currency === "USDT" });
         const targetStake = usdtPartStakeDoc.totalAmountInUsd;
         const paidUsdtPart = usdtPartStakeDoc.amountUsdPaid;
-        const paidDscPartInUsd = pendingStake.filter(item=>item.currency==="DSC").reduce((sum,item)=>{
+        const paidDscPartInUsd = pendingStake.filter(item => item.currency === "DSC").reduce((sum, item) => {
             return sum.plus(new BigNumber(item.amountUsdPaid));
-        },new BigNumber(0));
+        }, new BigNumber(0));
         const targetDscInUsd = new BigNumber(targetStake).minus(paidUsdtPart);
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
 
         userStakeInfo = {
-            targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
-            paidDscPartInUsd:paidDscPartInUsd.dividedBy(1e18).toNumber(),
-            paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
-            targetStake:new BigNumber(targetStake).dividedBy(1e18).toNumber(),
-            remainingDscInUsd:Number(remainingDscInUsd)
+            targetDscInUsd: targetDscInUsd.dividedBy(1e18).toNumber(),
+            paidDscPartInUsd: paidDscPartInUsd.dividedBy(1e18).toNumber(),
+            paidUsdtPart: new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
+            targetStake: new BigNumber(targetStake).dividedBy(1e18).toNumber(),
+            remainingDscInUsd: Number(remainingDscInUsd)
         }
 
 
-        return res.status(200).json({success:true,userStakeInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
+        return res.status(200).json({ success: true, userStakeInfo, message: `You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`, ratio });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
 
-const getUserPendingNodeUpgrades = async(req,res,next)=>{
-    try{
-        let {userAddress} = req.body;
+const getUserPendingNodeUpgrades = async (req, res, next) => {
+    try {
+        let { userAddress } = req.body;
         if (!userAddress) throw new Error("Please provide user address.");
         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
         userAddress = giveCheckSummedAddress(userAddress);
 
         let userCompletedNodes = [];
         let userDeployedNodes = [];
-        userDeployedNodes = await NodeDeployedModel.find({userAddress}).select("-_id nodeNum").sort({time:-1});
-        userCompletedNodes = await UpgradedNodes.find({userAddress, isPaymentCompleted:true}).select("-_id nodeNum").sort({time:-1});
-        const uniqueNodes = new Set(userCompletedNodes.map(item=>item.nodeNum));
+        userDeployedNodes = await NodeDeployedModel.find({ userAddress }).select("-_id nodeNum").sort({ time: -1 });
+        userCompletedNodes = await UpgradedNodes.find({ userAddress, isPaymentCompleted: true }).select("-_id nodeNum").sort({ time: -1 });
+        const uniqueNodes = new Set(userCompletedNodes.map(item => item.nodeNum));
         userCompletedNodes = Array.from(uniqueNodes);
 
 
         let userNodesInfo = {
-            targetDscInUsd:0,
-            paidDscPartInUsd:0,
-            paidUsdtPart:0,
-            targetNodeUpgrade:0,
-            remainingDscInUsd:0,
-            userCompletedNodes:userCompletedNodes,
-            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
+            targetDscInUsd: 0,
+            paidDscPartInUsd: 0,
+            paidUsdtPart: 0,
+            targetNodeUpgrade: 0,
+            remainingDscInUsd: 0,
+            userCompletedNodes: userCompletedNodes,
+            userDeployedNode: userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
             userPendingNode: null
         }
 
@@ -1074,53 +1074,91 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
         // if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
 
         const ratio = ratioUsdDsc();
-        const pendingSNodeUpgrade = await UpgradedNodes.find({userAddress, isPaymentCompleted:false});
-        if(pendingSNodeUpgrade.length===0) return res.status(200).json({success:true,message:"You have no pending upgrades.",ratio,userNodesInfo});
+        const pendingSNodeUpgrade = await UpgradedNodes.find({ userAddress, isPaymentCompleted: false });
+        if (pendingSNodeUpgrade.length === 0) return res.status(200).json({ success: true, message: "You have no pending upgrades.", ratio, userNodesInfo });
 
-        const usdtPartUpgradationDoc = pendingSNodeUpgrade.find(item=>{ return item.currency==="USDT"});
+        const usdtPartUpgradationDoc = pendingSNodeUpgrade.find(item => { return item.currency === "USDT" });
         const targetNodeUpgrade = usdtPartUpgradationDoc.totalAmountInUsd;
         const paidUsdtPart = usdtPartUpgradationDoc.amountUsdPaid;
-        const paidDscPartInUsd = pendingSNodeUpgrade.filter(item=>item.currency==="DSC").reduce((sum,item)=>{
+        const paidDscPartInUsd = pendingSNodeUpgrade.filter(item => item.currency === "DSC").reduce((sum, item) => {
             return sum.plus(new BigNumber(item.amountUsdPaid));
-        },new BigNumber(0));
+        }, new BigNumber(0));
         const targetDscInUsd = new BigNumber(targetNodeUpgrade).minus(paidUsdtPart);
         const remainingDscInUsd = targetDscInUsd.minus(paidDscPartInUsd).dividedBy(1e18).toFixed();
-        
+
 
         userNodesInfo = {
-            targetDscInUsd:targetDscInUsd.dividedBy(1e18).toNumber(),
-            paidDscPartInUsd:paidDscPartInUsd.dividedBy(1e18).toNumber(),
-            paidUsdtPart:new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
-            targetNodeUpgrade:new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
-            remainingDscInUsd:Number(remainingDscInUsd),
+            targetDscInUsd: targetDscInUsd.dividedBy(1e18).toNumber(),
+            paidDscPartInUsd: paidDscPartInUsd.dividedBy(1e18).toNumber(),
+            paidUsdtPart: new BigNumber(paidUsdtPart).dividedBy(1e18).toNumber(),
+            targetNodeUpgrade: new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
+            remainingDscInUsd: Number(remainingDscInUsd),
             userCompletedNodes,
-            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
+            userDeployedNode: userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
             userPendingNode: usdtPartUpgradationDoc ? usdtPartUpgradationDoc.nodeNum : null
         }
 
 
 
-        return res.status(200).json({success:true,userNodesInfo,message:`You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`,ratio});
+        return res.status(200).json({ success: true, userNodesInfo, message: `You have a pending stake of $${remainingDscInUsd} DSC. out of $${new BigNumber(targetDscInUsd).dividedBy(1e18).toFixed()} DSC.`, ratio });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
 
-const getUsdDscRatio = async (req,res,next)=>{
-    try{
+const getUsdDscRatio = async (req, res, next) => {
+    try {
 
         const ratio = ratioUsdDsc();
-        return res.status(200).json({success:true,ratio,message:"Ratio found!"});
+        return res.status(200).json({ success: true, ratio, message: "Ratio found!" });
 
-    }catch(error){
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getNodeUpgradeHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+        // Ensure numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+        if (isNaN(page) || page < 1) page = 1;
+        if (isNaN(limit) || limit < 1) limit = 10;
+        const skip = (page - 1) * limit;
+        // Fetch total count for pagination
+        const totalRecords = await UpgradedNodes.countDocuments({ userAddress });
+        // Fetch paginated data, sorted by most recent first
+        const upgradeHistory = await UpgradedNodes.find({ userAddress })
+            .sort({ time: -1 }) // most recent first
+            .skip(skip)
+            .limit(limit)
+            .lean(); // lean() gives plain JS objects
+        const totalPages = Math.ceil(totalRecords / limit);
+        res.json({
+            success: true,
+            upgradeHistory,
+            pagination: {
+                page,
+                limit,
+                totalRecords,
+                totalPages
+            }
+        });
+
+
+    } catch (error) {
         next(error);
     }
 }
 
 module.exports = {
     stakeVrs,
+    getNodeUpgradeHistory,
     getUsdDscRatio,
     deployNode,
     getRoiHistory,

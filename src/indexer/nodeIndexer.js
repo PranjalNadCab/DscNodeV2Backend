@@ -344,7 +344,7 @@ async function processEvents(events) {
                     }
                     else {
                         amountInDscInUsd = amount;
-                        amountDsc = new BigNumber(amount).dividedBy(rate).multipliedBy(1e18).toFixed(0);s
+                        amountDsc = new BigNumber(amount).dividedBy(rate).multipliedBy(1e18).toFixed(0);
                     }
                     let rateDollarPerDscInNum = Number(new BigNumber(rate).dividedBy(1e18).toFixed(2));
 
