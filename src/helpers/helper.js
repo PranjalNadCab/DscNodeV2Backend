@@ -323,6 +323,38 @@ function giveVrsForNodeUpgradation(userAddress, amountToDeduct, nodeNum, totalAm
     });
 }
 
+function giveVrsForNodeDeployment(userAddress,  nodeNum, currNonce, hash) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+
+            const data = {
+                hash: hash,
+                nonce: currNonce,
+                userAddress: userAddress,
+                nodeNum
+            };
+
+
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
 function giveVrsForNodeConversion(userAddress, nodeNum, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -1153,4 +1185,4 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
 
 
 
-module.exports = {giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
+module.exports = {giveVrsForNodeDeployment,giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }

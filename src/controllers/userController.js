@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -960,37 +960,54 @@ const deployNode = async (req, res, next) => {
 
         if (Number(nodeNum) !== userLastNode.nodeNum) throw new Error("You can only deploy your last upgraded node!");
 
-        const gasEstimate = await web3.eth.estimateGas({
-            from: process.env.PRICE_OPERATOR_ADDRESS,
-            to: process.env.DSCNODE_CONTRACT_ADDRESS,
-            data: dscNodeContract.methods
-                .deployNode(userAddress, userLastNode.nodeNum)
-                .encodeABI(),
-        });
+        // const gasEstimate = await web3.eth.estimateGas({
+        //     from: process.env.PRICE_OPERATOR_ADDRESS,
+        //     to: process.env.DSCNODE_CONTRACT_ADDRESS,
+        //     data: dscNodeContract.methods
+        //         .deployNode(userAddress, userLastNode.nodeNum)
+        //         .encodeABI(),
+        // });
 
-        const tx = {
-            from: process.env.PRICE_OPERATOR_ADDRESS,
-            to: process.env.DSCNODE_CONTRACT_ADDRESS,
-            gas: gasEstimate, // Use the estimated gas limit
-            data: dscNodeContract.methods
-                .deployNode(userAddress, userLastNode.nodeNum)
-                .encodeABI(),
-        };
-        const gasPrice = await web3.eth.getGasPrice();
-        tx.gasPrice = gasPrice; // Consider using the original gas price without multiplication
+        // const tx = {
+        //     from: process.env.PRICE_OPERATOR_ADDRESS,
+        //     to: process.env.DSCNODE_CONTRACT_ADDRESS,
+        //     gas: gasEstimate, // Use the estimated gas limit
+        //     data: dscNodeContract.methods
+        //         .deployNode(userAddress, userLastNode.nodeNum)
+        //         .encodeABI(),
+        // };
+        // const gasPrice = await web3.eth.getGasPrice();
+        // tx.gasPrice = gasPrice; // Consider using the original gas price without multiplication
 
-        // Sign and send the transaction
-        const signedTx = await web3.eth.accounts.signTransaction(
-            tx,
-            process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
-        );
-        const receipt = await web3.eth.sendSignedTransaction(
-            signedTx.rawTransaction
-        );
-        console.log("Transaction receipt:", receipt);
+        // // Sign and send the transaction
+        // const signedTx = await web3.eth.accounts.signTransaction(
+        //     tx,
+        //     process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+        // );
+        // const receipt = await web3.eth.sendSignedTransaction(
+        //     signedTx.rawTransaction
+        // );
+        // console.log("Transaction receipt:", receipt);
 
 
-        return res.status(200).json({ success: true, message: "Congratulations! You have deployed your node." });
+
+        let prevNonce = 0;
+        if (!lastNode) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(userLastNode.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForNodeUpgrade(userAddress).call();
+
+        if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
+
+        const hash = await dscNodeContract.methods.getHashForDeployment(userAddress,Number(nodeNum)).call();
+
+        const vrs = await giveVrsForNodeDeployment(userAddress, Number(nodeNum), Number(currNonce), hash);
+
+
+
+        return res.status(200).json({ success: true, message: "Congratulations! You have deployed your node.",vrs });
     } catch (error) {
         next(error);
     }
