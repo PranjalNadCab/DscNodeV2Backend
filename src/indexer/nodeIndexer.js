@@ -285,7 +285,7 @@ async function processEvents(events) {
 
                     let isPaymentCompleted = false;
                     if (mixTxHash == zeroAddressTxhash) {
-                        isPaymentCompleted = true;
+                        isPaymentCompleted = false;
                         mixTxHash = transactionHash
                     } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
                         const userPendingUpgradeNodes = await UpgradedNodes.find({ userAddress: user, isPaymentCompleted: false, mixTxHash: mixTxHash });

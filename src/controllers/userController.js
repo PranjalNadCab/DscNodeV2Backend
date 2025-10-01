@@ -1066,8 +1066,8 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
             targetNodeUpgrade:0,
             remainingDscInUsd:0,
             userCompletedNodes:userCompletedNodes,
-            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null
-
+            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
+            userPendingNode: null
         }
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
@@ -1094,7 +1094,8 @@ const getUserPendingNodeUpgrades = async(req,res,next)=>{
             targetNodeUpgrade:new BigNumber(targetNodeUpgrade).dividedBy(1e18).toNumber(),
             remainingDscInUsd:Number(remainingDscInUsd),
             userCompletedNodes,
-            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null
+            userDeployedNode:userDeployedNodes.length > 0 ? userDeployedNodes[0].nodeNum : null,
+            userPendingNode: usdtPartUpgradationDoc ? usdtPartUpgradationDoc.nodeNum : null
         }
 
 
