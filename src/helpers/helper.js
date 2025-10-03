@@ -577,7 +577,7 @@ const manageRank = async (userAddress) => {
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
         const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
         console.log("matchedRank", matchedRank);
-        ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
+        // ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
 
         const currTimeInUnix = moment().unix();
 
