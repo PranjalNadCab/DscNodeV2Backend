@@ -61,7 +61,9 @@ async function processEvents(events) {
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
             if (event == "RegisterUser") {
-                const { userAddress, sponsorAddress, stakeAmount } = returnValues;
+                try{
+
+                    const { userAddress, sponsorAddress, stakeAmount } = returnValues;
                 const stakeAmountInNum = new BigNumber(stakeAmount).dividedBy(1e18);
 
                 // find matching rank
@@ -69,7 +71,13 @@ async function processEvents(events) {
                     stakeAmountInNum.gte(r.lowerBound) && stakeAmountInNum.lte(r.upperBound)
                 ) || null;
 
-                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,matchedRank)
+                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,matchedRank.rank);
+
+                }catch(error){
+                    console.log("Error while registering user",error);
+                    continue;
+                }
+                
             }
             else if (event == "Staked") {
                 try {
