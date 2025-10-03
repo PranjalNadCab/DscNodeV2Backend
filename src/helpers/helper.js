@@ -656,7 +656,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
 
         let higherRankUsers = userUpline.filter(u => {
             const userGrade = ranks.find(r => r.rank === u.currentRank)?.grade;
-            return userGrade > senderGrade;
+            return userGrade >= senderGrade;
         });
 
 
@@ -717,7 +717,8 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     .toFixed(),
                 transactionHash: null,
                 blockNumber: null,
-                incomeType: incomeType || "stake"
+                incomeType: incomeType || "stake",
+                isLapsed:false
             });
 
             const regDoc = await RegistrationModel.findOne({ userAddress: user.userAddress });

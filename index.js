@@ -97,7 +97,6 @@ const server = app.listen(PORT, async () => {
         console.log("Live DSC Price fetched successfully:", res);
         await generateDefaultAdminDoc();
         await dscNodeListEvents();
-
     }
 });
 

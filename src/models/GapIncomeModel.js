@@ -76,6 +76,10 @@ const gapIncomeSchema = new mongoose.Schema({
         type: String,
         enum: ["node", "stake"],
         default:"stake"
+    },
+    isLapsed:{
+        type: Boolean,
+        default: false
     }
 
 },
