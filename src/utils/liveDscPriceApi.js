@@ -23,32 +23,40 @@ const routerAddress = process.env.PANCAKE_ROUTER; // Pancake V2 testnet router
 const router = new web3.eth.Contract(routerAbi, routerAddress);
 
 async function getBNBPrice() {
-    const WBNB = process.env.NATIVE_COIN_ADDRESS; // WBNB testnet
-    const BUSD = process.env.USDT_TOKEN_ADDRESS; // BUSD testnet
-
-    const amountIn = web3.utils.toWei("1", "ether"); // 1 BNB
-    const path = [WBNB, BUSD]; // Price of BNB in BUSD
-
-    const amountsOut = await router.methods.getAmountsOut(amountIn, path).call();
-    console.log(`1 DSC = ${web3.utils.fromWei(amountsOut[1], "ether")} BUSD`);
+    try{
+        const WBNB = process.env.NATIVE_COIN_ADDRESS; // WBNB testnet
+        const BUSD = process.env.USDT_TOKEN_ADDRESS; // BUSD testnet
+    
+        const amountIn = web3.utils.toWei("1", "ether"); // 1 BNB
+        const path = [WBNB, BUSD]; // Price of BNB in BUSD
+    
+        const amountsOut = await router.methods.getAmountsOut(amountIn, path).call();
+        // console.log(`1 DSC = ${web3.utils.fromWei(amountsOut[1], "ether")} BUSD`);
+        const price = web3.utils.fromWei(amountsOut[1], "ether");
+    
+        console.log(`1 DSC = ${price} USDT`);
+        return {status:true,price:price}; 
+    }catch(error){
+        return {status:false,price:0};
+    }
+    
 }
 
-getBNBPrice();
 
 
 
 const getLivePrice = async () => {
     try {
-        const res = await axios.get(url);
-        if (res.status === 200) {
-            let currentRate = res.data[0].token0Price;
+        const res = await getBNBPrice();
+        if (res.status == true) {
+            // let currentRate = res.data[0].token0Price;
 
-            currentRate = parseFloat(currentRate);
-            currentRate = 30 * (currentRate);
-            currentRate = currentRate.toFixed(8);
-            let currentRateInNumber = Number(currentRate);
+            // currentRate = parseFloat(currentRate);
+            // currentRate = 30 * (currentRate);
+            // currentRate = currentRate.toFixed(8);
+            let currentRateInNumber = Number(res.price);
 
-            currentRate = new BigNumber(currentRate).multipliedBy(1e18).toFixed(0);
+            // currentRate = new BigNumber(currentRate).multipliedBy(1e18).toFixed(0);
             if (process.env.NODE_ENV === "development") {
                 currentRateInNumber = 5000000
                 console.log("currentRateInNumber", currentRateInNumber);
@@ -56,7 +64,7 @@ const getLivePrice = async () => {
 
             const updateLiveDscPrice = await LivePriceDsc.findOneAndUpdate({}, { price: currentRateInNumber }, { new: true, upsert: true });
 
-            return currentRate;
+            return currentRateInNumber;
         }
 
     } catch (error) {
