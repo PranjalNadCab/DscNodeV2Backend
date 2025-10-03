@@ -30,7 +30,7 @@ async function getBNBPrice() {
     const path = [WBNB, BUSD]; // Price of BNB in BUSD
 
     const amountsOut = await router.methods.getAmountsOut(amountIn, path).call();
-    console.log(`1 BNB = ${web3.utils.fromWei(amountsOut[1], "ether")} BUSD`);
+    console.log(`1 DSC = ${web3.utils.fromWei(amountsOut[1], "ether")} BUSD`);
 }
 
 getBNBPrice();
