@@ -294,6 +294,32 @@
         "type": "fallback"
     },
     {
+        "inputs": [],
+        "name": "SWAP_CONTRACT",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "WDSC",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -540,6 +566,16 @@
                 "internalType": "address",
                 "name": "_router",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_WDSC",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_SWAP_CONTRACT",
+                "type": "address"
             }
         ],
         "name": "initialize",
@@ -641,6 +677,34 @@
             }
         ],
         "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "actionType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "address",
+                "name": "addr",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "flag",
+                "type": "bool"
+            },
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "manageContract",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
