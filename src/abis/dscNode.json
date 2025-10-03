@@ -94,6 +94,12 @@
                 "internalType": "address",
                 "name": "sponsorAddress",
                 "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "stakeAmount",
+                "type": "uint256"
             }
         ],
         "name": "RegisterUser",

@@ -8,7 +8,7 @@ const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
 const NodesRegistered = require("../models/NodeRegistrationModel.js");
 const UpgradedNodes = require("../models/UpgradeNodeModel.js");
 const moment = require("moment");
-const { zeroAddressTxhash } = require("../helpers/constant.js");
+const { zeroAddressTxhash, ranks } = require("../helpers/constant.js");
 const NodeDeployedModel = require("../models/NodeConvertedModel.js");
 
 
@@ -61,8 +61,15 @@ async function processEvents(events) {
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
             if (event == "RegisterUser") {
-                const { userAddress, sponsorAddress } = returnValues;
-                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress)
+                const { userAddress, sponsorAddress, stakeAmount } = returnValues;
+                const stakeAmountInNum = new BigNumber(stakeAmount).dividedBy(1e18);
+
+                // find matching rank
+                const matchedRank = ranks.find(r =>
+                    stakeAmountInNum.gte(r.lowerBound) && stakeAmountInNum.lte(r.upperBound)
+                ) || null;
+
+                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,matchedRank)
             }
             else if (event == "Staked") {
                 try {
@@ -142,13 +149,13 @@ async function processEvents(events) {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
 
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "stake",rateDollarPerDscInNum);
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "stake", rateDollarPerDscInNum);
                         await StakingModel.updateMany(
                             { userAddress, mixTxHash },
                             { $set: { isPendingStake: false } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "stake",rateDollarPerDscInNum);
+                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "stake", rateDollarPerDscInNum);
 
                     } else {
                         console.log("do nothing for incomeplete stakes");
@@ -266,7 +273,7 @@ async function processEvents(events) {
                     regDoc.isNodeRegDone = true;
                     await regDoc.save();
 
-                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income,Number(timestampNormal) );
+                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income, Number(timestampNormal));
 
                 } catch (error) {
                     console.log(error);
@@ -356,13 +363,13 @@ async function processEvents(events) {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
 
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node",rateDollarPerDscInNum);
+                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum);
                         await UpgradedNodes.updateMany(
                             { userAddress: user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node",rateDollarPerDscInNum);
+                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum);
 
                     } else {
                         console.log("do nothing for incomeplete node upgrades");
