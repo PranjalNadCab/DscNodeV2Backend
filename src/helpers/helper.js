@@ -486,7 +486,7 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
     }
 };
 
-const registerUser = async (userAddress, time, sponsorAddress,matchedRank=null) => {
+const registerUser = async (userAddress, time, sponsorAddress) => {
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
@@ -496,7 +496,7 @@ const registerUser = async (userAddress, time, sponsorAddress,matchedRank=null) 
                 userAddress,
                 sponsorAddress,
                 time: time || Math.floor(Date.now() / 1000),
-                currentRank:matchedRank
+                currentRank:null
             });
 
             await updateTeamCount(userAddress);
