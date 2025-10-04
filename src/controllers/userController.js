@@ -302,6 +302,9 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         // ✅ Checksum user address
         userAddress = giveCheckSummedAddress(userAddress);
 
+        const isUserRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();
+        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
+
         // ✅ Fetch user document
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
         if (!userRegDoc) throw new Error("User not found. Please register first.");
@@ -374,6 +377,9 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
         // ✅ Checksum user address
         userAddress = giveCheckSummedAddress(userAddress);
+
+        const isUserRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();
+        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
 
         // ✅ Fetch user document
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
