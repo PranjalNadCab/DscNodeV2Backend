@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/stake-vrs", stakeVrs);
 router.post("/get-id-to-address",getIdToAddress);
-router.post("/stake-mix",stakeMix);
+// router.post("/stake-mix",stakeMix);
 router.get("/get-usd-dsc-ratio",getUsdDscRatio);
 router.get("/get-dsc-price",getLiveDscPrice);
 router.post("/get-user-info",getUserInfo);
