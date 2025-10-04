@@ -618,6 +618,7 @@ const upgradeNode = async (req, res, next) => {
         const { nodeValidators } = await giveAdminSettings();
         let generatedDsc = "0";
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
+        if(!totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking)) throw new Error(`Total amount in usd must be $${new BigNumber(nodeToUpgrade.selfStaking).dividedBy(1e18).toFixed()}`);
         const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
         let lastNode = userNodes.length > 0 ? userNodes[0] : null;
 
@@ -714,8 +715,8 @@ const upgradeNode = async (req, res, next) => {
 
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
 
-
-        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, amountInUsdIn1e18.toFixed(), Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18.toFixed()).call();
+        ct({userAddress, amountInUsdIn1e18:amountInUsdIn1e18.toFixed(), nodeNum:Number(nodeNum), mixTxHash, rateDollarPerDsc,totalAmountInUsdIn1e18: totalAmountInUsdIn1e18.toFixed()})
+        const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18.toFixed()).call();
 
         const vrs = await giveVrsForNodeUpgradation(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
 

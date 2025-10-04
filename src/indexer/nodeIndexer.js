@@ -368,20 +368,20 @@ async function processEvents(events) {
                     let rateDollarPerDscInNum = Number(new BigNumber(rate).dividedBy(1e18).toFixed(2));
 
                     if (isPaymentCompleted && mixTxHash !== "NA") {
-                        const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: userAddress, nodeNum: Number(nodeNum) });
+                        const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: user, nodeNum: Number(nodeNum) });
                         const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
                         const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
                         const dscStakedInUsdtIn1e18 = userTotalUpgradeDocs.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
 
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum);
+                        await giveGapIncome(user, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum);
                         await UpgradedNodes.updateMany(
                             { userAddress: user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum);
+                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum);
 
                     } else {
                         console.log("do nothing for incomeplete node upgrades");
