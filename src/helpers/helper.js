@@ -956,17 +956,17 @@ const validateStake = (amountUsdt, amountDscInUsd, totalUsdStake, currRatio) => 
     return { status: true, message: "Valid stake amounts" };
 };
 
-const validateUpgradeNodeConditions =  (totalAmountInUsd, amountInUsd, currency,amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators) => {
+const validateUpgradeNodeConditions =  (totalAmountInUsd, amountInUsd, currency,amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators,nodeNum) => {
     if(!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct){
         return {status:false,message:"Invalid parameters"}
     }
-
+    console.log("sdjkl;gl;sdhnrrtgsdry",nodeValidators)
     const selectedNode= nodeValidators.find((item)=>item.nodeNum === Number(nodeNum));
     const nodePriceInBn = new BigNumber(selectedNode);
 
     if(!lastNode) {
         
-        if(currency === "USDT" && (totalAmountInUsd !== amountInUsd || amo)) return {status:false, message:`You are `}
+        if(currency === "USDT" && (totalAmountInUsd !== amountInUsd )) return {status:false, message:`Please send $${new BigNumber(selectedNode.selfStaking).dividedBy(1e18)} for upgrading this node!`}
     }
 
 
@@ -975,7 +975,7 @@ const validateUpgradeNodeConditions =  (totalAmountInUsd, amountInUsd, currency,
     } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
         return {status:false, message:"For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT."}
     } else {
-        return {staus:false, message:"Invalid currency or amount"}
+        return {staus:true, message:"Proceed"}
     }
 }
 

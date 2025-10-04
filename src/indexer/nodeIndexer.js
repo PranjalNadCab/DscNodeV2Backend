@@ -298,7 +298,7 @@ async function processEvents(events) {
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
-                    let isPaymentCompleted = false;
+                    let isPaymentCompleted = true;
                     if (mixTxHash == zeroAddressTxhash) {
                         isPaymentCompleted = false;
                         mixTxHash = transactionHash
