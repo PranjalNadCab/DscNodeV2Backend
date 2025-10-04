@@ -38,7 +38,7 @@ const RegistrationSchema = new mongoose.Schema({
     },
     currentRank: {
         type: String,
-        default: null
+        default: "Beginnner"
     },
     rankAchievedAt: {
         type: Number,

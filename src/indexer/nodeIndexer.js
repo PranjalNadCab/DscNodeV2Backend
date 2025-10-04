@@ -351,6 +351,10 @@ async function processEvents(events) {
 
                     await regDoc.save();
 
+                    await updateUserTotalSelfStakeUsdt(user, amountUsdtPaid);
+                    await updateDirectBusiness(amountUsdtPaid, user);
+                    await manageRank(user);
+
                     let amountInUsdt = "0";
                     let amountInDscInUsd = "0";
                     let amountDsc = "0"
@@ -382,6 +386,8 @@ async function processEvents(events) {
                     } else {
                         console.log("do nothing for incomeplete node upgrades");
                     }
+
+                   
 
 
                 } catch (error) {
