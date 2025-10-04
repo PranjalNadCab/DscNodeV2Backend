@@ -21,7 +21,7 @@ const stakeVrs = async (req, res, next) => {
         // Extract user data from request body
 
         const { amountInUsd, currency, totalAmountInUsd } = req.body;
-        let { user, sponsorAddress } = req.body;
+        let { user } = req.body;
         if (!["USDT", "DSC"].includes(currency)) throw new Error("Invalid currency");
 
         const missingFields = Object.keys(req.body).filter(key => (key === undefined || key === null || key === "" || (typeof req.body[key] === "string" && req.body[key].trim() === "")));
@@ -32,12 +32,14 @@ const stakeVrs = async (req, res, next) => {
         // if (!user || !amountDsc || !amountDscInUsd || !amountUsdt || !priceDscInUsd || !sponsorAddress) throw new Error("Please send all the required fields.");
 
         user = giveCheckSummedAddress(user);
-        sponsorAddress = giveCheckSummedAddress(sponsorAddress);
+        // sponsorAddress = giveCheckSummedAddress(sponsorAddress);
 
-        const isUserExist = await RegistrationModel.findOne({ userAddress: user });
+        // const isUserExist = await RegistrationModel.findOne({ userAddress: user });
+        const isUserRegistered = await dscNodeContract.methods.isUserRegistered(user).call();
+        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
 
-        let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsorAddress });
-        if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
+        // let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsorAddress });
+        // if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
 
 
 
@@ -124,9 +126,7 @@ const stakeVrs = async (req, res, next) => {
 
 
 
-
-
-        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, sponsorAddress, generatedDsc: generatedDsc.toFixed() });
+        return res.status(200).json({ success: true, message: "Vrs generated successfully", price: price, vrsSign, generatedDsc: generatedDsc.toFixed() });
     } catch (error) {
         console.error("Error in stakeVrs:", error);
         next(error);
@@ -765,9 +765,9 @@ const upgradeNode = async (req, res, next) => {
         if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
         const { nodePurchasingBalance = "0" } = regDoc;
 
-        const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+        const isRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();
 
-        if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
+        if (!isRegistered) throw new Error("You have not registered for node upgradation!");
 
         const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
         if (isUserNodeDeployed) throw new Error("You have already deployed your node.");
@@ -948,8 +948,8 @@ const deployNode = async (req, res, next) => {
 
         const isUserExist = await dscNodeContract.methods.isUserRegistered(userAddress).call();
         if (!isUserExist) throw new Error("You have not registered yet! Please register first.");
-        const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
-        if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
+        // const isRegisteredForNode = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+        // if (!isRegisteredForNode) throw new Error("You have not registered for node upgradation!");
         const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
         if (isUserNodeDeployed) throw new Error("You have already deployed your node.");
 
