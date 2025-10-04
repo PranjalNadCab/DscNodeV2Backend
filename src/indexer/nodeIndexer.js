@@ -63,12 +63,12 @@ async function processEvents(events) {
             if (event == "RegisterUser") {
                 try{
 
-                    const { userAddress, sponsorAddress, stakeAmount } = returnValues;
-                const stakeAmountInNum = new BigNumber(stakeAmount).dividedBy(1e18);
+                    const { userAddress, sponsorAddress, amount } = returnValues;
+                const regAmount = new BigNumber(amount).dividedBy(1e18);
 
                 // find matching rank
                 const matchedRank = ranks.find(r =>
-                    stakeAmountInNum.gte(r.lowerBound) && stakeAmountInNum.lte(r.upperBound)
+                    regAmount.gte(r.lowerBound) && regAmount.lte(r.upperBound)
                 ) || null;
 
                 const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,matchedRank.rank);
