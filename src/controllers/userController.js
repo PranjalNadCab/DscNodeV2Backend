@@ -1173,8 +1173,27 @@ const getNodeUpgradeHistory = async (req, res, next) => {
     }
 }
 
+const getIdToAddress = async(req,res,next)=>{
+    try{
+    
+        const {userId} = req.body;
+
+        if(!userId) throw new Error("Please provide user id");
+
+        const userRegDoc = await RegistrationModel.findOne({uniqueRandomId:userId}).select("userAddress -_id uniqueRandomId");
+
+        if(!userRegDoc) throw new Error("User not found");
+
+        return res.status(200).json({success:true,userAddress:userRegDoc.userAddress});
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    getIdToAddress,
     getNodeUpgradeHistory,
     getUsdDscRatio,
     deployNode,
