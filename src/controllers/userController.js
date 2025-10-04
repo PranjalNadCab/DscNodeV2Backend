@@ -1186,7 +1186,7 @@ const getIdToAddress = async(req,res,next)=>{
 
         if(!userId) throw new Error("Please provide user id");
 
-        const userRegDoc = await RegistrationModel.findOne({uniqueRandomId:userId}).select("userAddress -_id uniqueRandomId");
+        const userRegDoc = await RegistrationModel.findOne({uniqueRandomId:userId.toString()}).select("userAddress -_id uniqueRandomId");
 
         if(!userRegDoc) throw new Error("User not found");
 
