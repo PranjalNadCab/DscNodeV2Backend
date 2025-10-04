@@ -64,8 +64,8 @@ const RegistrationSchema = new mongoose.Schema({
         type: Number,
         default: () => Math.floor(Date.now() / 1000)
     },
-    nodePurchasingBalance:{
-        type:String,
+    nodePurchasingBalance:{   //this is registration balance
+        type:String, 
         default:"0"
     },
     isNodeRegDone:{
@@ -88,6 +88,14 @@ const RegistrationSchema = new mongoose.Schema({
         type:String,
         default:"0"
     },
+    block:{
+        type:Number,
+        default:null
+    },
+    transactionHash:{
+        type:String,
+        default:null
+    }
    
 }, { timestamps: true, collection: 'registration' });
 

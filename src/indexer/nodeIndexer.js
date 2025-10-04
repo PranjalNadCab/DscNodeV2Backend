@@ -64,14 +64,14 @@ async function processEvents(events) {
                 try{
 
                     const { userAddress, sponsorAddress, amount } = returnValues;
-                const regAmount = new BigNumber(amount).dividedBy(1e18);
+                const regAmount = new BigNumber(amount).toFixed();
 
                 // find matching rank
                 // const matchedRank = ranks.find(r =>
                 //     regAmount.gte(r.lowerBound) && regAmount.lte(r.upperBound)
                 // ) || null;
 
-                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress);
+                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,regAmount,Number(block),transactionHash);
 
                 }catch(error){
                     console.log("Error while registering user",error);
