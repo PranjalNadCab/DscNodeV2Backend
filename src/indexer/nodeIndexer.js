@@ -329,11 +329,15 @@ async function processEvents(events) {
                         isPaymentCompleted: isPaymentCompleted
                     });
 
-                    console.log("Node upgraded doc created:", upgradeNode);
-                    const regDoc = await RegistrationModel.findOne({ userAddress: user });
-                    if (!regDoc) {
-                        console.log("No registration doc found for user while upgrading node:", user);
+                     let rankDuringStaking = null;
+
+                     
+                     console.log("Node upgraded doc created:", upgradeNode);
+                     const regDoc = await RegistrationModel.findOne({ userAddress: user });
+                     if (!regDoc) {
+                         console.log("No registration doc found for user while upgrading node:", user);
                     }
+                         rankDuringStaking = regDoc.currentRank;
                     const { nodePurchasingBalance } = regDoc;
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
