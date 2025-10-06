@@ -69,6 +69,18 @@
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "majorIncome",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minor4Income",
+                "type": "uint256"
             }
         ],
         "name": "RegisterUser",

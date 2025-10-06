@@ -63,16 +63,12 @@ async function processEvents(events) {
             if (event == "RegisterUser") {
                 try{
 
-                    const { userAddress, sponsorAddress, amount } = returnValues;
+                    const { userAddress, sponsorAddress, amount, majorIncome, minor4Income } = returnValues;
                 const regAmount = new BigNumber(amount).toFixed();
 
-                // find matching rank
-                // const matchedRank = ranks.find(r =>
-                //     regAmount.gte(r.lowerBound) && regAmount.lte(r.upperBound)
-                // ) || null;
 
                 const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,regAmount,Number(block),transactionHash);
-                
+                await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal));
 
                 }catch(error){
                     console.log("Error while registering user",error);
