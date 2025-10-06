@@ -250,44 +250,44 @@ async function processEvents(events) {
                     continue;
                 }
             }
-            else if (event == "NodeRegistered") {
-                try {
-                    let { user, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
-                    amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
-                    majorIncome = new BigNumber(majorIncome).toFixed(0);
-                    minor4Income = new BigNumber(minor4Income).toFixed(0);
+            // else if (event == "NodeRegistered") {
+            //     try {
+            //         let { user, amountUsdtPaid, majorIncome, minor4Income } = returnValues;
+            //         amountUsdtPaid = new BigNumber(amountUsdtPaid).toFixed(0);
+            //         majorIncome = new BigNumber(majorIncome).toFixed(0);
+            //         minor4Income = new BigNumber(minor4Income).toFixed(0);
 
-                    const newReg = await NodesRegistered.create({
-                        userAddress: user,
-                        amountUsdtPaid,
-                        majorIncome,
-                        minor4Income,
-                        time: Number(timestampNormal),
-                        block: Number(block),
-                        transactionHash: transactionHash
-                    });
-                    console.log("New node registered", newReg)
+            //         const newReg = await NodesRegistered.create({
+            //             userAddress: user,
+            //             amountUsdtPaid,
+            //             majorIncome,
+            //             minor4Income,
+            //             time: Number(timestampNormal),
+            //             block: Number(block),
+            //             transactionHash: transactionHash
+            //         });
+            //         console.log("New node registered", newReg)
 
-                    const regDoc = await RegistrationModel.findOne({ userAddress: user });
-                    if (!regDoc) {
-                        console.log("No registration doc found for user while registering node:", user);
-                    }
-                    const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
+            //         const regDoc = await RegistrationModel.findOne({ userAddress: user });
+            //         if (!regDoc) {
+            //             console.log("No registration doc found for user while registering node:", user);
+            //         }
+            //         const updatedBalance = new BigNumber(regDoc.nodePurchasingBalance).plus(amountUsdtPaid).toFixed(0);
 
-                    regDoc.nodePurchasingBalance = updatedBalance;
-                    regDoc.isNodeRegDone = true;
-                    await regDoc.save();
+            //         regDoc.nodePurchasingBalance = updatedBalance;
+            //         regDoc.isNodeRegDone = true;
+            //         await regDoc.save();
 
-                    await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income, Number(timestampNormal));
+            //         await sendNodeRegIncomeToUpline(user, majorIncome, minor4Income, Number(timestampNormal));
 
-                } catch (error) {
-                    console.log(error);
-                    continue;
-                }
+            //     } catch (error) {
+            //         console.log(error);
+            //         continue;
+            //     }
 
 
 
-            }
+            // }
             else if (event == "UpgradeNode") {
                 try {
                     let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd, mixTxHash, currency, rate } = returnValues;
