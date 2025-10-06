@@ -88,7 +88,7 @@ const server = app.listen(PORT, async () => {
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
-        // await setLatestBlock();
+        await setLatestBlock();
         await generateDefaultAdminDoc();
         await dscNodeListEvents();
       

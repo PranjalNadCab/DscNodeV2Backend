@@ -72,6 +72,7 @@ async function processEvents(events) {
                 // ) || null;
 
                 const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,regAmount,Number(block),transactionHash);
+                
 
                 }catch(error){
                     console.log("Error while registering user",error);
