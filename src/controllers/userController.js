@@ -645,13 +645,15 @@ const upgradeNode = async (req, res, next) => {
                 mixTxHash = "NA";
 
 
-                console.log("------------------->",amountToDeduct.toFixed());
+                // console.log("------------------->",amountToDeduct.toFixed());
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
 
             } else if ((currency === "USDT") && (amountInUsdIn1e18.isEqualTo(usdtPartIfMixedTx))) {
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
 
                 mixTxHash = zeroAddressTxhash;
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
             }else{
                 throw new Error("Please send usdt in proper ratio!")
             }
