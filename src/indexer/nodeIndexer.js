@@ -68,7 +68,7 @@ async function processEvents(events) {
 
 
                     const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress, regAmount, Number(block), transactionHash);
-                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal));
+                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal),regAmount);
 
                 } catch (error) {
                     console.log("Error while registering user", error);
@@ -76,102 +76,102 @@ async function processEvents(events) {
                 }
 
             }
-            else if (event == "Staked") {
-                try {
+            // else if (event == "Staked") {
+            //     try {
 
-                    let { userAddress, amount, totalAmountInUsd, currency, rateDollarPerDsc, lastUsedNonce, mixTxHash } = returnValues;
+            //         let { userAddress, amount, totalAmountInUsd, currency, rateDollarPerDsc, lastUsedNonce, mixTxHash } = returnValues;
 
-                    amount = new BigNumber(amount).toFixed();
-                    totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed();
-                    lastUsedNonce = Number(lastUsedNonce);
-                    rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
+            //         amount = new BigNumber(amount).toFixed();
+            //         totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed();
+            //         lastUsedNonce = Number(lastUsedNonce);
+            //         rateDollarPerDsc = new BigNumber(rateDollarPerDsc).toFixed();
 
-                    // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
-                    let isPendingStake = false;
-                    if (mixTxHash == zeroAddressTxhash) {
-                        isPendingStake = true;
-                        mixTxHash = transactionHash
-                    } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
-                        const userPendingStakes = await StakingModel.find({ userAddress: userAddress, isPendingStake: true, mixTxHash: mixTxHash });
-                        let amountUsdPaidForDsc = userPendingStakes.filter((stake) => stake.currency === "DSC").reduce((sum, item) => {
-                            return sum.plus(item.amountUsdPaid)
-                        }, new BigNumber(0));
-                        amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
-                        const userUsdtStakePart = userPendingStakes.find((item) => item.currency === "USDT");
-                        const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
-                        isPendingStake = remainingUsdToPay.isEqualTo(0) ? false : true;
+            //         // const totalUsd = new BigNumber(amountDscInUsd).plus(amountUsdt).toFixed();
+            //         let isPendingStake = false;
+            //         if (mixTxHash == zeroAddressTxhash) {
+            //             isPendingStake = true;
+            //             mixTxHash = transactionHash
+            //         } else if ((mixTxHash !== "NA") && (mixTxHash !== zeroAddressTxhash)) {
+            //             const userPendingStakes = await StakingModel.find({ userAddress: userAddress, isPendingStake: true, mixTxHash: mixTxHash });
+            //             let amountUsdPaidForDsc = userPendingStakes.filter((stake) => stake.currency === "DSC").reduce((sum, item) => {
+            //                 return sum.plus(item.amountUsdPaid)
+            //             }, new BigNumber(0));
+            //             amountUsdPaidForDsc = amountUsdPaidForDsc.plus(amount);
+            //             const userUsdtStakePart = userPendingStakes.find((item) => item.currency === "USDT");
+            //             const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
+            //             isPendingStake = remainingUsdToPay.isEqualTo(0) ? false : true;
 
-                    }
+            //         }
 
-                    let amountInUsdt = "0";
-                    let amountInDscInUsd = "0";
-                    let amountDsc = "0"
-                    if (currency === "USDT") {
-                        amountInUsdt = amount;
-                    }
-                    else {
-                        amountInDscInUsd = amount;
-                        amountDsc = new BigNumber(amount).dividedBy(rateDollarPerDsc).multipliedBy(1e18).toFixed(0);
-                    }
-
-
-
-                    const newStake = await StakingModel.create({
-                        userAddress,
-                        currency,
-                        totalAmountInUsd: totalAmountInUsd,
-                        amountInDscInUsd: amountInDscInUsd,
-                        amountUsdPaid: amount,
-                        amountInDsc: amountDsc,
-                        amountInUsdt: amountInUsdt,
-                        rateDollarPerDsc: rateDollarPerDsc,
-                        time: Number(timestampNormal),
-                        lastUsedNonce,
-                        block: Number(block),
-                        transactionHash: transactionHash,
-                        mixTxHash: mixTxHash,
-                        isPendingStake,
-                    });
-
-                    console.log("New stake created:", newStake);
+            //         let amountInUsdt = "0";
+            //         let amountInDscInUsd = "0";
+            //         let amountDsc = "0"
+            //         if (currency === "USDT") {
+            //             amountInUsdt = amount;
+            //         }
+            //         else {
+            //             amountInDscInUsd = amount;
+            //             amountDsc = new BigNumber(amount).dividedBy(rateDollarPerDsc).multipliedBy(1e18).toFixed(0);
+            //         }
 
 
 
-                    let rankDuringStaking = null;
-                    const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
+            //         const newStake = await StakingModel.create({
+            //             userAddress,
+            //             currency,
+            //             totalAmountInUsd: totalAmountInUsd,
+            //             amountInDscInUsd: amountInDscInUsd,
+            //             amountUsdPaid: amount,
+            //             amountInDsc: amountDsc,
+            //             amountInUsdt: amountInUsdt,
+            //             rateDollarPerDsc: rateDollarPerDsc,
+            //             time: Number(timestampNormal),
+            //             lastUsedNonce,
+            //             block: Number(block),
+            //             transactionHash: transactionHash,
+            //             mixTxHash: mixTxHash,
+            //             isPendingStake,
+            //         });
 
-                    rankDuringStaking = userDoc.currentRank;
-
-                    await updateUserTotalSelfStakeUsdt(userAddress, amount);
-                    await updateDirectBusiness(amount, userAddress);
-                    await manageRank(userAddress);
-                    let rateDollarPerDscInNum = Number(new BigNumber(rateDollarPerDsc).dividedBy(1e18).toFixed(2));
-                    if (!isPendingStake && mixTxHash !== "NA") {
-                        const userTotalStakes = await StakingModel.find({ userAddress: userAddress, mixTxHash: mixTxHash });
-                        const stakingAmountIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
-                        const usdtStakedIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
-                        const dscStakedInUsdtIn1e18 = userTotalStakes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
-                            return sum.plus(item.amountUsdPaid)
-                        }, new BigNumber(0));
-
-                        await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "stake", rateDollarPerDscInNum);
-                        await StakingModel.updateMany(
-                            { userAddress, mixTxHash },
-                            { $set: { isPendingStake: false } }
-                        );
-                    } else if (mixTxHash === "NA") {
-                        await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "stake", rateDollarPerDscInNum);
-
-                    } else {
-                        console.log("do nothing for incomeplete stakes");
-                    }
+            //         console.log("New stake created:", newStake);
 
 
-                } catch (error) {
-                    console.log(error);
-                    continue;
-                }
-            }
+
+            //         let rankDuringStaking = null;
+            //         const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
+
+            //         rankDuringStaking = userDoc.currentRank;
+
+            //         await updateUserTotalSelfStakeUsdt(userAddress, amount);
+            //         await updateDirectBusiness(amount, userAddress);
+            //         await manageRank(userAddress);
+            //         let rateDollarPerDscInNum = Number(new BigNumber(rateDollarPerDsc).dividedBy(1e18).toFixed(2));
+            //         if (!isPendingStake && mixTxHash !== "NA") {
+            //             const userTotalStakes = await StakingModel.find({ userAddress: userAddress, mixTxHash: mixTxHash });
+            //             const stakingAmountIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
+            //             const usdtStakedIn1e18 = userTotalStakes.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
+            //             const dscStakedInUsdtIn1e18 = userTotalStakes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
+            //                 return sum.plus(item.amountUsdPaid)
+            //             }, new BigNumber(0));
+
+            //             await giveGapIncome(userAddress, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "stake", rateDollarPerDscInNum);
+            //             await StakingModel.updateMany(
+            //                 { userAddress, mixTxHash },
+            //                 { $set: { isPendingStake: false } }
+            //             );
+            //         } else if (mixTxHash === "NA") {
+            //             await giveGapIncome(userAddress, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "stake", rateDollarPerDscInNum);
+
+            //         } else {
+            //             console.log("do nothing for incomeplete stakes");
+            //         }
+
+
+            //     } catch (error) {
+            //         console.log(error);
+            //         continue;
+            //     }
+            // }
             else if (event == "WithdrawIncomeUsdt") {
                 try {
                     const { userAddress, amountUsdt, amountUsdtAfterDeduction, lastUsedNonce } = returnValues;
@@ -396,6 +396,20 @@ async function processEvents(events) {
                     continue;
                 }
 
+            }
+            else if(event == "NbdPaid"){
+                try{
+                    let {userAddress,majorIncome,minor4Income,amountNbdPaid} = returnValues;
+
+                    amountNbdPaid = new BigNumber(amountNbdPaid).toFixed();
+
+                    await sendNodeRegIncomeToUpline(userAddress,majorIncome,minor4Income,Number(timestampNormal),amountNbdPaid);
+
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
             }
             else {
                 console.log("Got no events!");
