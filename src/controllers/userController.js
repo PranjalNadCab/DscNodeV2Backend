@@ -735,6 +735,8 @@ const upgradeNode = async (req, res, next) => {
         if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash){
             if(Number(currNonce)===0){
                 nbdToApprove = nbdAmounts[nodeNum - 1] - nbdAmounts[0];
+            }else{
+                nbdToApprove = nbdAmounts[nodeNum - 1] ;
             }
         }else{
             nbdToApprove = 0;
