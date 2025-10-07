@@ -612,7 +612,9 @@ const upgradeNode = async (req, res, next) => {
         let mixTxHash = "NA"
         const nbdAmount = nbdAmounts[nodeNum - 1];
         const nbdAmountIn1e18 = new BigNumber(nbdAmount).multipliedBy(1e18);
-        let amountToDeduct = new BigNumber(0).plus(nbdAmountIn1e18);
+        // let amountToDeduct = new BigNumber(0).plus(nbdAmountIn1e18);
+        let amountToDeduct = new BigNumber(0);
+
 
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
@@ -636,13 +638,17 @@ const upgradeNode = async (req, res, next) => {
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
                 //all good initiate 100% usdt or dsc tx
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
+
                 mixTxHash = "NA";
 
 
 
             } else if (currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
+
                 mixTxHash = zeroAddressTxhash;
             }
 
@@ -680,7 +686,9 @@ const upgradeNode = async (req, res, next) => {
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
+
                 mixTxHash = "NA";
                 generatedDsc = amountToDeduct.dividedBy(price).toFixed();
 
@@ -690,7 +698,9 @@ const upgradeNode = async (req, res, next) => {
                 //for doing x% usdt and later dsc will be paid
                 const { usd, dsc } = giveUsdDscRatioParts(totalAmountInUsdIn1e18.toFixed());
                 if (!amountInUsdIn1e18.isEqualTo(usd)) throw new Error(`For upgrading node by mix ratio, you need to send $${new BigNumber(usd).dividedBy(1e18).toFixed()}`);
-                amountToDeduct = amountToDeduct.plus(usd).minus(nodePurchasingBalance);
+                // amountToDeduct = amountToDeduct.plus(usd).minus(nodePurchasingBalance);
+                amountToDeduct = amountToDeduct.plus(usd);
+
                 mixTxHash = zeroAddressTxhash;
             }
             else if ((totalAmountInUsd !== amountInUsd) && (currency === "DSC") && (totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
