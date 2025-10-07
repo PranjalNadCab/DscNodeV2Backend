@@ -68,7 +68,7 @@ async function processEvents(events) {
 
 
                     const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress, regAmount, Number(block), transactionHash);
-                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal),regAmount);
+                    // await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal),regAmount);
 
                 } catch (error) {
                     console.log("Error while registering user", error);
