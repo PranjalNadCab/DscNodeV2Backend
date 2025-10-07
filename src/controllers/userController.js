@@ -635,8 +635,9 @@ const upgradeNode = async (req, res, next) => {
 
             // const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct,"0",lastNode,nodeValidators,nodeNum)
             // if (!status) throw new Error(message);
-
-            if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC")) {
+            const ratioUsdtDsc = ratioUsdDsc();
+            const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
+            if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
@@ -644,12 +645,15 @@ const upgradeNode = async (req, res, next) => {
                 mixTxHash = "NA";
 
 
+                console.log("------------------->",amountToDeduct.toFixed());
 
-            } else if (currency === "USDT" && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
+            } else if ((currency === "USDT") && (amountInUsdIn1e18.isEqualTo(usdtPartIfMixedTx))) {
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
 
                 mixTxHash = zeroAddressTxhash;
+            }else{
+                throw new Error("Please send usdt in proper ratio!")
             }
 
         } else if (lastNode && !lastNode.isPaymentCompleted) {
