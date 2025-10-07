@@ -740,6 +740,9 @@ const upgradeNode = async (req, res, next) => {
             nbdToApprove = 0;
         }
 
+        nbdToApprove= new BigNumber(nbdToApprove).multipliedBy(1e18).toFixed();
+
+
         return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc,nbdToApprove });
 
     } catch (error) {
