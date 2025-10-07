@@ -27,7 +27,7 @@ const NodeRegIncomeSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-NodeRegIncomeSchema.index({ senderAddress: 1, receiverAddress: 1,fromLevel:1,time:1,amount:1 }, { unique: true });
+NodeRegIncomeSchema.index({ senderAddress: 1, receiverAddress: 1,fromLevel:1,time:1,amount:1,amountNbdPaid:1 }, { unique: true });
 
 const NodeRegIncomeModel = mongoose.model('NodeRegistrationIncome', NodeRegIncomeSchema);
 
