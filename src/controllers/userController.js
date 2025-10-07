@@ -14,6 +14,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
 const NodeDeployedModel = require("../models/NodeConvertedModel");
+const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 
 
 const stakeVrs = async (req, res, next) => {
@@ -36,7 +37,7 @@ const stakeVrs = async (req, res, next) => {
 
         // const isUserExist = await RegistrationModel.findOne({ userAddress: user });
         const isUserRegistered = await dscNodeContract.methods.isUserRegistered(user).call();
-        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
+        if (!isUserRegistered) throw new Error("You are not registered! Please register first.");
 
         // let sponsorDoc = await RegistrationModel.findOne({ userAddress: sponsorAddress });
         // if (!sponsorDoc) throw new Error("Sponsor not found. Please register your sponsor first.");
@@ -303,7 +304,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         userAddress = giveCheckSummedAddress(userAddress);
 
         const isUserRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();
-        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
+        if (!isUserRegistered) throw new Error("You are not registered! Please register first.");
 
         // ✅ Fetch user document
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
@@ -379,7 +380,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
         userAddress = giveCheckSummedAddress(userAddress);
 
         const isUserRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();
-        if(!isUserRegistered) throw new Error("You are not registered! Please register first.");
+        if (!isUserRegistered) throw new Error("You are not registered! Please register first.");
 
         // ✅ Fetch user document
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
@@ -618,7 +619,7 @@ const upgradeNode = async (req, res, next) => {
         const { nodeValidators } = await giveAdminSettings();
         let generatedDsc = "0";
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
-        if(!totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking)) throw new Error(`Total amount in usd must be $${new BigNumber(nodeToUpgrade.selfStaking).dividedBy(1e18).toFixed()}`);
+        if (!totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking)) throw new Error(`Total amount in usd must be $${new BigNumber(nodeToUpgrade.selfStaking).dividedBy(1e18).toFixed()}`);
         const userNodes = await UpgradedNodes.find({ userAddress }).sort({ time: -1 });
         let lastNode = userNodes.length > 0 ? userNodes[0] : null;
 
@@ -715,7 +716,7 @@ const upgradeNode = async (req, res, next) => {
 
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
 
-        ct({userAddress, amountInUsdIn1e18:amountInUsdIn1e18.toFixed(), nodeNum:Number(nodeNum), mixTxHash, rateDollarPerDsc,totalAmountInUsdIn1e18: totalAmountInUsdIn1e18.toFixed()})
+        ct({ userAddress, amountInUsdIn1e18: amountInUsdIn1e18.toFixed(), nodeNum: Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18: totalAmountInUsdIn1e18.toFixed() })
         const hash = await dscNodeContract.methods.getHashForUpgradeNode(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), mixTxHash, rateDollarPerDsc, totalAmountInUsdIn1e18.toFixed()).call();
 
         const vrs = await giveVrsForNodeUpgradation(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
@@ -835,13 +836,13 @@ const deployNode = async (req, res, next) => {
 
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous withdrawal is not stored yet! Please try again later.");
 
-        const hash = await dscNodeContract.methods.getHashForDeployment(userAddress,Number(nodeNum)).call();
+        const hash = await dscNodeContract.methods.getHashForDeployment(userAddress, Number(nodeNum)).call();
 
         const vrs = await giveVrsForNodeDeployment(userAddress, Number(nodeNum), Number(currNonce), hash);
 
 
 
-        return res.status(200).json({ success: true, message: "Node deployment is in process!",vrs });
+        return res.status(200).json({ success: true, message: "Node deployment is in process!", vrs });
     } catch (error) {
         next(error);
     }
@@ -1007,26 +1008,63 @@ const getNodeUpgradeHistory = async (req, res, next) => {
     }
 }
 
-const getIdToAddress = async(req,res,next)=>{
-    try{
-    
-        const {userId} = req.body;
+const getIdToAddress = async (req, res, next) => {
+    try {
 
-        if(!userId) throw new Error("Please provide user id");
+        const { userId } = req.body;
 
-        const userRegDoc = await RegistrationModel.findOne({uniqueRandomId:userId.toString()}).select("userAddress -_id uniqueRandomId");
+        if (!userId) throw new Error("Please provide user id");
 
-        if(!userRegDoc) throw new Error("User not found");
+        const userRegDoc = await RegistrationModel.findOne({ uniqueRandomId: userId.toString() }).select("userAddress -_id uniqueRandomId");
 
-        return res.status(200).json({success:true,userAddress:userRegDoc.userAddress});
+        if (!userRegDoc) throw new Error("User not found");
 
-    }catch(error){
+        return res.status(200).json({ success: true, userAddress: userRegDoc.userAddress });
+
+    } catch (error) {
         next(error);
     }
 }
+const getLevelIncome = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 20 } = req.body;
 
+        if (!userAddress) {
+            throw new Error("Please provide user address");
+        }
+        // convert page & limit into numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // count total docs
+        const totalDocs = await NodeRegIncomeModel.countDocuments({
+            receiverAddress: userAddress,
+        });
+
+        // apply pagination
+        const history = await NodeRegIncomeModel.find({
+            receiverAddress: userAddress,
+        })
+            .sort({ createdAt: -1 }) // newest first (optional)
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        return res.status(200).json({
+            success: true,
+            currentPage: page,
+            totalPages: Math.ceil(totalDocs / limit),
+            totalRecords: totalDocs,
+            data: history,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 module.exports = {
     stakeVrs,
+    getLevelIncome,
     getIdToAddress,
     getNodeUpgradeHistory,
     getUsdDscRatio,
