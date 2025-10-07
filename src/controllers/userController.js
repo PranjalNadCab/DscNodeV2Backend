@@ -596,7 +596,7 @@ const upgradeNode = async (req, res, next) => {
         const totalAmountInUsdIn1e18 = new BigNumber(totalAmountInUsd).multipliedBy(1e18);
 
         const regDoc = await RegistrationModel.findOne({ userAddress });
-        if (!regDoc) throw new Error("You have not registered yet! Stake for registration!");
+        if (!regDoc) throw new Error("You have not registered yet!");
         const { nodePurchasingBalance = "0" } = regDoc;
 
         const isRegistered = await dscNodeContract.methods.isUserRegistered(userAddress).call();

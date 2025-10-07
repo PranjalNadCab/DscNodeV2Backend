@@ -61,20 +61,20 @@ async function processEvents(events) {
             console.log("-----------got event and block timestamp and returnValues---->", event, transactionHash, timestamp);
 
             if (event == "RegisterUser") {
-                try{
+                try {
 
                     const { userAddress, sponsorAddress, amount, majorIncome, minor4Income } = returnValues;
-                const regAmount = new BigNumber(amount).toFixed();
+                    const regAmount = new BigNumber(amount).toFixed();
 
 
-                const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress,regAmount,Number(block),transactionHash);
-                await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal));
+                    const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress, regAmount, Number(block), transactionHash);
+                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal));
 
-                }catch(error){
-                    console.log("Error while registering user",error);
+                } catch (error) {
+                    console.log("Error while registering user", error);
                     continue;
                 }
-                
+
             }
             else if (event == "Staked") {
                 try {
@@ -329,15 +329,15 @@ async function processEvents(events) {
                         isPaymentCompleted: isPaymentCompleted
                     });
 
-                     let rankDuringStaking = null;
+                    let rankDuringStaking = null;
 
-                     
-                     console.log("Node upgraded doc created:", upgradeNode);
-                     const regDoc = await RegistrationModel.findOne({ userAddress: user });
-                     if (!regDoc) {
-                         console.log("No registration doc found for user while upgrading node:", user);
+
+                    console.log("Node upgraded doc created:", upgradeNode);
+                    const regDoc = await RegistrationModel.findOne({ userAddress: user });
+                    if (!regDoc) {
+                        console.log("No registration doc found for user while upgrading node:", user);
                     }
-                         rankDuringStaking = regDoc.currentRank;
+                    rankDuringStaking = regDoc.currentRank;
                     const { nodePurchasingBalance } = regDoc;
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
@@ -388,7 +388,7 @@ async function processEvents(events) {
                         console.log("do nothing for incomeplete node upgrades");
                     }
 
-                   
+
 
 
                 } catch (error) {
