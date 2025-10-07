@@ -610,8 +610,8 @@ const upgradeNode = async (req, res, next) => {
 
         if (!price) throw new Error("Live price not found.");
         let mixTxHash = "NA"
-        const nbdAmount = nbdAmounts[nodeNum - 1];
-        const nbdAmountIn1e18 = new BigNumber(nbdAmount).multipliedBy(1e18);
+        // const nbdAmount = nbdAmounts[nodeNum - 1];
+        // const nbdAmountIn1e18 = new BigNumber(nbdAmount).multipliedBy(1e18);
         // let amountToDeduct = new BigNumber(0).plus(nbdAmountIn1e18);
         let amountToDeduct = new BigNumber(0);
 
@@ -731,9 +731,16 @@ const upgradeNode = async (req, res, next) => {
 
         const vrs = await giveVrsForNodeUpgradation(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
 
+        let nbdToApprove = 0;
+        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash){
+            if(Number(currNonce)===0){
+                nbdToApprove = nbdAmounts[nodeNum - 1] - nbdAmounts[0];
+            }
+        }else{
+            nbdToApprove = 0;
+        }
 
-
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc });
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc,nbdToApprove });
 
     } catch (error) {
         next(error);
