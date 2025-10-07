@@ -637,6 +637,7 @@ const upgradeNode = async (req, res, next) => {
             // if (!status) throw new Error(message);
             const ratioUsdtDsc = ratioUsdDsc();
             const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
+            console.log("klsdgdfgsdfg",ratioUsdtDsc,usdtPartIfMixedTx.toFixed())
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
