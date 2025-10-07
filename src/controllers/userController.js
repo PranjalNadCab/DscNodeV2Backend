@@ -742,10 +742,21 @@ const upgradeNode = async (req, res, next) => {
             nbdToApprove = 0;
         }
 
-        nbdToApprove= new BigNumber(nbdToApprove).multipliedBy(1e18).toFixed();
+        nbdToApprove= new BigNumber(nbdToApprove).multipliedBy(1e18);
+        let amountToApprove = new BigNumber(0);
+        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash){
+           if(currency === "USDT"){
+            amountToApprove = amountToApprove.plus(amountToDeduct);
+           }else{
+            amountToApprove = amountToApprove.plus(nbdToApprove);
+           }
+        }else{
+            amountToApprove = amountToApprove;
+        }
+        
 
 
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc,nbdToApprove });
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc,amountToApprove:amountToApprove.toFixed() });
 
     } catch (error) {
         next(error);
