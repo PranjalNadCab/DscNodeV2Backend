@@ -95,7 +95,8 @@ async function processEvents(events) {
                             currentRank: "Beginner",
                             // nodePurchasingBalance:amountNbdPaid,
                             block: Number(block),
-                            transactionHash
+                            transactionHash,
+                            rankAchievedAt:Number(timestampNormal)
                         });
 
                         await updateTeamCount(userAddress);
