@@ -637,7 +637,7 @@ const upgradeNode = async (req, res, next) => {
             // if (!status) throw new Error(message);
             const ratioUsdtDsc = ratioUsdDsc();
             const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
-            console.log("klsdgdfgsdfg",ratioUsdtDsc,usdtPartIfMixedTx.toFixed())
+            console.log("klsdgdfgsdfg", ratioUsdtDsc, usdtPartIfMixedTx.toFixed())
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
@@ -655,7 +655,7 @@ const upgradeNode = async (req, res, next) => {
 
                 mixTxHash = zeroAddressTxhash;
                 generatedDsc = amountToDeduct.dividedBy(price).toFixed();
-            }else{
+            } else {
                 throw new Error("Please send usdt in proper ratio!")
             }
 
@@ -739,32 +739,32 @@ const upgradeNode = async (req, res, next) => {
         const vrs = await giveVrsForNodeUpgradation(userAddress, amountToDeduct.toFixed(0), Number(nodeNum), totalAmountInUsdIn1e18.toFixed(), mixTxHash, rateDollarPerDsc, Number(currNonce), hash);
 
         let nbdToApprove = 0;
-        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash){
-            if(Number(currNonce)===0){
-                nbdToApprove = nbdAmounts[nodeNum - 1] - nbdAmounts[0];
-            }else{
-                nbdToApprove = nbdAmounts[nodeNum - 1] ;
-            }
-        }else{
+        let alreadyPaidNbd = await dscNodeContract.methods.amountNbdPaidByUser(userAddress).call();
+        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash) {
+            // if (Number(currNonce) === 0) {
+            //     nbdToApprove = nbdAmounts[nodeNum - 1] - nbdAmounts[0];
+            // } else {
+                nbdToApprove = nbdAmounts[nodeNum - 1] - new BigNumber(alreadyPaidNbd).dividedBy(1e18).toNumber();
+            // }
+        } else {
             nbdToApprove = 0;
         }
-
-        nbdToApprove= new BigNumber(nbdToApprove).multipliedBy(1e18);
-        console.log("dfklgfvsdfgsdg",nbdToApprove.toFixed());
+        nbdToApprove = new BigNumber(nbdToApprove).multipliedBy(1e18);
+        console.log("dfklgfvsdfgsdg", nbdToApprove.toFixed());
         let amountToApprove = new BigNumber(0);
-        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash){
-           if(currency === "USDT"){
-            amountToApprove = amountToApprove.plus(amountToDeduct).plus(nbdToApprove);
-           }else{
-            amountToApprove = amountToApprove.plus(nbdToApprove);
-           }
-        }else{
+        if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash) {
+            if (currency === "USDT") {
+                amountToApprove = amountToApprove.plus(amountToDeduct).plus(nbdToApprove);
+            } else {
+                amountToApprove = amountToApprove.plus(nbdToApprove);
+            }
+        } else {
             amountToApprove = amountToApprove;
         }
-        
 
 
-        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc,amountToApprove:amountToApprove.toFixed() });
+
+        return res.status(200).json({ success: true, message: "Node Upgradation is in process!", vrs: { ...vrs, currency }, generatedDsc, amountToApprove: amountToApprove.toFixed() });
 
     } catch (error) {
         next(error);
