@@ -115,7 +115,7 @@ async function processEvents(events) {
                         time:Number(timestampNormal),
                         block: Number(block),
                         transactionHash,
-                        amountNbdPaid
+                        amountNbdPaid: amountNbdPaid
                     });
 
 

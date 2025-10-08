@@ -12,7 +12,7 @@ const NbdFundSchema = new mongoose.Schema({
         default:()=>Math.floor(Date.now()/1000)
     },
     amountNbdPaid:{
-        type:Number,
+        type:String,
         required:true
     },
     block:{
