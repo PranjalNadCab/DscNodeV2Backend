@@ -10,6 +10,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel.js");
 const moment = require("moment");
 const { zeroAddressTxhash, ranks } = require("../helpers/constant.js");
 const NodeDeployedModel = require("../models/NodeConvertedModel.js");
+const NbdFundModel = require("../models/NbdFundsModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -109,15 +110,19 @@ async function processEvents(events) {
                         continue;
                     }
 
+                    const newNbd = await NbdFundModel.create({
+                        userAddress,
+                        time:Number(timestampNormal),
+                        block: Number(block),
+                        transactionHash,
+                        amountNbdPaid
+                    });
+
 
                     const { nodePurchasingBalance } = regDoc;
                     regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).plus(amountNbdPaid).toFixed(0);
 
                     await regDoc.save();
-
-
-
-
 
                     await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid);
 
