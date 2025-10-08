@@ -7,6 +7,10 @@ const NbdFundSchema = new mongoose.Schema({
         trim:true,
         requried:true
     },
+    nodeNum:{
+        type:Number,
+        default:null
+    },
     time:{
         type:Number,
         default:()=>Math.floor(Date.now()/1000)
