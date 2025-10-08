@@ -497,7 +497,7 @@ const registerUser = async (userAddress, time, sponsorAddress,regAmount,block,tr
                 sponsorAddress,
                 time: Number(time),
                 currentRank:"Beginner",
-                nodePurchasingBalance:regAmount,
+                // nodePurchasingBalance:regAmount,
                 block:Number(block),
                 transactionHash
             });

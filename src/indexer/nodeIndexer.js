@@ -144,15 +144,15 @@ async function processEvents(events) {
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
                     const nodePrice = new BigNumber(myNode ? myNode.selfStaking : "0").multipliedBy(0.1).toFixed();
-                    if (new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)) {
-                        regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
+                    // if (new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)) {
+                    //     regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
 
-                    } else {
-                        regDoc.nodePurchasingBalance = "0";
+                    // } else {
+                    //     regDoc.nodePurchasingBalance = "0";
 
-                    }
+                    // }
 
-                    await regDoc.save();
+                    // await regDoc.save();
 
                     await updateUserTotalSelfStakeUsdt(user, amountUsdtPaid);
                     await updateDirectBusiness(amountUsdtPaid, user);
