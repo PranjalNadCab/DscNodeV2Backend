@@ -1196,6 +1196,45 @@ const getLevelIncome = async (req, res, next) => {
         next(error);
     }
 };
+
+const nbdPaidHistory  = async(req,res,next)=>{
+    try{
+        let {userAddress,page=1,limit=10} = req.body;
+
+        if (!userAddress) {
+            throw new Error("Please provide user address");
+        }
+        // convert page & limit into numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const totalDocs = await NbdFundModel.countDocuments({
+            userAddress: userAddress,
+        });
+
+        // apply pagination
+        const history = await NbdFundModel.find({
+            userAddress: userAddress,
+        })
+            .sort({ createdAt: -1 }) // newest first (optional)
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+            return res.status(200).json({
+                success: true,
+                currentPage: page,
+                totalPages: Math.ceil(totalDocs / limit),
+                totalRecords: totalDocs,
+                data: history,
+            });
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
     getLevelIncome,
@@ -1215,6 +1254,7 @@ module.exports = {
     getWithdrawIncomeHistory,
     stakeMix,
     getUserPendingStake,
-    getUserPendingNodeUpgrades
+    getUserPendingNodeUpgrades,
+    nbdPaidHistory
 };
 
