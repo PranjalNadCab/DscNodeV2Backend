@@ -347,6 +347,25 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "amountNbdPaidByUser",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "_owner",
                 "type": "address"
             }
@@ -689,6 +708,11 @@
                 "internalType": "uint32",
                 "name": "nonce",
                 "type": "uint32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
             }
         ],
         "name": "manageContract",
