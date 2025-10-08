@@ -50,6 +50,18 @@
                 "internalType": "uint256",
                 "name": "amountNbdPaid",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sponsorAddress",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "isRegistration",
+                "type": "bool"
             }
         ],
         "name": "NbdPaid",
@@ -691,6 +703,11 @@
                 "internalType": "address",
                 "name": "user",
                 "type": "address"
+            },
+            {
+                "internalType": "uint32",
+                "name": "nonce",
+                "type": "uint32"
             }
         ],
         "name": "manageContract",
