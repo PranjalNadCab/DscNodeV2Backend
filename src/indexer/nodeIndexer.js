@@ -165,7 +165,8 @@ async function processEvents(events) {
                         currency,
                         rateDollarPerDsc: rate,
                         mixTransactionHash: mixTxHash,
-                        isPaymentCompleted: isPaymentCompleted
+                        isPaymentCompleted: isPaymentCompleted,
+                        rankAchievedAt: Number(timestampNormal)
                     });
 
                     let rankDuringStaking = null;
@@ -177,19 +178,9 @@ async function processEvents(events) {
                         console.log("No registration doc found for user while upgrading node:", user);
                     }
                     rankDuringStaking = regDoc.currentRank;
-                    const { nodePurchasingBalance } = regDoc;
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
-                    const nodePrice = new BigNumber(myNode ? myNode.selfStaking : "0").multipliedBy(0.1).toFixed();
-                    // if (new BigNumber(nodePurchasingBalance).isGreaterThan(nodePrice)) {
-                    //     regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).minus(nodePrice).toFixed(0);
-
-                    // } else {
-                    //     regDoc.nodePurchasingBalance = "0";
-
-                    // }
-
-                    // await regDoc.save();
+                    
 
                     await updateUserTotalSelfStakeUsdt(user, amountUsdtPaid);
                     await updateDirectBusiness(amountUsdtPaid, user);

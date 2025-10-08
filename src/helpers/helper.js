@@ -578,9 +578,11 @@ const manageRank = async (userAddress) => {
         const fUserAddress = giveCheckSummedAddress(userAddress);
         const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
         if (!userInfo) return { rankDuringStaking };
+        let nodePurchasingBalance = new BigNumber(userInfo.nodePurchasingBalance).dividedBy(1e18);
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
-        const matchedRank = ranks.find(r => userDirectPlusSelfStakeInUsdNormal >= r.lowerBound && userDirectPlusSelfStakeInUsdNormal <= r.upperBound);
+        const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).toNumber();
+        const matchedRank = ranks.find(r => userTargetStakeForRankUpgradation >= r.lowerBound && userTargetStakeForRankUpgradation <= r.upperBound);
         console.log("matchedRank", matchedRank);
         // ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
 
