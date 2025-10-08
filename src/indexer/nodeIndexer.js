@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -91,7 +91,7 @@ async function processEvents(events) {
                             uniqueRandomId: uniqueRandomId,
                             userAddress,
                             sponsorAddress,
-                            time: Number(time),
+                            time: Number(timestampNormal),
                             currentRank: "Beginner",
                             // nodePurchasingBalance:amountNbdPaid,
                             block: Number(block),
