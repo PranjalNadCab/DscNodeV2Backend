@@ -497,13 +497,14 @@ const registerUser = async (userAddress, time, sponsorAddress,regAmount,block,tr
                 sponsorAddress,
                 time: Number(time),
                 currentRank:"Beginner",
-                // nodePurchasingBalance:regAmount,
+                nodePurchasingBalance:regAmount,
                 block:Number(block),
                 transactionHash
             });
 
             await updateTeamCount(userAddress);
             await updateDirectCount(sponsorAddress);
+            return newUser;
             // await updateDirectBusiness(0, userAddress); // Assuming initial stake amount is 0
         }
     } catch (error) {
@@ -1191,4 +1192,4 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
 
 
 
-module.exports = {giveVrsForNodeDeployment,giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking }
+module.exports = {giveVrsForNodeDeployment,giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo,updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking ,updateDirectCount}

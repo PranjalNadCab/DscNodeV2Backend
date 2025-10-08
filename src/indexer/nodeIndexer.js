@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -76,20 +76,57 @@ async function processEvents(events) {
                 }
 
             }
-            else if(event == "NbdPaid"){
-                try{
-                    let {userAddress,majorIncome,minor4Income,amountNbdPaid} = returnValues;
-
+            else if (event == "NbdPaid") {
+                try {
+                    let { userAddress, majorIncome, minor4Income, amountNbdPaid, sponsorAddress, isRegistration } = returnValues;
                     amountNbdPaid = new BigNumber(amountNbdPaid).toFixed();
 
-                    await sendNodeRegIncomeToUpline(userAddress,majorIncome,minor4Income,Number(timestampNormal),amountNbdPaid);
+
+                    let regDoc = null;
+                    if (isRegistration) {
+                        // regDoc = await registerUser(userAddress, Number(timestampNormal), sponsorAddress, amountNbdPaid, Number(block), transactionHash);
+                        const uniqueRandomId = await generateRandomId();
+                        regDoc = await RegistrationModel.create({
+                            uniqueRandomId: uniqueRandomId,
+                            userAddress,
+                            sponsorAddress,
+                            time: Number(time),
+                            currentRank: "Beginner",
+                            // nodePurchasingBalance:amountNbdPaid,
+                            block: Number(block),
+                            transactionHash
+                        });
+
+                        await updateTeamCount(userAddress);
+                        await updateDirectCount(sponsorAddress);
+
+                    } else {
+                        regDoc = await RegistrationModel.findOne({ userAddress: userAddress });
+                    }
+
+                    if (!regDoc) {
+                        console.log("No registration doc found for user while upgrading node:", userAddress);
+                        continue;
+                    }
 
 
-                }catch(error){
+                    const { nodePurchasingBalance } = regDoc;
+                    regDoc.nodePurchasingBalance = new BigNumber(nodePurchasingBalance).plus(amountNbdPaid).toFixed(0);
+
+                    await regDoc.save();
+
+
+
+
+
+                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid);
+
+
+                } catch (error) {
                     console.log(error);
                     continue;
                 }
-            }   
+            }
             else if (event == "UpgradeNode") {
                 try {
                     let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd, mixTxHash, currency, rate } = returnValues;
