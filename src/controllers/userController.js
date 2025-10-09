@@ -14,6 +14,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel.js");
+const NbdFundModel = require("../models/NbdFundsModel.js");
 
 
 
