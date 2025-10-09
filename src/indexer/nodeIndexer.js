@@ -79,7 +79,7 @@ async function processEvents(events) {
             }
             else if (event == "NbdPaid") {
                 try {
-                    let { userAddress, majorIncome, minor4Income, amountNbdPaid, sponsorAddress, isRegistration } = returnValues;
+                    let { userAddress, majorIncome, minor4Income, amountNbdPaid, sponsorAddress, isRegistration,nodeNum } = returnValues;
                     amountNbdPaid = new BigNumber(amountNbdPaid).toFixed();
 
 
@@ -116,7 +116,8 @@ async function processEvents(events) {
                         time:Number(timestampNormal),
                         block: Number(block),
                         transactionHash,
-                        amountNbdPaid: amountNbdPaid
+                        amountNbdPaid: amountNbdPaid,
+                        nodeNum: Number(nodeNum)
                     });
 
 

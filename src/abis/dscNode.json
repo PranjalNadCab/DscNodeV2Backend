@@ -62,6 +62,12 @@
                 "internalType": "bool",
                 "name": "isRegistration",
                 "type": "bool"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "nodeNum",
+                "type": "uint32"
             }
         ],
         "name": "NbdPaid",
