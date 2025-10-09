@@ -8,13 +8,13 @@ const RegistrationModel = require("../models/RegistrationModel");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 const { isAddress } = require("web3-validator");
 const Admin = require("../models/AdminModel");
-const NodeConverted = require("../models/NodeConvertedModel");
+// const NodeConverted = require("../models/NodeConvertedModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
 const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
-const NodeDeployedModel = require("../models/NodeConvertedModel");
-const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
+const NodeRegIncomeModel = require("../models/NodeRegIncomeModel.js");
+
 
 
 const stakeVrs = async (req, res, next) => {
@@ -444,51 +444,51 @@ const withdrawIncomeDsc = async (req, res, next) => {
     }
 };
 
-const convertToNode = async (req, res, next) => {
-    try {
+// const convertToNode = async (req, res, next) => {
+//     try {
 
-        let { userAddress, nodeNum } = req.body;
-        if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
-        if (typeof nodeNum !== "number") throw new Error("Node number must be a number");
+//         let { userAddress, nodeNum } = req.body;
+//         if (!userAddress || !nodeNum) throw new Error("Please provide all the required fields.");
+//         if (typeof nodeNum !== "number") throw new Error("Node number must be a number");
 
-        if (!isAddress(userAddress)) throw new Error("Invalid user address.");
-        userAddress = giveCheckSummedAddress(userAddress);
+//         if (!isAddress(userAddress)) throw new Error("Invalid user address.");
+//         userAddress = giveCheckSummedAddress(userAddress);
 
-        const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
+//         const isRegistered = await dscNodeContract.methods.isUserRegForNodeConversion(userAddress).call();
 
-        if (!isRegistered) throw new Error("You have not registered for node upgradation!");
-        //generate vrs
+//         if (!isRegistered) throw new Error("You have not registered for node upgradation!");
+//         //generate vrs
 
-        const myNode = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
-        if (!myNode) throw new Error("You have not purchased this node yet!");
+//         const myNode = await UpgradedNodes.findOne({ userAddress, nodeNum: Number(nodeNum) });
+//         if (!myNode) throw new Error("You have not purchased this node yet!");
 
-        if (myNode.nodeConversionTime) throw new Error("You have already converted this node!");
-
-
-        const lastConversion = await NodeConverted.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
-        let prevNonce = 0;
-        if (!lastConversion) {
-            prevNonce = -1;
-        } else {
-            prevNonce = Number(lastConversion.lastUsedNonce);
-        }
-        const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
-        console.log({ prevNonce, currNonce: Number(currNonce) });
-        if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous Node conversion not stored yet! Please try again later.");
-        }
+//         if (myNode.nodeConversionTime) throw new Error("You have already converted this node!");
 
 
-        const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeNum).call();
+//         const lastConversion = await NodeConverted.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
+//         let prevNonce = 0;
+//         if (!lastConversion) {
+//             prevNonce = -1;
+//         } else {
+//             prevNonce = Number(lastConversion.lastUsedNonce);
+//         }
+//         const currNonce = await dscNodeContract.methods.userNoncesForNodeConversion(userAddress).call();
+//         console.log({ prevNonce, currNonce: Number(currNonce) });
+//         if ((prevNonce + 1) !== Number(currNonce)) {
+//             throw new Error("Your previous Node conversion not stored yet! Please try again later.");
+//         }
 
-        const vrsSign = await giveVrsForNodeConversion(userAddress, nodeNum, Number(currNonce), hash);
+
+//         const hash = await dscNodeContract.methods.getHashForNodeConversion(userAddress, nodeNum).call();
+
+//         const vrsSign = await giveVrsForNodeConversion(userAddress, nodeNum, Number(currNonce), hash);
 
 
-        return res.status(200).json({ success: true, message: "Node conversion request fullfilled", vrsSign });
-    } catch (error) {
-        next(error);
-    }
-}
+//         return res.status(200).json({ success: true, message: "Node conversion request fullfilled", vrsSign });
+//     } catch (error) {
+//         next(error);
+//     }
+// }
 
 const getGapIncomeHistory = async (req, res, next) => {
     try {
@@ -1249,7 +1249,7 @@ module.exports = {
     getUserStakings,
     withdrawIncomeUsdt,
     withdrawIncomeDsc,
-    convertToNode,
+    // convertToNode,
     getGapIncomeHistory,
     getWithdrawIncomeHistory,
     stakeMix,

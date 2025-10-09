@@ -42,6 +42,18 @@ const nodeDeployedSchema = new mongoose.Schema({
     conversionMonth:{
         type:String,
         default:null
+    },
+    name:{
+        type:String,
+        default:null
+    },
+    sudoLink:{
+        type:String,
+        default:null
+    },
+    mobile:{
+        type:String,
+        default:null
     }
 },{ timestamps: true });
 

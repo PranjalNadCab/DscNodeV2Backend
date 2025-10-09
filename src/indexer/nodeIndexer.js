@@ -9,7 +9,7 @@ const NodesRegistered = require("../models/NodeRegistrationModel.js");
 const UpgradedNodes = require("../models/UpgradeNodeModel.js");
 const moment = require("moment");
 const { zeroAddressTxhash, ranks } = require("../helpers/constant.js");
-const NodeDeployedModel = require("../models/NodeConvertedModel.js");
+const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
 
 
@@ -236,7 +236,7 @@ async function processEvents(events) {
             }
             else if (event == "NodeDeployed") {
                 try {
-                    const { user, nodeNum } = returnValues;
+                    const { user, nodeNum,name,sudoLink,mobile } = returnValues;
 
                     const nodeConverted = await NodeDeployedModel.create({
                         userAddress: user,
@@ -244,7 +244,10 @@ async function processEvents(events) {
                         time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash: transactionHash,
-                        lastRoiDistributed: moment().startOf('day').unix()
+                        lastRoiDistributed: moment().startOf('day').unix(),
+                        name,
+                        sudoLink,
+                        mobile
                     });
 
                     console.log("Node deployed-->>", nodeConverted);

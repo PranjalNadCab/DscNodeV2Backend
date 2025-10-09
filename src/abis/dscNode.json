@@ -93,6 +93,24 @@
                 "internalType": "uint32",
                 "name": "lastUsedNonce",
                 "type": "uint32"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "sudoLink",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "mobile",
+                "type": "string"
             }
         ],
         "name": "NodeDeployed",
@@ -387,6 +405,21 @@
                 "internalType": "uint16",
                 "name": "nodeNum",
                 "type": "uint16"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "sudoLink",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "mobile",
+                "type": "string"
             },
             {
                 "internalType": "uint8",

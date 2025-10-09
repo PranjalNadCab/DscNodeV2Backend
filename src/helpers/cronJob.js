@@ -3,9 +3,10 @@ const Admin = require("../models/AdminModel");
 const { BigNumber } = require("bignumber.js");
 const { ct } = require("./helper");
 const { default: mongoose } = require("mongoose");
-const NodeConverted = require("../models/NodeConvertedModel");
+// const NodeConverted = require("../models/NodeConvertedModel");
 const RoiModel = require("../models/RoiModel");
 const RegistrationModel = require("../models/RegistrationModel");
+const NodeDeployedModel = require("../models/NodeDeployedModel");
 
 const updateNodeValueAssurance = async () => {
     try {
@@ -92,7 +93,7 @@ const giveRoiToNodeHolders = async () => {
         session.startTransaction();
 
         // Use cursor with session
-        const cursor = NodeConverted.find({}).cursor({ session });
+        const cursor = NodeDeployedModel.find({}).cursor({ session });
         const currTime = moment().unix();
 
         for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
