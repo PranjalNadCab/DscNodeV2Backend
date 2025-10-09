@@ -604,7 +604,7 @@ const manageRank = async (userAddress) => {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18,incomeType,rateDollarPerDscInNum) => {
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18,incomeType,rateDollarPerDscInNum,nodeNum) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -707,6 +707,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
             docsToInsert.push({
                 receiverAddress: user.userAddress,
                 receiverRank: user.currentRank,
+                forNodeNum:Number(nodeNum),
                 senderAddress: senderAddress,
                 senderRank: rankDuringStaking,
                 totalGapIncomeInUsd: gapIncomeGenerated,

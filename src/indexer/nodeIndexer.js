@@ -213,13 +213,13 @@ async function processEvents(events) {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
 
-                        await giveGapIncome(user, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum);
+                        await giveGapIncome(user, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum,Number(nodeNum));
                         await UpgradedNodes.updateMany(
                             { userAddress: user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum);
+                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum,Number(nodeNum));
 
                     } else {
                         console.log("do nothing for incomeplete node upgrades");

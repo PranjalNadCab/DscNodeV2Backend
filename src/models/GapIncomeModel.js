@@ -11,6 +11,10 @@ const gapIncomeSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    forNodeNum:{
+        type: Number,
+        default: 1
+    },
     senderAddress:{
         type: String,
         required: true,
