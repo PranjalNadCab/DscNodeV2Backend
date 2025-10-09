@@ -1070,7 +1070,7 @@ const  getRemainingDscUsdToPayForStaking = ( totalAmountInUsd, userStakes ) =>{
     return remainingUsd.lte(0) ? new BigNumber(0) : remainingUsd;
 }
 
-const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,time,amountNbdPaid)=>{
+const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,time,amountNbdPaid,nodeNum)=>{
     try{
         if(!senderAddress || (!majorIncome && !minor4Income)) return {status:false, message:"Invalid parameters"};
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -1175,7 +1175,8 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
             amount: p.income,
             fromLevel: p.level,
             time:time,
-            amountNbdPaid
+            amountNbdPaid,
+            amountNbdPaidforNodeNum:Number(nodeNum)
         }));
         if (incomeDocs.length > 0) {
             await NodeRegIncomeModel.insertMany(incomeDocs);

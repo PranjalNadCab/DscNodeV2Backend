@@ -9,6 +9,10 @@ const NodeRegIncomeSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    amountNbdPaidforNodeNum:{
+        type:Number,
+        default:1
+    },
     amountNbdPaid:{
         type:String,
         required:true
