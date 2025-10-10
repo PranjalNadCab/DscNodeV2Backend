@@ -231,6 +231,7 @@ const changeRanks = async(req,res,next)=>{
 
         await userDoc.save();
 
+
         return res.status(200).json({success:true, message:`Rank changed to ${rank} successfully.`});
     }catch(error){
         next(error);
