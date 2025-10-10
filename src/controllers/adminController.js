@@ -88,10 +88,8 @@ const getUpgradedNodesHistory = async (req, res, next) => {
         if (limit < 1) limit = 10;
         const skip = (page - 1) * limit;
 
-    
-
-        // Base filter: userAddress
-        const filter = { };
+        // Base filter
+        const filter = {};
 
         // 🔍 Search filter
         if (query) {
@@ -103,7 +101,7 @@ const getUpgradedNodesHistory = async (req, res, next) => {
             ];
         }
 
-        // ⏰ Date filter (Unix timestamp)
+        // ⏰ Date filter
         const gte = fromTime && !isNaN(Number(fromTime)) ? Number(fromTime) : null;
         const lte = toTime && !isNaN(Number(toTime)) ? Number(toTime) : null;
 
@@ -111,31 +109,45 @@ const getUpgradedNodesHistory = async (req, res, next) => {
         else if (gte !== null) filter.time = { $gte: gte };
         else if (lte !== null) filter.time = { $lte: lte };
 
-        // 🧩 Projection (only include relevant fields)
-        const projection = {
-            nodeNum: 1,
-            lastUsedNonce: 1,
-            totalAmountInUsd: 1,
-            amountUsdPaid: 1,
-            time: 1,
-            currency: 1,
-            isPaymentCompleted: 1,
-            rateDollarPerDsc: 1,
-            block: 1,
-            transactionHash: 1,
-            mixTransactionHash: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            userAddress:1
-        };
+        // Aggregation to join RegistrationModel and fetch uniqueRandomId
+        const history = await UpgradedNodes.aggregate([
+            { $match: filter },
+            { $sort: { time: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $lookup: {
+                    from: "registration", // collection name in MongoDB
+                    localField: "userAddress",
+                    foreignField: "userAddress",
+                    as: "userInfo",
+                },
+            },
+            {
+                $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true },
+            },
+            {
+                $project: {
+                    nodeNum: 1,
+                    lastUsedNonce: 1,
+                    totalAmountInUsd: 1,
+                    amountUsdPaid: 1,
+                    time: 1,
+                    currency: 1,
+                    isPaymentCompleted: 1,
+                    rateDollarPerDsc: 1,
+                    block: 1,
+                    transactionHash: 1,
+                    mixTransactionHash: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    userAddress: 1,
+                    uniqueRandomId: "$userInfo.uniqueRandomId",
+                },
+            },
+        ]);
 
-        // Fetch history
-        const history = await UpgradedNodes.find(filter, projection)
-            .sort({ time: -1 }) // latest first
-            .skip(skip)
-            .limit(limit)
-            .lean();
-
+        // Count total records (without pagination)
         const totalRecords = await UpgradedNodes.countDocuments(filter);
 
         res.json({
