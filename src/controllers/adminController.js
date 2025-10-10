@@ -174,43 +174,43 @@ const manageNodeStakings = async (req, res, next) => {
         // Validate input
         const allowedActions = ["DSC", "USDT", "Mix"];
         if (!action || !allowedActions.includes(action)) {
-            throw new Error("Invalid action type")
+            throw new Error("Invalid action type");
         }
 
         if (typeof status !== "boolean") {
-           throw new Error("Invalid status type")
+            throw new Error("Invalid status type");
         }
 
-        // Fetch the admin document (assuming only one admin document exists)
+        // Fetch admin document (assuming one admin document)
         let admin = await Admin.findOne();
         if (!admin) {
-            // If no admin document exists, create a default one
-           throw new Error("Admin document not found");
+            throw new Error("Admin document not found");
         }
 
         // Update disabledStakings
         const index = admin.disabledStakings.indexOf(action);
-        ct({status, action,index})
-        if (status === false && index === -1) {
-            // Disable the staking type → add to disabledStakings
+
+        if (status === true && index === -1) {
+            // Disable staking → add to disabledStakings
             admin.disabledStakings.push(action);
-        } else if (status === true && index !== -1) {
-            // Enable the staking type → remove from disabledStakings
+        } else if (status === false && index !== -1) {
+            // Enable staking → remove from disabledStakings
             admin.disabledStakings.splice(index, 1);
         }
 
         await admin.save();
 
-        const updatedDisabledStakings = await Admin.findOne();
-
-        
+        // Fetch updated version
+        const updatedAdmin = await Admin.findOne();
 
         res.status(200).json({
             success: true,
-            message: `Node Staking ${action} has been ${status ? "enabled" : "disabled"} successfully.`,
-            disabledStakings: updatedDisabledStakings.disabledStakings
+            message: `Node Staking ${action} has been ${status ? "disabled" : "enabled"} successfully.`,
+            disabledStakings: updatedAdmin.disabledStakings
         });
+
     } catch (error) {
+        console.error("Error in manageNodeStakings:", error);
         next(error);
     }
 };
