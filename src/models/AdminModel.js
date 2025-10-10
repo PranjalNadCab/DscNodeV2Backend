@@ -27,6 +27,14 @@ const adminSchema = new mongoose.Schema({
             part2: { type: Number, required: true }
         },
         required: true
+    },
+    disabledStakings: {
+        type: [{
+            type: String,
+            enum: ["DSC", "USDT", "Mix"],
+            // required: true
+        }],
+        default: []
     }
 }, { timestamps: true });
 
