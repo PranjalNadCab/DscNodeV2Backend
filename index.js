@@ -54,9 +54,9 @@ if (process.env.NODE_ENV !== "development") {
     // }, {
     //     timezone: 'Asia/Kolkata'
     // });
-    cron.schedule('1 0 1 * *', async () => {
+    cron.schedule('*/5 * * * *', async () => {
         try {
-            console.log(`Updating live price`);
+            console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
             const res = await getLivePrice();
             console.log("Live DSC Price fetched successfully:", res);
         } catch (err) {
