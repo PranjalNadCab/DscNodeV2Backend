@@ -1,3 +1,4 @@
+const { ranks } = require("../helpers/constant");
 const { giveAdminSettings, ct } = require("../helpers/helper");
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
@@ -221,7 +222,7 @@ const changeRanks = async(req,res,next)=>{
         const {userAddress, rank} = req.body;
         // const {nodeValidators} = await giveAdminSettings();
         // if(!nodeValidators) throw new Error("Didn't found node prices!");
-        const ranks = ranks.map((rank)=>rank.rank);
+        const onlyRanks = onlyRanks.map((rank)=>rank.rank);
         if(!ranks.includes(rank)) throw new Error("Invalid rank!");
 
         const userDoc = await RegistrationModel.findOne({userAddress});
