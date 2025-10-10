@@ -620,7 +620,7 @@ const upgradeNode = async (req, res, next) => {
 
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
-        const { nodeValidators } = await giveAdminSettings();
+        const { nodeValidators,disabledStakings } = await giveAdminSettings();
         let generatedDsc = "0";
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
         if (!totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking)) throw new Error(`Total amount in usd must be $${new BigNumber(nodeToUpgrade.selfStaking).dividedBy(1e18).toFixed()}`);
@@ -722,6 +722,13 @@ const upgradeNode = async (req, res, next) => {
 
         }
 
+        if(mixTxHash == "NA" && disabledStakings.includes(currency)){
+            throw new Error(`Currently ${currency} staking is disabled!`);
+        }else if(mixTxHash !== "NA" && disabledStakings.includes("Mix")){
+            throw new Error(`Currently Mix staking is disabled!`);
+        }
+        
+
 
         let prevNonce = 0;
         if (!lastNode) {
@@ -763,6 +770,8 @@ const upgradeNode = async (req, res, next) => {
         } else {
             amountToApprove = amountToApprove;
         }
+
+        
 
 
 

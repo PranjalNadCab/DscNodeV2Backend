@@ -951,15 +951,15 @@ const generateRandomId = async () => {
 const giveAdminSettings = async () => {
     try {
 
-        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null } = await Admin.findOne({});
+        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null,disabledStakings=[] } = await Admin.findOne({});
 
 
 
-        return { withdrawDeductionPercent, nodeValidators, stakeRatio }
+        return { withdrawDeductionPercent, nodeValidators, stakeRatio,disabledStakings }
 
     } catch (error) {
         console.log(error);
-        return { withdrawDeductionPercent: null, nodeValidators: null, stakeRatio: null }
+        return { withdrawDeductionPercent: null, nodeValidators: null, stakeRatio: null,disabledStakings:[] }
     }
 }
 
