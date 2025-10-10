@@ -6,6 +6,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const moment = require("moment");
 const userRoutes = require("./src/routes/userRoutes");
+const adminRoutes = require("./src/routes/adminRoutes");
+
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
@@ -28,6 +30,8 @@ app.get("/api/test", (req, res) => {
 })
 
 app.use("/api", userRoutes);
+app.use("/api/admin", adminRoutes);
+
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "development") {
