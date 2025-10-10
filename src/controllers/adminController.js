@@ -222,8 +222,8 @@ const changeRanks = async(req,res,next)=>{
         const {userAddress, rank} = req.body;
         // const {nodeValidators} = await giveAdminSettings();
         // if(!nodeValidators) throw new Error("Didn't found node prices!");
-        const onlyRanks = onlyRanks.map((rank)=>rank.rank);
-        if(!ranks.includes(rank)) throw new Error("Invalid rank!");
+        const onlyRanks = onlyRanks.map((thisRank)=>thisRank.rank);
+        if(!onlyRanks.includes(rank)) throw new Error("Invalid rank!");
 
         const userDoc = await RegistrationModel.findOne({userAddress});
         if(!userDoc) throw new Error("User not found!");
