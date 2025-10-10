@@ -202,15 +202,38 @@ const manageNodeStakings = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: `Staking ${action} has been ${status ? "enabled" : "disabled"} successfully.`,
+            message: `Node Staking ${action} has been ${status ? "enabled" : "disabled"} successfully.`,
             disabledStakings: admin.disabledStakings
         });
     } catch (error) {
         next(error);
     }
 };
+
+const changeRanks = async(req,res,next)=>{
+    try{
+
+        const {userAddress, rank} = req.body;
+        const {nodeValidators} = await giveAdminSettings();
+        if(!nodeValidators) throw new Error("Didn't found node prices!");
+        const ranks = nodeValidators.map((node)=>node.name);
+        if(!ranks.includes(rank)) throw new Error("Invalid rank!");
+
+        const userDoc = await RegistrationModel.findOne({userAddress});
+        if(!userDoc) throw new Error("User not found!");
+
+        userDoc.currentRank = rank;
+
+        await userDoc.save();
+
+        return res.status(200).json({success:true, message:`Rank changed to ${rank} successfully.`});
+    }catch(error){
+        next(error);
+    }
+}
 module.exports = {
     getAllUsers,
     getUpgradedNodesHistory,
-    manageNodeStakings
+    manageNodeStakings,
+    changeRanks
 }

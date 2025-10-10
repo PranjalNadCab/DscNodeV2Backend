@@ -7,6 +7,8 @@ const router = express.Router();
 router.get("/all-users", getAllUsers);
 router.get("/get-upgraded-nodes-history", getUpgradedNodesHistory);
 router.post("/manage-node-stakings", manageNodeStakings);
+router.post("/change-ranks", changeRanks);
+
 
 
 
