@@ -110,7 +110,7 @@ const giveCheckSummedAddress = (address) => {
 //     });
 // }
 
-function giveVrsForStaking(user, amountInUsdIn1e18, currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18, hash,currNonce) {
+function giveVrsForStaking(user, amountInUsdIn1e18, currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18, hash, currNonce) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -287,7 +287,7 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
 //     });
 // }
 
-function giveVrsForNodeUpgradation(userAddress, amountToDeduct, nodeNum, totalAmountInUsdIn1e18, mixTxHash,rateDollarPerDsc, currNonce, hash) {
+function giveVrsForNodeUpgradation(userAddress, amountToDeduct, nodeNum, totalAmountInUsdIn1e18, mixTxHash, rateDollarPerDsc, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -323,7 +323,7 @@ function giveVrsForNodeUpgradation(userAddress, amountToDeduct, nodeNum, totalAm
     });
 }
 
-function giveVrsForNodeDeployment(userAddress,  nodeNum, currNonce, hash) {
+function giveVrsForNodeDeployment(userAddress, nodeNum, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -486,7 +486,7 @@ const updateDirectBusiness = async (totalStakeAmountInUsd, userAddress) => {
     }
 };
 
-const registerUser = async (userAddress, time, sponsorAddress,regAmount,block,transactionHash) => {
+const registerUser = async (userAddress, time, sponsorAddress, regAmount, block, transactionHash) => {
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
@@ -496,9 +496,9 @@ const registerUser = async (userAddress, time, sponsorAddress,regAmount,block,tr
                 userAddress,
                 sponsorAddress,
                 time: Number(time),
-                currentRank:"Beginner",
-                nodePurchasingBalance:regAmount,
-                block:Number(block),
+                currentRank: "Beginner",
+                nodePurchasingBalance: regAmount,
+                block: Number(block),
                 transactionHash
             });
 
@@ -569,6 +569,31 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
     } catch (error) {
         console.log(error, "Error in updateUserTotalStakeUsdt");
     }
+
+    const getDirectsNodeBalanceSum = async (fUserAddress) => {
+        try {
+            // 1️⃣ Get all directs for a user
+            const userDirects = await RegistrationModel.find({ sponsorAddress: fUserAddress }, { nodePurchasingBalance: 1 });
+
+            // 2️⃣ Sum balances using BigNumber
+            let totalBalance = new BigNumber(0);
+
+            userDirects.forEach((user) => {
+                const balanceStr = user.nodePurchasingBalance || "0";
+                totalBalance = totalBalance.plus(new BigNumber(balanceStr));
+            });
+
+            // 3️⃣ Convert from wei (1e18) to normal number (like ether)
+            const totalInNormal = totalBalance.dividedBy(1e18).toNumber();
+
+            console.log(`Total Node Purchasing Balance for ${fUserAddress}:`, totalInNormal);
+
+            return totalInNormal;
+        } catch (err) {
+            console.error("Error fetching directs' nodePurchasingBalance sum:", err);
+            return 0;
+        }
+    };
 }
 
 const manageRank = async (userAddress) => {
@@ -578,10 +603,12 @@ const manageRank = async (userAddress) => {
         const fUserAddress = giveCheckSummedAddress(userAddress);
         const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
         if (!userInfo) return { rankDuringStaking };
+        const directsNodeSums = await getDirectsNodeBalanceSum(fUserAddress);
+
         let nodePurchasingBalance = new BigNumber(userInfo.nodePurchasingBalance).dividedBy(1e18);
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
-        const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).toNumber();
+        const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).plus(directsNodeSums).toNumber();
         const matchedRank = ranks.find(r => userTargetStakeForRankUpgradation >= r.lowerBound && userTargetStakeForRankUpgradation <= r.upperBound);
         console.log("matchedRank", matchedRank);
         // ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
@@ -604,7 +631,7 @@ const manageRank = async (userAddress) => {
         console.log(error, "Error in manageRank");
     }
 }
-const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18,incomeType,rateDollarPerDscInNum,nodeNum) => {
+const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaking = null, usdtStakedIn1e18, dscStakedInUsdtIn1e18, incomeType, rateDollarPerDscInNum, nodeNum) => {
     try {
 
         senderAddress = giveCheckSummedAddress(senderAddress);
@@ -707,13 +734,13 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
             docsToInsert.push({
                 receiverAddress: user.userAddress,
                 receiverRank: user.currentRank,
-                forNodeNum:Number(nodeNum),
+                forNodeNum: Number(nodeNum),
                 senderAddress: senderAddress,
                 senderRank: rankDuringStaking,
                 totalGapIncomeInUsd: gapIncomeGenerated,
                 senderTotalStakedUsd: Number(
                     new BigNumber(stakingAmountIn1e18).dividedBy(1e18).toFixed(4)
-                  ) || 0,
+                ) || 0,
                 gapIncomeInUsd: usdt,
                 gapIncomeInDsc: tokenUnits,
                 gapIncomeInDscInUsd: tokenUsd,
@@ -726,7 +753,7 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                 transactionHash: null,
                 blockNumber: null,
                 incomeType: incomeType || "stake",
-                isLapsed:false
+                isLapsed: false
             });
 
             const regDoc = await RegistrationModel.findOne({ userAddress: user.userAddress });
@@ -801,7 +828,7 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
         let purchasedNodes = getUserDoc.purchasedNodes || [];
 
 
-        
+
         const adminDoc = await AdminModel.findOne({});
         if (!adminDoc) {
             console.log("Admin doc not found");
@@ -832,9 +859,9 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
                     myNode: myNode
                 }
             }
-           
+
         );
-   
+
         const currentMonthName = moment.unix(time).format("MMMM");
         const updateConvertedNode = await NodeConverted.updateOne(
             { userAddress: user, nodeNum },
@@ -960,30 +987,30 @@ const validateStake = (amountUsdt, amountDscInUsd, totalUsdStake, currRatio) => 
     return { status: true, message: "Valid stake amounts" };
 };
 
-const validateUpgradeNodeConditions =  (totalAmountInUsd, amountInUsd, currency,amountToDeduct,nodePurchasingBalance,lastNode,nodeValidators,nodeNum) => {
-    if(!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct){
-        return {status:false,message:"Invalid parameters"}
+const validateUpgradeNodeConditions = (totalAmountInUsd, amountInUsd, currency, amountToDeduct, nodePurchasingBalance, lastNode, nodeValidators, nodeNum) => {
+    if (!totalAmountInUsd || !amountInUsd || !currency || !amountToDeduct) {
+        return { status: false, message: "Invalid parameters" }
     }
-    console.log("sdjkl;gl;sdhnrrtgsdry",nodeValidators)
-    const selectedNode= nodeValidators.find((item)=>item.nodeNum === Number(nodeNum));
+    console.log("sdjkl;gl;sdhnrrtgsdry", nodeValidators)
+    const selectedNode = nodeValidators.find((item) => item.nodeNum === Number(nodeNum));
     const nodePriceInBn = new BigNumber(selectedNode);
 
-    if(!lastNode) {
-        
-        if(currency === "USDT" && (totalAmountInUsd !== amountInUsd )) return {status:false, message:`Please send $${new BigNumber(selectedNode.selfStaking).dividedBy(1e18)} for upgrading this node!`}
+    if (!lastNode) {
+
+        if (currency === "USDT" && (totalAmountInUsd !== amountInUsd)) return { status: false, message: `Please send $${new BigNumber(selectedNode.selfStaking).dividedBy(1e18)} for upgrading this node!` }
     }
 
 
-     if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
-        return {status:false,message:"For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC."}
+    if (currency === "DSC" && amountInUsd !== totalAmountInUsd) {
+        return { status: false, message: "For first time node upgrade, if you are paying in DSC, you need to pay full amount in DSC." }
     } else if (currency === "USDT" && amountInUsd !== totalAmountInUsd) {
-        return {status:false, message:"For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT."}
+        return { status: false, message: "For first time node upgrade, if you are paying in USDT, you need to pay full amount in USDT." }
     } else {
-        return {staus:true, message:"Proceed"}
+        return { staus: true, message: "Proceed" }
     }
 }
 
-const giveUsdDscRatioParts = ( totalAmountInUsdIn1e18) => {
+const giveUsdDscRatioParts = (totalAmountInUsdIn1e18) => {
     const { usd: expectedUsdRatio, dsc: expectedDscRatio } = ratioUsdDsc();
 
     ct({ usd: expectedUsdRatio, dsc: expectedDscRatio });
@@ -999,7 +1026,7 @@ const giveUsdDscRatioParts = ( totalAmountInUsdIn1e18) => {
     const usdRatioAmount = totalUsd.multipliedBy(expectedUsdRatio).dividedBy(100);
     const dscRatioAmount = totalUsd.multipliedBy(expectedDscRatio).dividedBy(100);
 
-    ct({usdRatioAmount:usdRatioAmount.toFixed(),dscRatioAmount:dscRatioAmount.toFixed()})
+    ct({ usdRatioAmount: usdRatioAmount.toFixed(), dscRatioAmount: dscRatioAmount.toFixed() })
 
 
     console.log("Calculated Ratios:", {
@@ -1007,12 +1034,12 @@ const giveUsdDscRatioParts = ( totalAmountInUsdIn1e18) => {
         dsc: dscRatioAmount.toString()
     });
 
-    
+
 
     return { usd: usdRatioAmount.toFixed(), dsc: dscRatioAmount.toFixed() };
 };
 
-function getRemainingDscToPayInUsd( totalAmountInUsd, userNodes, nodeNum, rateDollarPerDsc ) {
+function getRemainingDscToPayInUsd(totalAmountInUsd, userNodes, nodeNum, rateDollarPerDsc) {
     const totalUsd = new BigNumber(totalAmountInUsd); // in 1e18
     const rate = new BigNumber(rateDollarPerDsc);     // in 1e18
 
@@ -1045,7 +1072,7 @@ function getRemainingDscToPayInUsd( totalAmountInUsd, userNodes, nodeNum, rateDo
     return remainingUsd; // DSC amount (1e18 precision)
 }
 
-const  getRemainingDscUsdToPayForStaking = ( totalAmountInUsd, userStakes ) =>{
+const getRemainingDscUsdToPayForStaking = (totalAmountInUsd, userStakes) => {
     const totalUsd = new BigNumber(totalAmountInUsd); // in 1e18
 
     // 1. USDT paid (USD terms)
@@ -1071,9 +1098,9 @@ const  getRemainingDscUsdToPayForStaking = ( totalAmountInUsd, userStakes ) =>{
     return remainingUsd.lte(0) ? new BigNumber(0) : remainingUsd;
 }
 
-const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,time,amountNbdPaid,nodeNum)=>{
-    try{
-        if(!senderAddress || (!majorIncome && !minor4Income)) return {status:false, message:"Invalid parameters"};
+const sendNodeRegIncomeToUpline = async (senderAddress, majorIncome, minor4Income, time, amountNbdPaid, nodeNum) => {
+    try {
+        if (!senderAddress || (!majorIncome && !minor4Income)) return { status: false, message: "Invalid parameters" };
         senderAddress = giveCheckSummedAddress(senderAddress);
         const senderUpline = await RegistrationModel.aggregate([
             { $match: { userAddress: senderAddress } },
@@ -1089,11 +1116,11 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
                 }
             },
             { $unwind: "$upline" },
-            { 
-                $match: { 
+            {
+                $match: {
                     "upline.level": { $gt: 0 },                // ✅ exclude root
                     "upline.userAddress": { $ne: senderAddress } // ✅ double safety
-                } 
+                }
             },
             {
                 $project: {
@@ -1146,16 +1173,16 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
                     { userAddress: p.userAddress },
                     { usdtIncomeWallet: 1, totalIncomeUsdtReceived: 1 }
                 ).lean();
-        
+
                 const currentWallet = new BigNumber(user?.usdtIncomeWallet || "0");
                 const currentTotal = new BigNumber(user?.totalIncomeUsdtReceived || "0");
-        
+
                 const income = new BigNumber(p.income);
-        
+
                 // Add income
                 const newWallet = currentWallet.plus(income).toFixed();
                 const newTotal = currentTotal.plus(income).toFixed();
-        
+
                 return {
                     updateOne: {
                         filter: { userAddress: p.userAddress },
@@ -1175,25 +1202,25 @@ const sendNodeRegIncomeToUpline = async(senderAddress,majorIncome,minor4Income,t
             receiverAddress: p.userAddress, // upline user
             amount: p.income,
             fromLevel: p.level,
-            time:time,
+            time: time,
             amountNbdPaid,
-            amountNbdPaidforNodeNum:Number(nodeNum)
+            amountNbdPaidforNodeNum: Number(nodeNum)
         }));
         if (incomeDocs.length > 0) {
             await NodeRegIncomeModel.insertMany(incomeDocs);
         }
-        
+
         // Execute bulkWrite
         if (bulkOps.length > 0) {
             await RegistrationModel.bulkWrite(bulkOps);
         }
 
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
 
 
 
-module.exports = {giveVrsForNodeDeployment,giveVrsForNodeUpgradation,sendNodeRegIncomeToUpline,getRemainingDscUsdToPayForStaking,getRemainingDscToPayInUsd, validateStake,giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo,updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking ,updateDirectCount}
+module.exports = { giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
