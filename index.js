@@ -54,6 +54,17 @@ if (process.env.NODE_ENV !== "development") {
     // }, {
     //     timezone: 'Asia/Kolkata'
     // });
+    cron.schedule('1 0 1 * *', async () => {
+        try {
+            console.log(`Updating live price`);
+            const res = await getLivePrice();
+            console.log("Live DSC Price fetched successfully:", res);
+        } catch (err) {
+            console.error('Error in monthly cron job:', err);
+        }
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
 
 } else {
     // cron.schedule('*/2 * * * *', async () => {
@@ -90,7 +101,7 @@ const server = app.listen(PORT, async () => {
         console.log("Live DSC Price fetched successfully:", res);
         // await setLatestBlock();
         await generateDefaultAdminDoc();
-        await dscNodeListEvents();
+        // await dscNodeListEvents();
       
     } else {
         const res = await getLivePrice();
