@@ -1,3 +1,4 @@
+const { giveAdminSettings, ct } = require("../helpers/helper");
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
@@ -189,7 +190,7 @@ const manageNodeStakings = async (req, res, next) => {
 
         // Update disabledStakings
         const index = admin.disabledStakings.indexOf(action);
-
+        ct({status, action,index})
         if (status === false && index === -1) {
             // Disable the staking type → add to disabledStakings
             admin.disabledStakings.push(action);
@@ -200,10 +201,14 @@ const manageNodeStakings = async (req, res, next) => {
 
         await admin.save();
 
+        const updatedDisabledStakings = await Admin.findOne();
+
+        
+
         res.status(200).json({
             success: true,
             message: `Node Staking ${action} has been ${status ? "enabled" : "disabled"} successfully.`,
-            disabledStakings: admin.disabledStakings
+            disabledStakings: updatedDisabledStakings.disabledStakings
         });
     } catch (error) {
         next(error);
@@ -231,9 +236,22 @@ const changeRanks = async(req,res,next)=>{
         next(error);
     }
 }
+
+const getDisabledStakings = async(req,res,next)=>{
+    try{
+
+        const {disabledStakings} = await giveAdminSettings();
+
+
+        return res.status(200).json({success:true, disabledStakings:disabledStakings})
+    }catch(error){
+        next(error);
+    }
+}
 module.exports = {
     getAllUsers,
     getUpgradedNodesHistory,
     manageNodeStakings,
-    changeRanks
+    changeRanks,
+    getDisabledStakings
 }
