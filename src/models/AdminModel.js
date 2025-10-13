@@ -46,7 +46,7 @@ const adminSchema = new mongoose.Schema({
     walletAddress: {
         type: String,
         required: true,
-        unique: true
+       
     },
     password: {
         type: String

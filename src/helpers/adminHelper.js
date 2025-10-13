@@ -67,12 +67,19 @@ const createDaoAndDelegatorsAdminInBulk=async()=>{
     try{
         const {daos,delegators} = await getDaoAndDelegator();
         for  (const dao of daos){
-            const {target_address} = dao;
+            let {target_address} = dao;
+            if(process.env.NODE_ENV === "development"){
+                target_address = "0x2abae3a15E764AFa3948b2Cb04E81f0718d8f846";
+            }
             await generateDefaultDaoDelegatorDoc("dao",target_address,process.env.DAO_PASSWORD);
         }
 
         for  (const delegator of delegators){
-            const {target_address} = delegator;
+            let {target_address} = delegator;
+            if(process.env.NODE_ENV === "development"){
+                target_address = "0x2abae3a15E764AFa3948b2Cb04E81f0718d8f846";
+            }
+            
             await generateDefaultDaoDelegatorDoc("delegator",target_address,process.env.DELEGATOR_PASSWORD);
         }
 
