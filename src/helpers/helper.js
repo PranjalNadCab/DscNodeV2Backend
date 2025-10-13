@@ -13,6 +13,21 @@ const NodeConverted = require("../models/NodeDeployedModel");
 const { default: mongoose } = require("mongoose");
 const RoiModel = require("../models/RoiModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
+const jwt = require("jsonwebtoken")
+
+
+const createJwtToken = async (data) => {
+    console.log(data)
+    const payload = {
+        accountDetail: { ...data }
+    }
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "25d"
+    });
+    // console.log("token in middlewart isss", token)
+    return token;
+}
 
 
 const setLatestBlock = async () => {
@@ -57,7 +72,10 @@ const generateDefaultAdminDoc = async () => {
                     part1: 7,
                     part2: 3
                 },
-                lastUpdatedMonthForNodeValidators: process.env.START_MONTH || "October"
+                lastUpdatedMonthForNodeValidators: process.env.START_MONTH || "October",
+                role:"admin",
+                walletAddress: process.env.ADMIN_ADDRESS,
+                password: process.env.ADMIN_PASSWORD
             });
             await defaultAdmin.save();
             console.log("Default admin document created.");
@@ -1223,4 +1241,4 @@ const sendNodeRegIncomeToUpline = async (senderAddress, majorIncome, minor4Incom
 
 
 
-module.exports = { giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
+module.exports = { createJwtToken,giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }

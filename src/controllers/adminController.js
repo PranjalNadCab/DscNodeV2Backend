@@ -253,18 +253,28 @@ const getDisabledStakings = async(req,res,next)=>{
 
 const login  = async(req,res,next)=>{
     try{
-        const {wallet,role,password} = req.body;
-        if(!wallet || !role || !password) throw new Error("All fields are required!");
+        const {walletAddress,role,password} = req.body;
+        if(!walletAddress || !role || !password) throw new Error("All fields are required!");
         if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
 
-        const adminDoc = await Admin.findOne({role});
-        if(!adminDoc) throw new Error("Admin not found!");
+        const admin = await AdminModel.findOne({ walletAddress,role });
+        if (!admin) {
+            throw new Error("Admin not found with the provided wallet address and role");
+        }
+        const isValidPassword = await bcrypt.compare(password, admin.password);
+        if (!isValidPassword) {
+            throw new Error("Invalid password");
+        }
 
-        
 
+        const jwt = await createJwtToken({ role, walletAddress,password });
+        if (isValidPassword) {
+            console.log("Login success")
+            return res.status(200).json({ token: jwt, msg: "Login success" });
+        } else {
+            return res.status(401).json({ token: jwt, msg: "Password not matched!" });
 
-
-
+        }
     }catch(error){
         next(error);
     }

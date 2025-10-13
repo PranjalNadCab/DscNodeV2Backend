@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bcrypt = require("bcrypt");
+
 
 const adminSchema = new mongoose.Schema({
     withdrawDeductionPercent: {
@@ -11,13 +13,13 @@ const adminSchema = new mongoose.Schema({
                 name: { type: String, required: true },
                 reward: { type: Number, required: true },
                 selfStaking: { type: String, required: true },
-                baseMinAss:{type:String,required:true},
-                nodeNum:{type:Number,required:true}
+                baseMinAss: { type: String, required: true },
+                nodeNum: { type: Number, required: true }
             }
         ],
         required: true
     },
-    lastUpdatedMonthForNodeValidators:{
+    lastUpdatedMonthForNodeValidators: {
         type: String,
         default: null
     },
@@ -38,18 +40,29 @@ const adminSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["admin", "dao","delegator"],
-        default:"admin"
+        enum: ["admin", "dao", "delegator"],
+        default: "admin"
     },
-    walletAddress:{
+    walletAddress: {
         type: String,
         required: true,
         unique: true
     },
-    password:{
+    password: {
         type: String
     }
 }, { timestamps: true });
+
+
+adminSchema.pre("save", async function (next) {
+
+    if (!this.isModified('password')) {
+        next();
+    } else {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+    }
+})
 
 const Admin = mongoose.model('Admin', adminSchema);
 
