@@ -276,12 +276,27 @@ const login = async (req, res, next) => {
         const jwt = await createJwtToken({ role, walletAddress, password });
         await Admin.findOneAndUpdate({ walletAddress, role }, { $set: { token: jwt } });
         if (isValidPassword) {
-            return res.status(200).json({ success: true, token: jwt, message: "Login success" });
+            return res.status(200).json({ success: true, token: jwt, message: "Login success",role,walletAddress });
         } else {
             throw new Error("Invalid credentials");
 
         }
     } catch (error) {
+        next(error);
+    }
+}
+
+const getAdminInfo = async(req,res,next)=>{
+    try{
+
+        const {role,walletAddress} = req.adminDecodedData;
+
+        const adminInfo = await Admin.findOne({role,walletAddress},{role:1,walletAddress:1});
+        if(!adminInfo) throw new Error("Admin info not found!");
+
+        return res.status(200).json({success:true,adminInfo});
+        
+    }catch(error){
         next(error);
     }
 }
@@ -292,5 +307,6 @@ module.exports = {
     getUpgradedNodesHistory,
     manageNodeStakings,
     changeRanks,
-    getDisabledStakings
+    getDisabledStakings,
+    getAdminInfo
 }
