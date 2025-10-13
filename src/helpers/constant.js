@@ -86,6 +86,6 @@ module.exports = {
     gapIncome,
     ratioUsdDsc,
     zeroAddressTxhash,
-    nbdAmounts
-
+    nbdAmounts,
+  
 };
