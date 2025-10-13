@@ -1,8 +1,9 @@
 const { ranks } = require("../helpers/constant");
-const { giveAdminSettings, ct } = require("../helpers/helper");
+const { giveAdminSettings, ct, createJwtToken } = require("../helpers/helper");
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
+const bcrypt = require("bcrypt");
 
 
 const getAllUsers = async (req, res, next) => {
@@ -257,7 +258,7 @@ const login  = async(req,res,next)=>{
         if(!walletAddress || !role || !password) throw new Error("All fields are required!");
         if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
 
-        const admin = await AdminModel.findOne({ walletAddress,role });
+        const admin = await Admin.findOne({ walletAddress,role });
         if (!admin) {
             throw new Error("Admin not found with the provided wallet address and role");
         }
@@ -270,9 +271,9 @@ const login  = async(req,res,next)=>{
         const jwt = await createJwtToken({ role, walletAddress,password });
         if (isValidPassword) {
             console.log("Login success")
-            return res.status(200).json({ token: jwt, msg: "Login success" });
+            return res.status(200).json({ success:true,token: jwt, message: "Login success" });
         } else {
-            return res.status(401).json({ token: jwt, msg: "Password not matched!" });
+            throw new Error("Invalid credentials");
 
         }
     }catch(error){
