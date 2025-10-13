@@ -50,6 +50,10 @@ const adminSchema = new mongoose.Schema({
     },
     password: {
         type: String
+    },
+    token:{
+        type:String,
+        default:null
     }
 }, { timestamps: true });
 

@@ -259,17 +259,41 @@ const login  = async(req,res,next)=>{
         if(!walletAddress || !role || !password) throw new Error("All fields are required!");
         if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
 
-        const admin = await Admin.findOne({ walletAddress,role });
-        if (!admin) {
-            throw new Error("Admin not found with the provided wallet address and role");
+        if(role==="admin"){
+            const admin = await Admin.findOne({ walletAddress,role });
+            if (!admin) {
+                throw new Error("Admin not found with the provided wallet address and role");
+            }
+            const isValidPassword = await bcrypt.compare(password, admin.password);
+            if (!isValidPassword) {
+                throw new Error("Invalid password");
+            }
         }
-        const isValidPassword = await bcrypt.compare(password, admin.password);
-        if (!isValidPassword) {
-            throw new Error("Invalid password");
+        else if(role==="dao"){
+            const dao = await Admin.findOne({ walletAddress,role });
+            if (!dao) {
+                
+            }
+            const isValidPassword = await bcrypt.compare(password, dao.password);
+            if (!isValidPassword) {
+                throw new Error("Invalid password");
+            }
+        }else{
+            const delegator = await Admin.findOne({ walletAddress,role });
+            if (!delegator) {
+                throw new Error("Delegator not found with the provided wallet address and role");
+            }
+            const isValidPassword = await bcrypt.compare(password, delegator.password);
+            if (!isValidPassword) {
+                throw new Error("Invalid password");
+            }
         }
 
-
+        
+        
+        
         const jwt = await createJwtToken({ role, walletAddress,password });
+        await Admin.findOneAndUpdate({ walletAddress,role },{ $set: { token:jwt } });
         if (isValidPassword) {
             return res.status(200).json({ success:true,token: jwt, message: "Login success" });
         } else {

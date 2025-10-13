@@ -15,7 +15,7 @@ const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapInc
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
-const { getDaoAndDelegator } = require("./src/helpers/adminHelper");
+const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk } = require("./src/helpers/adminHelper");
 
 
 
@@ -107,7 +107,7 @@ const server = app.listen(PORT, async () => {
         // await setLatestBlock();
         await generateDefaultAdminDoc();
         // await dscNodeListEvents();
-        await getDaoAndDelegator();
+        await createDaoAndDelegatorsAdminInBulk();
       
     } else {
         const res = await getLivePrice();
