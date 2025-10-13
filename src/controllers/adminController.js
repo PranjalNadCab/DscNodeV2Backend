@@ -250,8 +250,29 @@ const getDisabledStakings = async(req,res,next)=>{
         next(error);
     }
 }
+
+const login  = async(req,res,next)=>{
+    try{
+        const {wallet,role,password} = req.body;
+        if(!wallet || !role || !password) throw new Error("All fields are required!");
+        if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
+
+        const adminDoc = await Admin.findOne({role});
+        if(!adminDoc) throw new Error("Admin not found!");
+
+        
+
+
+
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     getAllUsers,
+    login,
     getUpgradedNodesHistory,
     manageNodeStakings,
     changeRanks,

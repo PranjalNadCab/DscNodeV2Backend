@@ -40,6 +40,14 @@ const adminSchema = new mongoose.Schema({
         type: String,
         enum: ["admin", "dao","delegator"],
         default:"admin"
+    },
+    walletAddress:{
+        type: String,
+        required: true,
+        unique: true
+    },
+    password:{
+        type: String
     }
 }, { timestamps: true });
 

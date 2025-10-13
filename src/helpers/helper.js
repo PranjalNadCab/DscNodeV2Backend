@@ -951,7 +951,7 @@ const generateRandomId = async () => {
 const giveAdminSettings = async () => {
     try {
 
-        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null,disabledStakings=[] } = await Admin.findOne({});
+        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null,disabledStakings=[] } = await Admin.findOne({role:"admin"});
 
 
 
