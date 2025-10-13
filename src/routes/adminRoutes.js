@@ -8,12 +8,12 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/get-admin-info",adminAuthentication, getAdminInfo);
 
-router.get("/all-users", getAllUsers);
-router.get("/get-upgraded-nodes-history", getUpgradedNodesHistory);
-router.post("/manage-node-stakings", manageNodeStakings);
-router.post("/change-ranks", changeRanks);
-router.get("/get-disabled-stakings",getDisabledStakings);
-router.get("/get-dao-delegators",getDaoDelegators);
+router.get("/all-users",adminAuthentication, getAllUsers);
+router.get("/get-upgraded-nodes-history", adminAuthentication,getUpgradedNodesHistory);
+router.post("/manage-node-stakings",adminAuthentication, manageNodeStakings);
+router.post("/change-ranks",adminAuthentication, changeRanks);
+router.get("/get-disabled-stakings",adminAuthentication,getDisabledStakings);
+router.get("/get-dao-delegators",adminAuthentication,getDaoDelegators);
 
 
 
