@@ -254,7 +254,8 @@ const getDisabledStakings = async(req,res,next)=>{
 
 const login  = async(req,res,next)=>{
     try{
-        const {walletAddress,role,password} = req.body;
+        let {walletAddress,role,password} = req.body;
+        role = role?.toLowerCase()?.trim();
         if(!walletAddress || !role || !password) throw new Error("All fields are required!");
         if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
 
@@ -270,7 +271,6 @@ const login  = async(req,res,next)=>{
 
         const jwt = await createJwtToken({ role, walletAddress,password });
         if (isValidPassword) {
-            console.log("Login success")
             return res.status(200).json({ success:true,token: jwt, message: "Login success" });
         } else {
             throw new Error("Invalid credentials");
