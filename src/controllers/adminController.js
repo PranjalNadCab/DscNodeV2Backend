@@ -301,8 +301,22 @@ const getAdminInfo = async(req,res,next)=>{
     }
 }
 
+const getDaoDelegators = async(req,res,next)=>{
+    try{
+        const [daos,delegators] = await Promise.all([
+            Admin.find({role:"dao"},{role:1,walletAddress:1}),
+            Admin.find({role:"delegator"},{role:1,walletAddress:1})
+        ]);
+        return res.status(200).json({success:true,daos,delegators});
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     getAllUsers,
+    getDaoDelegators,
     login,
     getUpgradedNodesHistory,
     manageNodeStakings,
