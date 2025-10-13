@@ -217,90 +217,71 @@ const manageNodeStakings = async (req, res, next) => {
     }
 };
 
-const changeRanks = async(req,res,next)=>{
-    try{
+const changeRanks = async (req, res, next) => {
+    try {
 
-        const {userAddress, rank} = req.body;
+        const { userAddress, rank } = req.body;
         // const {nodeValidators} = await giveAdminSettings();
         // if(!nodeValidators) throw new Error("Didn't found node prices!");
-        const onlyRanks = ranks.map((thisRank)=>thisRank.rank);
-        if(!onlyRanks.includes(rank)) throw new Error("Invalid rank!");
+        const onlyRanks = ranks.map((thisRank) => thisRank.rank);
+        if (!onlyRanks.includes(rank)) throw new Error("Invalid rank!");
 
-        const userDoc = await RegistrationModel.findOne({userAddress});
-        if(!userDoc) throw new Error("User not found!");
+        const userDoc = await RegistrationModel.findOne({ userAddress });
+        if (!userDoc) throw new Error("User not found!");
 
         userDoc.currentRank = rank;
 
         await userDoc.save();
 
 
-        return res.status(200).json({success:true, message:`Rank changed to ${rank} successfully.`});
-    }catch(error){
+        return res.status(200).json({ success: true, message: `Rank changed to ${rank} successfully.` });
+    } catch (error) {
         next(error);
     }
 }
 
-const getDisabledStakings = async(req,res,next)=>{
-    try{
+const getDisabledStakings = async (req, res, next) => {
+    try {
 
-        const {disabledStakings} = await giveAdminSettings();
+        const { disabledStakings } = await giveAdminSettings();
 
 
-        return res.status(200).json({success:true, disabledStakings:disabledStakings})
-    }catch(error){
+        return res.status(200).json({ success: true, disabledStakings: disabledStakings })
+    } catch (error) {
         next(error);
     }
 }
 
-const login  = async(req,res,next)=>{
-    try{
-        let {walletAddress,role,password} = req.body;
+const login = async (req, res, next) => {
+    try {
+        let { walletAddress, role, password } = req.body;
         role = role?.toLowerCase()?.trim();
-        if(!walletAddress || !role || !password) throw new Error("All fields are required!");
-        if(!["admin","dao","delegator"].includes(role)) throw new Error("Invalid role!");
+        if (!walletAddress || !role || !password) throw new Error("All fields are required!");
+        if (!["admin", "dao", "delegator"].includes(role)) throw new Error("Invalid role!");
 
-        if(role==="admin"){
-            const admin = await Admin.findOne({ walletAddress,role });
-            if (!admin) {
-                throw new Error("Admin not found with the provided wallet address and role");
-            }
-            const isValidPassword = await bcrypt.compare(password, admin.password);
-            if (!isValidPassword) {
-                throw new Error("Invalid password");
-            }
+
+        const admin = await Admin.findOne({ walletAddress, role });
+        if (!admin) {
+            throw new Error("Admin not found with the provided wallet address and role");
         }
-        else if(role==="dao"){
-            const dao = await Admin.findOne({ walletAddress,role });
-            if (!dao) {
-                
-            }
-            const isValidPassword = await bcrypt.compare(password, dao.password);
-            if (!isValidPassword) {
-                throw new Error("Invalid password");
-            }
-        }else{
-            const delegator = await Admin.findOne({ walletAddress,role });
-            if (!delegator) {
-                throw new Error("Delegator not found with the provided wallet address and role");
-            }
-            const isValidPassword = await bcrypt.compare(password, delegator.password);
-            if (!isValidPassword) {
-                throw new Error("Invalid password");
-            }
+        const isValidPassword = await bcrypt.compare(password, admin.password);
+        if (!isValidPassword) {
+            throw new Error("Invalid password");
         }
 
-        
-        
-        
-        const jwt = await createJwtToken({ role, walletAddress,password });
-        await Admin.findOneAndUpdate({ walletAddress,role },{ $set: { token:jwt } });
+
+
+
+
+        const jwt = await createJwtToken({ role, walletAddress, password });
+        await Admin.findOneAndUpdate({ walletAddress, role }, { $set: { token: jwt } });
         if (isValidPassword) {
-            return res.status(200).json({ success:true,token: jwt, message: "Login success" });
+            return res.status(200).json({ success: true, token: jwt, message: "Login success" });
         } else {
             throw new Error("Invalid credentials");
 
         }
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
