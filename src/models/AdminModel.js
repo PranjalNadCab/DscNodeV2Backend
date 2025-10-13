@@ -35,6 +35,11 @@ const adminSchema = new mongoose.Schema({
             // required: true
         }],
         default: []
+    },
+    role: {
+        type: String,
+        enum: ["admin", "dao","delegator"],
+        default:"admin"
     }
 }, { timestamps: true });
 
