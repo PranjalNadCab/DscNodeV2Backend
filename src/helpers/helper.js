@@ -512,7 +512,7 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
-
+            const {userType} = await giveUserType();
             const uniqueRandomId = await generateRandomId();
             const newUser = await RegistrationModel.create({
                 uniqueRandomId: uniqueRandomId,
@@ -522,7 +522,8 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
                 currentRank: "Beginner",
                 nodePurchasingBalance: regAmount,
                 block: Number(block),
-                transactionHash
+                transactionHash,
+                userType
             });
 
             await updateTeamCount(userAddress);
