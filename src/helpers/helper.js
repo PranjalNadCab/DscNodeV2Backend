@@ -512,7 +512,7 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
-            const {userType} = await giveUserType();
+            const { userType } = await giveUserType();
             const uniqueRandomId = await generateRandomId();
             const newUser = await RegistrationModel.create({
                 uniqueRandomId: uniqueRandomId,
@@ -1268,53 +1268,53 @@ const giveUserType = async (userAddress) => {
     }
 };
 
-const updateFsrValue = async(userAddress)=>{
-    try{
-        if(!userAddress) return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+const updateFsrValue = async (userAddress) => {
+    try {
+        if (!userAddress) return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
 
         const fUserAddress = giveCheckSummedAddress(userAddress);
 
-        let oldDoc = await RegistrationModel.findOne({userAddress: fUserAddress}, {currentFsr:1,utilizedFsr:1,activatedFsr:1}).lean();
-        if(!oldDoc){
+        let oldDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }, { currentFsr: 1, utilizedFsr: 1, activatedFsr: 1 }).lean();
+        if (!oldDoc) {
             console.log("User not found for address:", fUserAddress);
-            return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+            return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
         }
 
-        const {currentFsr,utilizedFsr,activatedFsr} = oldDoc;
-        
-        if(process.env.NODE_ENV==="production"){
-            const fsrResponse = await axios.get(`https://api.fantom.network/api?module=account&action=fsr&address=${fUserAddress}`);
-            // if(fsrResponse.data && fsrResponse.data.status==="1" && fsrResponse.data.result){
-            //     const fsrValue = fsrResponse.data.result*2;
-            //     await RegistrationModel.findOneAndUpdate(
-            //         { userAddress: fUserAddress },
-            //         { $set: { currentFsr:fsrValue } },
-            //         { new: true }
-            //     );
-            //     return fsrValue;
-            // }else{
-            //     console.log("Failed to fetch FSR value from API for address:", fUserAddress);
-            //     return {utilizedFsr:utilizedFsr,activatedFsr:activatedFsr,currentFsr:currentFsr};;
-            // }
-        }else{
-            const fsrFromApi = 50*2;
-          const newFsr =  await RegistrationModel.findOneAndUpdate(
+        const { currentFsr, utilizedFsr, activatedFsr } = oldDoc;
+
+        if (process.env.NODE_ENV === "production") {
+            const res = await axios.get(`https://api.dsclab.ai/api/getFSRvalue?walletAddress=0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed`);
+            if (res.data.success) {
+                const fsrValue = res.data.data.fsr_deposit * 2;
+                const updatedDoc = await RegistrationModel.findOneAndUpdate(
+                    { userAddress: fUserAddress },
+                    { $set: { currentFsr: fsrValue } },
+                    { new: true }
+                );
+                return { currentFsr: updatedDoc.currentFsr || currentFsr, utilizedFsr: updatedDoc.utilizedFsr || utilizedFsr, activatedFsr: updatedDoc.activatedFsr || activatedFsr };
+            } else {
+                console.log("Failed to fetch FSR value from API for address:", fUserAddress);
+                return { utilizedFsr: utilizedFsr, activatedFsr: activatedFsr, currentFsr: currentFsr };;
+            }
+        } else {
+            const fsrFromApi = 50 * 2;
+            const newFsr = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { currentFsr: fsrFromApi } },
                 { new: true }
             );
-            if(newFsr){
-                return {utilizedFsr:newFsr.utilizedFsr || 0,activatedFsr:newFsr.activatedFsr || 0,currentFsr:newFsr.currentFsr || 0};
+            if (newFsr) {
+                return { utilizedFsr: newFsr.utilizedFsr || 0, activatedFsr: newFsr.activatedFsr || 0, currentFsr: newFsr.currentFsr || 0 };
             }
         }
 
-        return  {utilizedFsr:utilizedFsr,activatedFsr:activatedFsr,currentFsr:currentFsr};
+        return { utilizedFsr: utilizedFsr, activatedFsr: activatedFsr, currentFsr: currentFsr };
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
 
-        return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+        return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
     }
 }
 
-module.exports = {giveUserType, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
+module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
