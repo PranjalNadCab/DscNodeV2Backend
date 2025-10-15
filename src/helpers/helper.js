@@ -1268,4 +1268,53 @@ const giveUserType = async (userAddress) => {
     }
 };
 
+const updateFsrValue = async(userAddress)=>{
+    try{
+        if(!userAddress) return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+
+        const fUserAddress = giveCheckSummedAddress(userAddress);
+
+        let oldDoc = await RegistrationModel.findOne({userAddress: fUserAddress}, {currentFsr:1,utilizedFsr:1,activatedFsr:1}).lean();
+        if(!oldDoc){
+            console.log("User not found for address:", fUserAddress);
+            return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+        }
+
+        const {currentFsr,utilizedFsr,activatedFsr} = oldDoc;
+        
+        if(process.env.NODE_ENV==="production"){
+            const fsrResponse = await axios.get(`https://api.fantom.network/api?module=account&action=fsr&address=${fUserAddress}`);
+            // if(fsrResponse.data && fsrResponse.data.status==="1" && fsrResponse.data.result){
+            //     const fsrValue = fsrResponse.data.result*2;
+            //     await RegistrationModel.findOneAndUpdate(
+            //         { userAddress: fUserAddress },
+            //         { $set: { currentFsr:fsrValue } },
+            //         { new: true }
+            //     );
+            //     return fsrValue;
+            // }else{
+            //     console.log("Failed to fetch FSR value from API for address:", fUserAddress);
+            //     return {utilizedFsr:utilizedFsr,activatedFsr:activatedFsr,currentFsr:currentFsr};;
+            // }
+        }else{
+            const fsrFromApi = 50*2;
+          const newFsr =  await RegistrationModel.findOneAndUpdate(
+                { userAddress: fUserAddress },
+                { $set: { currentFsr: fsrFromApi } },
+                { new: true }
+            );
+            if(newFsr){
+                return {utilizedFsr:newFsr.utilizedFsr || 0,activatedFsr:newFsr.activatedFsr || 0,currentFsr:newFsr.currentFsr || 0};
+            }
+        }
+
+        return  {utilizedFsr:utilizedFsr,activatedFsr:activatedFsr,currentFsr:currentFsr};
+
+    }catch(error){
+        console.log(error);
+
+        return {utilizedFsr:0,activatedFsr:0,currentFsr:0};
+    }
+}
+
 module.exports = {giveUserType, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
