@@ -110,11 +110,11 @@ const server = app.listen(PORT, async () => {
         await createDaoAndDelegatorsAdminInBulk();
       
     } else {
-        const res = await getLivePrice();
-        console.log("Live DSC Price fetched successfully:", res);
-        await generateDefaultAdminDoc();
-        await createDaoAndDelegatorsAdminInBulk();
-        await dscNodeListEvents();
+        // const res = await getLivePrice();
+        // console.log("Live DSC Price fetched successfully:", res);
+        // await generateDefaultAdminDoc();
+        // await createDaoAndDelegatorsAdminInBulk();
+        // await dscNodeListEvents();
     }
 });
 

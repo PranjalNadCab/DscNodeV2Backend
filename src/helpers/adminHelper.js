@@ -21,7 +21,7 @@ const getDaoAndDelegator = async()=>{
         return {daos,delegators};
     }catch(error){
         console.error("Error in getDaoAndDelegator:", error);
-        throw error;
+        throw {daos:[],delegators:[]};
     }
 }
 

@@ -13,7 +13,8 @@ const NodeConverted = require("../models/NodeDeployedModel");
 const { default: mongoose } = require("mongoose");
 const RoiModel = require("../models/RoiModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { getDaoDelegators } = require("../controllers/adminController");
 
 
 const createJwtToken = async (data) => {
@@ -73,7 +74,7 @@ const generateDefaultAdminDoc = async () => {
                     part2: 3
                 },
                 lastUpdatedMonthForNodeValidators: process.env.START_MONTH || "October",
-                role:"admin",
+                role: "admin",
                 walletAddress: process.env.ADMIN_ADDRESS,
                 password: process.env.ADMIN_PASSWORD
             });
@@ -511,6 +512,7 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
+
             const uniqueRandomId = await generateRandomId();
             const newUser = await RegistrationModel.create({
                 uniqueRandomId: uniqueRandomId,
@@ -972,15 +974,15 @@ const generateRandomId = async () => {
 const giveAdminSettings = async () => {
     try {
 
-        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null,disabledStakings=[] } = await Admin.findOne({role:"admin"});
+        const { withdrawDeductionPercent = null, nodeValidators = null, stakeRatio = null, disabledStakings = [] } = await Admin.findOne({ role: "admin" });
 
 
 
-        return { withdrawDeductionPercent, nodeValidators, stakeRatio,disabledStakings }
+        return { withdrawDeductionPercent, nodeValidators, stakeRatio, disabledStakings }
 
     } catch (error) {
         console.log(error);
-        return { withdrawDeductionPercent: null, nodeValidators: null, stakeRatio: null,disabledStakings:[] }
+        return { withdrawDeductionPercent: null, nodeValidators: null, stakeRatio: null, disabledStakings: [] }
     }
 }
 
@@ -1242,6 +1244,27 @@ const sendNodeRegIncomeToUpline = async (senderAddress, majorIncome, minor4Incom
     }
 }
 
+const giveUserType = async (userAddress) => {
+    try {
+        if (!userAddress) return { userType: "normal" };
 
+        const { daos, delegators } = await getDaoDelegators();
+        const lowerAddress = userAddress.toLowerCase();
 
-module.exports = { createJwtToken,giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
+        // Check if user exists in daos array
+        const isDao = daos.some(obj => obj.target_address?.toLowerCase() === lowerAddress);
+        if (isDao) return { userType: "dao" };
+
+        // Check if user exists in delegators array
+        const isDelegator = delegators.some(obj => obj.target_address?.toLowerCase() === lowerAddress);
+        if (isDelegator) return { userType: "delegator" };
+
+        // Default case
+        return { userType: "normal" };
+
+    } catch (error) {
+        return { userType: "normal" };
+    }
+};
+
+module.exports = {giveUserType, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }

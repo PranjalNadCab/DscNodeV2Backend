@@ -95,8 +95,24 @@ const RegistrationSchema = new mongoose.Schema({
     transactionHash:{
         type:String,
         default:null
+    },
+    currentFsr:{   //storing 2x of what is being received and this is in dollars
+        type:Number,
+        default:0
+    },
+    utilizedFsr:{
+        type:Number,
+        default:0
+    },
+    activatedFsr:{
+        type:Number,
+        default:0
+    },
+    userType:{
+        type:String,
+        enum:["normal","dao","delegator"],
+        default:"normal"
     }
-   
 }, { timestamps: true, collection: 'registration' });
 
 RegistrationSchema.index({ userAddress: 1, sponsorAddress: 1 }, { unique: true });
