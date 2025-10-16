@@ -1336,7 +1336,6 @@ const pendingTxsToSponsor = async (req, res, next) => {
             }
         ]);
 
-        console.log("skdfasdfasf",downline[0]?.downlineAddresses)
 
         const allDownlineAddresses = downline[0]?.downlineAddresses || [];
 
