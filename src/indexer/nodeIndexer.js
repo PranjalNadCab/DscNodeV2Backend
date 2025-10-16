@@ -11,6 +11,7 @@ const moment = require("moment");
 const { zeroAddressTxhash, ranks } = require("../helpers/constant.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
+const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 
 
 async function dscNodeSyncBlock() {
@@ -70,6 +71,7 @@ async function processEvents(events) {
 
                     const newUser = await registerUser(userAddress, Number(timestampNormal), sponsorAddress, regAmount, Number(block), transactionHash);
                     // await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal),regAmount);
+                    await getLivePrice()
 
                 } catch (error) {
                     console.log("Error while registering user", error);
@@ -128,7 +130,7 @@ async function processEvents(events) {
 
                     await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid,Number(nodeNum));
 
-
+                    await getLivePrice()
                 } catch (error) {
                     console.log(error);
                     continue;
@@ -225,7 +227,7 @@ async function processEvents(events) {
                         console.log("do nothing for incomeplete node upgrades");
                     }
 
-
+                    await getLivePrice()
 
 
                 } catch (error) {

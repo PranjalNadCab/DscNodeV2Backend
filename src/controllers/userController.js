@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -649,14 +649,14 @@ const upgradeNode = async (req, res, next) => {
 
 
                 // console.log("------------------->",amountToDeduct.toFixed());
-                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
 
             } else if ((currency === "USDT") && (amountInUsdIn1e18.isEqualTo(usdtPartIfMixedTx))) {
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
 
                 mixTxHash = zeroAddressTxhash;
-                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
             } else {
                 throw new Error("Please send usdt in proper ratio!")
             }
@@ -685,7 +685,7 @@ const upgradeNode = async (req, res, next) => {
 
             amountToDeduct = amountInUsdIn1e18;
             mixTxHash = userUsdtPartTx.transactionHash;
-            generatedDsc = amountToDeduct.dividedBy(price).toFixed();
+            generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
 
 
         }
@@ -699,7 +699,7 @@ const upgradeNode = async (req, res, next) => {
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
 
                 mixTxHash = "NA";
-                generatedDsc = amountToDeduct.dividedBy(price).toFixed();
+                generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
 
 
 
@@ -1246,8 +1246,51 @@ const nbdPaidHistory  = async(req,res,next)=>{
     }
 }
 
+const activateFsr = async(req,res,next)=>{
+    try{
+        let {activationAmount, userAddress} = req.body;
+
+        if(!activationAmount || isNaN(activationAmount) || Number(activationAmount) <=0) throw new Error("Please provide valid amount to activate fsr");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const isUserExist = await RegistrationModel.findOne({userAddress});
+
+        if(!isUserExist) throw new Error("You have not registered yet!");
+
+        const {userType} = await giveUserType(userAddress);
+        if(userType === "normal") throw new Error("You are not eligible for fsr activation!");
+
+        const  {currentFsr,utilizedFsr,activatedFsr} = await updateFsrValue(userAddress);
+
+        const remainingFsr = currentFsr - activatedFsr;
+
+        if(activationAmount > remainingFsr) throw new Error(`You can activate fsr up to $${remainingFsr} only!`);
+
+        //calcualte 18% of activationAmount
+        const { price } = await LivePriceDsc.findOne();
+        const dscAmountInUsd = activationAmount*0.18;
+        const generatedDsc = dscAmountInUsd.dividedBy(price).toNumber();
+
+        //generate vrs
+        let currNonce = 0;
+        let hash = null;
+        const activationAmountIn1e18 = new BigNumber(activationAmount).multipliedBy(1e18).toFixed(0);
+        const dscAmountInUsdIn1e18 = new BigNumber(dscAmountInUsd).multipliedBy(1e18).toFixed(0);
+        const generatedDscIn1e18 = new BigNumber(generatedDsc).multipliedBy(1e18).toFixed(0);
+        const priceInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
+
+        const vrs = await giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmountIn1e18,generatedDscIn1e18,priceInUsdIn1e18, currNonce, hash);
+
+        return res.status(200).json({success:true, message:"Fsr signature generated successfully",vrs});
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    activateFsr,
     getLevelIncome,
     getIdToAddress,
     getNodeUpgradeHistory,

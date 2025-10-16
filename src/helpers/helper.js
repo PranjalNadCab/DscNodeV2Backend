@@ -96,41 +96,7 @@ const giveCheckSummedAddress = (address) => {
     return web3.utils.toChecksumAddress(address);
 }
 
-// function giveVrsForStaking(amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce) {
-//     return new Promise(async (resolve, reject) => {
-//         try {
 
-//             //call contract to match nonce
-//             ct({ amountDscInUsdIn1e18, amountDscIn1e18, amountUsdtIn1e18, priceDscInUsdIn1e18, user, hash, nonce })
-
-//             const data = {
-//                 hash: hash,
-//                 nonce: nonce,
-//                 user: user,
-//                 amountDscInUsdIn1e18,
-//                 amountDscIn1e18,
-//                 amountUsdtIn1e18,
-//                 priceDscInUsdIn1e18
-//             };
-//             console.log({ data })
-
-
-//             const account = web3.eth.accounts.privateKeyToAccount(
-//                 process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
-//             );
-
-//             web3.eth.accounts.wallet.add(account);
-//             web3.eth.defaultAccount = account.address;
-//             const signature = await web3.eth.sign(hash, account.address);
-//             data["signature"] = signature;
-
-//             resolve({ ...data });
-//         } catch (e) {
-//             console.log(e, "Error in signmessage");
-//             resolve(false);
-//         }
-//     });
-// }
 
 function giveVrsForStaking(user, amountInUsdIn1e18, currency, rateDollarPerDsc, mixTxHash, totalAmountInUsdIn1e18, hash, currNonce) {
     return new Promise(async (resolve, reject) => {
@@ -274,41 +240,6 @@ function giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, pric
     });
 }
 
-// function giveVrsForNodeConversionAndRegistration(userAddress, amountToDeduct, action, nodeNum, nodePurchasingBalance, currNonce, hash) {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-
-//             //call contract to match nonce
-
-//             const data = {
-//                 hash: hash,
-//                 nonce: currNonce,
-//                 userAddress: userAddress,
-//                 action: action,
-//                 amountToDeduct,
-//                 nodeNum,
-//                 oldBalance: nodePurchasingBalance
-//             };
-
-
-
-//             const account = web3.eth.accounts.privateKeyToAccount(
-//                 process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
-//             );
-
-//             web3.eth.accounts.wallet.add(account);
-//             web3.eth.defaultAccount = account.address;
-//             const signature = await web3.eth.sign(hash, account.address);
-//             data["signature"] = signature;
-
-//             resolve({ ...data });
-//         } catch (e) {
-//             console.log(e, "Error in signmessage");
-//             resolve(false);
-//         }
-//     });
-// }
-
 function giveVrsForNodeUpgradation(userAddress, amountToDeduct, nodeNum, totalAmountInUsdIn1e18, mixTxHash, rateDollarPerDsc, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -391,6 +322,39 @@ function giveVrsForNodeConversion(userAddress, nodeNum, currNonce, hash) {
             };
 
 
+
+            const account = web3.eth.accounts.privateKeyToAccount(
+                process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
+            );
+
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            const signature = await web3.eth.sign(hash, account.address);
+            data["signature"] = signature;
+
+            resolve({ ...data });
+        } catch (e) {
+            console.log(e, "Error in signmessage");
+            resolve(false);
+        }
+    });
+}
+
+function giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmountIn1e18,generatedDscIn1e18,priceInUsdIn1e18, currNonce, hash) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //call contract to match nonce
+
+            const data = {
+                hash: hash,
+                nonce: currNonce,
+                userAddress: userAddress,
+                activationAmountIn1e18,
+                generatedDscIn1e18,
+                priceInUsdIn1e18,
+                dscAmountInUsdIn1e18
+            };
 
             const account = web3.eth.accounts.privateKeyToAccount(
                 process.env.PRICE_OPERATOR_ADDRESS_PRIVATE_KEY
@@ -1317,4 +1281,4 @@ const updateFsrValue = async (userAddress) => {
     }
 }
 
-module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount }
+module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount,giveVrsForActivatingFsr }
