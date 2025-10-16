@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId, giveUserType } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -12,6 +12,7 @@ const { zeroAddressTxhash, ranks } = require("../helpers/constant.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
 const { getLivePrice } = require("../utils/liveDscPriceApi.js");
+const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -310,6 +311,38 @@ async function processEvents(events) {
                     console.log("Dsc withdraw doc created:", newWithdraw);
 
                     await manageUserWallet(userAddress, null, new BigNumber(amountDsc).toFixed());
+
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+            }
+            else if (event == "FsrActivated") {
+                try {
+                    let { user, activationAmount, dscAmountInUsd, generatedDsc, priceInUsd, lastUsedNonce } = returnValues;
+                    activationAmount = new BigNumber(activationAmount).dividedBy(1e18).toNumber();
+                    dscAmountInUsd = new BigNumber(dscAmountInUsd).dividedBy(1e18).toNumber();
+                    generatedDsc = new BigNumber(generatedDsc).dividedBy(1e18).toNumber();
+                    priceInUsd = new BigNumber(priceInUsd).dividedBy(1e18).toNumber();
+                    lastUsedNonce = Number(lastUsedNonce);
+
+                    const {userType="normal"} = await giveUserType();
+                    const newFsr = await ActivateFsrModel.create({
+                        userAddress: user,
+                        activationAmount,
+                        dscAmountInUsd,
+                        generatedDsc,
+                        priceInUsd,
+                        lastUsedNonce,
+                        time: Number(timestampNormal),
+                        block: Number(block),
+                        transactionHash: transactionHash,
+                        userType
+                    });
+
+                    console.log("Found New FSR:", newFsr);
+
 
 
                 } catch (error) {

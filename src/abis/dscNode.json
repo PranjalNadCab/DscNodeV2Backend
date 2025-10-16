@@ -28,6 +28,49 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "activationAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dscAmountInUsd",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "generatedDsc",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "priceInUsd",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
+            }
+        ],
+        "name": "FsrActivated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "address",
                 "name": "userAddress",
@@ -370,6 +413,49 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "activationAmountIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dscAmountInUsdIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "generatedDscIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "priceInUsdIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "acitvateFsr",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
@@ -440,6 +526,45 @@
         "name": "deployNode",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "activationAmountIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dscAmountInUsdIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "generatedDscIn1e18",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "priceInUsdIn1e18",
+                "type": "uint256"
+            }
+        ],
+        "name": "getHashForActivateFsr",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
