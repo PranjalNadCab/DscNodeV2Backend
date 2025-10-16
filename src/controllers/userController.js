@@ -621,7 +621,7 @@ const upgradeNode = async (req, res, next) => {
 
         const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed(0);
 
-        const { nodeValidators,disabledStakings } = await giveAdminSettings();
+        const { nodeValidators, disabledStakings } = await giveAdminSettings();
         let generatedDsc = "0";
         const nodeToUpgrade = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
         if (!totalAmountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking)) throw new Error(`Total amount in usd must be $${new BigNumber(nodeToUpgrade.selfStaking).dividedBy(1e18).toFixed()}`);
@@ -723,12 +723,12 @@ const upgradeNode = async (req, res, next) => {
 
         }
 
-        if(mixTxHash == "NA" && disabledStakings.includes(currency)){
+        if (mixTxHash == "NA" && disabledStakings.includes(currency)) {
             throw new Error(`Currently ${currency} staking is disabled!`);
-        }else if(mixTxHash !== "NA" && disabledStakings.includes("Mix")){
+        } else if (mixTxHash !== "NA" && disabledStakings.includes("Mix")) {
             throw new Error(`Currently Mix staking is disabled!`);
         }
-        
+
 
 
         let prevNonce = 0;
@@ -754,7 +754,7 @@ const upgradeNode = async (req, res, next) => {
             // if (Number(currNonce) === 0) {
             //     nbdToApprove = nbdAmounts[nodeNum - 1] - nbdAmounts[0];
             // } else {
-                nbdToApprove = nbdAmounts[nodeNum - 1] - new BigNumber(alreadyPaidNbd).dividedBy(1e18).toNumber();
+            nbdToApprove = nbdAmounts[nodeNum - 1] - new BigNumber(alreadyPaidNbd).dividedBy(1e18).toNumber();
             // }
         } else {
             nbdToApprove = 0;
@@ -773,7 +773,7 @@ const upgradeNode = async (req, res, next) => {
             amountToApprove = amountToApprove;
         }
 
-        
+
 
 
 
@@ -1210,9 +1210,9 @@ const getLevelIncome = async (req, res, next) => {
     }
 };
 
-const nbdPaidHistory  = async(req,res,next)=>{
-    try{
-        let {userAddress,page=1,limit=10} = req.body;
+const nbdPaidHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
 
         if (!userAddress) {
             throw new Error("Please provide user address");
@@ -1235,48 +1235,48 @@ const nbdPaidHistory  = async(req,res,next)=>{
             .skip((page - 1) * limit)
             .limit(limit);
 
-            return res.status(200).json({
-                success: true,
-                currentPage: page,
-                totalPages: Math.ceil(totalDocs / limit),
-                totalRecords: totalDocs,
-                data: history,
-            });
+        return res.status(200).json({
+            success: true,
+            currentPage: page,
+            totalPages: Math.ceil(totalDocs / limit),
+            totalRecords: totalDocs,
+            data: history,
+        });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
-const activateFsr = async(req,res,next)=>{
-    try{
-        let {activationAmount, userAddress} = req.body;
+const activateFsr = async (req, res, next) => {
+    try {
+        let { activationAmount, userAddress } = req.body;
 
-        if(!activationAmount || isNaN(activationAmount) || Number(activationAmount) <=0) throw new Error("Please provide valid amount to activate fsr");
+        if (!activationAmount || isNaN(activationAmount) || Number(activationAmount) <= 0) throw new Error("Please provide valid amount to activate fsr");
 
         userAddress = giveCheckSummedAddress(userAddress);
-        
 
-        const isUserExist = await RegistrationModel.findOne({userAddress});
 
-        if(!isUserExist) throw new Error("You have not registered yet!");
+        const isUserExist = await RegistrationModel.findOne({ userAddress });
 
-        const {userType} = await giveUserType(userAddress);
-        if(userType === "normal") throw new Error("You are not eligible for fsr activation!");
+        if (!isUserExist) throw new Error("You have not registered yet!");
 
-        const  {currentFsr,utilizedFsr,activatedFsr} = await updateFsrValue(userAddress);
+        const { userType } = await giveUserType(userAddress);
+        if (userType === "normal") throw new Error("You are not eligible for fsr activation!");
+
+        const { currentFsr, utilizedFsr, activatedFsr } = await updateFsrValue(userAddress);
 
         const remainingFsr = currentFsr - activatedFsr;
 
-        if(activationAmount > remainingFsr) throw new Error(`You can activate fsr up to $${remainingFsr} only!`);
+        if (activationAmount > remainingFsr) throw new Error(`You can activate fsr up to $${remainingFsr} only!`);
 
         //calcualte 18% of activationAmount
         const { price } = await LivePriceDsc.findOne();
-        const dscAmountInUsd = activationAmount*0.18;
+        const dscAmountInUsd = activationAmount * 0.18;
         const generatedDsc = dscAmountInUsd.dividedBy(price).toNumber();
 
         //generate vrs
-        const lastFsrDoc = await ActivateFsrModel.findOne({userAddress}).sort({time:-1});
+        const lastFsrDoc = await ActivateFsrModel.findOne({ userAddress }).sort({ time: -1 });
         let prevNonce = 0;
         if (!lastFsrDoc) {
             prevNonce = -1;
@@ -1286,22 +1286,124 @@ const activateFsr = async(req,res,next)=>{
 
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous activation is not stored yet! Please try again later.");
-        
-        
+
+
         const activationAmountIn1e18 = new BigNumber(activationAmount).multipliedBy(1e18).toFixed(0);
         const dscAmountInUsdIn1e18 = new BigNumber(dscAmountInUsd).multipliedBy(1e18).toFixed(0);
         const generatedDscIn1e18 = new BigNumber(generatedDsc).multipliedBy(1e18).toFixed(0);
         const priceInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
-        
-        const hash = await dscNodeContract.methods.getHashForActivateFsr(userAddress, activationAmountIn1e18, dscAmountInUsdIn1e18, generatedDscIn1e18, priceInUsdIn1e18).call();
-        
-        const vrs = await giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmountIn1e18,generatedDscIn1e18,priceInUsdIn1e18, currNonce, hash);
 
-        return res.status(200).json({success:true, message:"Fsr signature generated successfully",vrs});
-    }catch(error){
+        const hash = await dscNodeContract.methods.getHashForActivateFsr(userAddress, activationAmountIn1e18, dscAmountInUsdIn1e18, generatedDscIn1e18, priceInUsdIn1e18).call();
+
+        const vrs = await giveVrsForActivatingFsr(userAddress, dscAmountInUsdIn1e18, activationAmountIn1e18, generatedDscIn1e18, priceInUsdIn1e18, currNonce, hash);
+
+        return res.status(200).json({ success: true, message: "Fsr signature generated successfully", vrs });
+    } catch (error) {
         next(error);
     }
 }
+
+const pendingTxsToSponsor = async (req, res, next) => {
+    try {
+        let { userAddress } = req.body;
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // 1️⃣ Check if user is eligible (not a normal user)
+        const sponsorDoc = await RegistrationModel.findOne({ userAddress, userType: { $ne: "normal" } });
+        if (!sponsorDoc) throw new Error("You cannot sponsor pending transactions!");
+
+        // 2️⃣ Find all downline users recursively (infinite depth)
+        const downline = await RegistrationModel.aggregate([
+            {
+                $match: { userAddress }
+            },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "userAddress",
+                    connectToField: "sponsorAddress",
+                    as: "downline",
+                    depthField: "level"
+                }
+            },
+            {
+                $project: {
+                    downlineAddresses: "$downline.userAddress"
+                }
+            }
+        ]);
+
+        console.log("skdfasdfasf",downline[0]?.downlineAddresses)
+
+        const allDownlineAddresses = downline[0]?.downlineAddresses || [];
+
+        if (allDownlineAddresses.length === 0) {
+            return res.status(200).json({ success: true, message: "No downline users found.", data: [] });
+        }
+
+        // 3️⃣ Get pending upgrade transactions of these users
+        const pendingTxs = await UpgradedNodes.aggregate([
+            {
+                $match: {
+                    userAddress: { $in: allDownlineAddresses },
+                    
+                    
+                    $or:[
+                        {isPaymentCompleted: false},
+                        {paidBy: { $in: ["dao", "delegator"] }}
+                    ]
+                }
+            },
+            // 4️⃣ Join registration data for userId and sponsorId
+            {
+                $lookup: {
+                    from: "registration",
+                    localField: "userAddress",
+                    foreignField: "userAddress",
+                    as: "userData"
+                }
+            },
+            { $unwind: "$userData" },
+            {
+                $project: {
+                    _id: 0,
+                    userId: "$userData.uniqueRandomId",
+                    userAddress: 1,
+                    sponsorAddress: "$userData.sponsorAddress",
+                    nodeName: "$userData.myNode.nodeName",
+                    transactionHash: 1,
+                    totalAmountInUsd: 1,
+                    remainingDsc: {
+                        $subtract: [
+                            { $toDouble: "$totalAmountInUsd" },
+                            { $toDouble: "$amountUsdPaid" }
+                        ]
+                    },
+                    status: {
+                        $cond: [
+                            { $eq: ["$isPaymentCompleted", false] },
+                            "Pay",
+                            "Paid"
+                        ]
+                    },
+                    nodeNum:1
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Here are pending Transactions!",
+            data: pendingTxs
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     stakeVrs,
@@ -1324,6 +1426,7 @@ module.exports = {
     stakeMix,
     getUserPendingStake,
     getUserPendingNodeUpgrades,
-    nbdPaidHistory
+    nbdPaidHistory,
+    pendingTxsToSponsor
 };
 

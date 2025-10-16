@@ -51,6 +51,11 @@ const UpgradeNodeSchema = new mongoose.Schema({
     mixTransactionHash:{
         type:String,
         default:"NA"
+    },
+    paidBy:{
+        type:String,
+        enum:["self","dao","delegator"],
+        default:"self"
     }
 },{ timestamps: true });
 
