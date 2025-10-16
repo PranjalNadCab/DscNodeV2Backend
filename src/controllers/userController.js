@@ -764,6 +764,7 @@ const upgradeNode = async (req, res, next) => {
         if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash) {
             if (currency === "USDT") {
                 amountToApprove = amountToApprove.plus(amountToDeduct).plus(nbdToApprove);
+                generatedDsc = "0"
             } else {
                 amountToApprove = amountToApprove.plus(nbdToApprove);
             }
