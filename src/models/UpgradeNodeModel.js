@@ -1,66 +1,72 @@
 const mongoose = require("mongoose");
 
 
-const UpgradeNodeSchema = new mongoose.Schema({   
-    userAddress:{
-        type:String,
-        trim:true,
-        requried:true
+const UpgradeNodeSchema = new mongoose.Schema({
+    userAddress: {
+        type: String,
+        trim: true,
+        requried: true
     },
-    nodeNum:{
-        type:Number,
-        default:null
+    nodeNum: {
+        type: Number,
+        default: null
     },
-    lastUsedNonce:{
-        type:Number,
-        required:true
+    lastUsedNonce: {
+        type: Number,
+        required: true
     },
-    totalAmountInUsd:{
-        type:String,
-        required:true
+    totalAmountInUsd: {
+        type: String,
+        required: true
     },
-    amountUsdPaid:{
-        type:String,
-        required:true
+    amountUsdPaid: {
+        type: String,
+        required: true
     },
-    time:{
-        type:Number,
-        default:()=>Math.floor(Date.now()/1000)
+    time: {
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
-    currency:{
+    currency: {
         type: String,
         enum: ['USDT', 'DSC'],
         required: true
     },
-    isPaymentCompleted:{
-        type:Boolean,
-        default:true
+    isPaymentCompleted: {
+        type: Boolean,
+        default: true
     },
-    rateDollarPerDsc:{
+    rateDollarPerDsc: {
         type: String,
         required: true
     },
-    block:{
-        type:Number,
-        required:true
+    block: {
+        type: Number,
+        required: true
     },
-    transactionHash:{
-        type:String,
-        required:true,
+    transactionHash: {
+        type: String,
+        required: true,
     },
-    mixTransactionHash:{
-        type:String,
-        default:"NA"
+    mixTransactionHash: {
+        type: String,
+        default: "NA"
     },
-    paidBy:{
-        type:String,
-        enum:["self","dao","delegator"],
-        default:"self"
+    paidBy: {
+        userAddress: {
+            type: String,
+            default:null
+        },
+        userType: {
+            type: String,
+            enum: ["self", "dao", "delegator"],
+            default: "self",
+        },
     }
-},{ timestamps: true });
+}, { timestamps: true });
 
 
-UpgradeNodeSchema.index({ userAddress: 1,nodeName:1,mixTxHash:1,transactionHash:1 },{unique:true});
+UpgradeNodeSchema.index({ userAddress: 1, nodeName: 1, mixTxHash: 1, transactionHash: 1 }, { unique: true });
 
 const UpgradedNodes = mongoose.model("UpgradedNodes", UpgradeNodeSchema);
 

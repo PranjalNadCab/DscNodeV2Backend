@@ -47,7 +47,7 @@ const ActivateFsrSchema = new mongoose.Schema({
     },
 }, { timestamps: true});
 
-ActivateFsrSchema.index({ userAddress: 1, sponsorAddress: 1 }, { unique: true });
+ActivateFsrSchema.index({ userAddress: 1,time:1  }, { unique: true });
 
 const ActivateFsrModel = mongoose.model('activatedFsr', ActivateFsrSchema);
 

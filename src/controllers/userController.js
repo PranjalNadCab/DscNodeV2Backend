@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -679,7 +679,11 @@ const upgradeNode = async (req, res, next) => {
                 return sum.plus(new BigNumber(item.amountUsdPaid));
             }, new BigNumber(0));
             const userRemainingUsdToPay = new BigNumber(targetTotalAmount).minus(userUsdtPaymentAlreadyPaid).minus(userDscAlreadyPaid);
-            if ((amountInUsd === 0) || amountInUsdIn1e18.isGreaterThan(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
+
+            // if ((amountInUsd === 0) || amountInUsdIn1e18.isGreaterThan(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
+            if ((amountInUsd === 0) || !amountInUsdIn1e18.isEqualTo(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
+
+
             if (!totalAmountInUsdIn1e18.isEqualTo(targetTotalAmount)) throw new Error("You cannot change total amount in mix transaction!");
 
 
@@ -1348,11 +1352,11 @@ const pendingTxsToSponsor = async (req, res, next) => {
             {
                 $match: {
                     userAddress: { $in: allDownlineAddresses },
-                    
-                    
-                    $or:[
-                        {isPaymentCompleted: false},
-                        {paidBy: { $in: ["dao", "delegator"] }}
+
+
+                    $or: [
+                        { isPaymentCompleted: false },
+                        { paidBy: { $in: ["dao", "delegator"] } }
                     ]
                 }
             },
@@ -1388,7 +1392,7 @@ const pendingTxsToSponsor = async (req, res, next) => {
                             "Paid"
                         ]
                     },
-                    nodeNum:1
+                    nodeNum: 1
                 }
             }
         ]);
@@ -1404,8 +1408,63 @@ const pendingTxsToSponsor = async (req, res, next) => {
     }
 };
 
+const completeSponsoredTx = async(req,res,next)=>{
+    try{
+
+        let {userAddress,spnosoredTxHash} = req.body;
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const userDoc = await RegistrationModel.findOne({userAddress});
+        if(!userDoc) throw new Error("User not found!");
+
+        if(userDoc.userType === "normal") throw new Error("You are not allowed for sponsoring transactions");
+
+
+        const sponsoredTx  = await UpgradedNodes.findOne({isPaymentCompleted:false,currency:"USDT",transactionHash:spnosoredTxHash});
+
+        if(!sponsoredTx) throw new Error("Transaction not found for this user!");
+
+        const {userAddress:sponsoredUserAddress,totalAmountInUsd,amountUsdPaid}  = sponsoredTx;
+
+        const remainingDscInUsdToPay = new BigNumber(totalAmountInUsd).minus(amountUsdPaid);
+
+        let remainingActivatedFsr = new BigNumber(userDoc.activatedFsr).minus(userDoc.utilizedFsr);
+        remainingActivatedFsr  = (remainingActivatedFsr).multipliedBy(1e18);
+
+        if(remainingActivatedFsr.isLessThan(remainingDscInUsdToPay))throw new Error(`Insufficient activated fsr! You need $${remainingDscInUsdToPay.dividedBy(1e18).toNumber()} for sponsoring this transaction!`);
+
+
+
+        const { price } = await LivePriceDsc.findOne();
+
+        const rateDollarPerDsc = new BigNumber(price).multipliedBy(1e18).toFixed();
+
+        let prevNonce = 0;
+        if (!sponsoredTx) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(sponsoredTx.lastUsedNonce);
+        }
+        const currNonce = await dscNodeContract.methods.userNoncesForSponsoringTx(user).call();
+        const hash = await dscNodeContract.methods.getHashForSponsoringTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc).call();
+        if ((prevNonce + 1) !== Number(currNonce)) {
+            throw new Error("Your previous stake is not stored yet! Please try again later.");
+        }
+
+        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,hash);
+
+
+
+        return res.status(200).json({success:true,message:"Signature generated successfully!",vrs});
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    completeSponsoredTx,
     activateFsr,
     getLevelIncome,
     getIdToAddress,

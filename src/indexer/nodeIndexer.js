@@ -82,7 +82,7 @@ async function processEvents(events) {
             }
             else if (event == "NbdPaid") {
                 try {
-                    let { userAddress, majorIncome, minor4Income, amountNbdPaid, sponsorAddress, isRegistration,nodeNum=null } = returnValues;
+                    let { userAddress, majorIncome, minor4Income, amountNbdPaid, sponsorAddress, isRegistration, nodeNum = null } = returnValues;
                     amountNbdPaid = new BigNumber(amountNbdPaid).toFixed();
 
 
@@ -99,7 +99,7 @@ async function processEvents(events) {
                             // nodePurchasingBalance:amountNbdPaid,
                             block: Number(block),
                             transactionHash,
-                            rankAchievedAt:Number(timestampNormal)
+                            rankAchievedAt: Number(timestampNormal)
                         });
 
                         await updateTeamCount(userAddress);
@@ -116,7 +116,7 @@ async function processEvents(events) {
 
                     const newNbd = await NbdFundModel.create({
                         userAddress,
-                        time:Number(timestampNormal),
+                        time: Number(timestampNormal),
                         block: Number(block),
                         transactionHash,
                         amountNbdPaid: amountNbdPaid,
@@ -129,7 +129,7 @@ async function processEvents(events) {
 
                     await regDoc.save();
 
-                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid,Number(nodeNum));
+                    await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid, Number(nodeNum));
 
                     await getLivePrice()
                 } catch (error) {
@@ -190,7 +190,7 @@ async function processEvents(events) {
                     rankDuringStaking = regDoc.currentRank;
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
-                    
+
 
                     await updateUserTotalSelfStakeUsdt(user, amountUsdtPaid);
                     await updateDirectBusiness(amountUsdtPaid, user);
@@ -216,13 +216,13 @@ async function processEvents(events) {
                             return sum.plus(item.amountUsdPaid)
                         }, new BigNumber(0));
 
-                        await giveGapIncome(user, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum,Number(nodeNum));
+                        await giveGapIncome(user, stakingAmountIn1e18, rankDuringStaking, usdtStakedIn1e18, dscStakedInUsdtIn1e18.toFixed(), "node", rateDollarPerDscInNum, Number(nodeNum));
                         await UpgradedNodes.updateMany(
                             { userAddress: user, mixTxHash },
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum,Number(nodeNum));
+                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum, Number(nodeNum));
 
                     } else {
                         console.log("do nothing for incomeplete node upgrades");
@@ -239,7 +239,7 @@ async function processEvents(events) {
             }
             else if (event == "NodeDeployed") {
                 try {
-                    const { user, nodeNum,name,sudoLink,mobile } = returnValues;
+                    const { user, nodeNum, name, sudoLink, mobile } = returnValues;
 
                     const nodeConverted = await NodeDeployedModel.create({
                         userAddress: user,
@@ -321,13 +321,15 @@ async function processEvents(events) {
             else if (event == "FsrActivated") {
                 try {
                     let { user, activationAmount, dscAmountInUsd, generatedDsc, priceInUsd, lastUsedNonce } = returnValues;
+
+
                     activationAmount = new BigNumber(activationAmount).dividedBy(1e18).toNumber();
                     dscAmountInUsd = new BigNumber(dscAmountInUsd).dividedBy(1e18).toNumber();
                     generatedDsc = new BigNumber(generatedDsc).dividedBy(1e18).toNumber();
                     priceInUsd = new BigNumber(priceInUsd).dividedBy(1e18).toNumber();
                     lastUsedNonce = Number(lastUsedNonce);
 
-                    const {userType="normal"} = await giveUserType();
+                    const { userType = "normal" } = await giveUserType();
                     const newFsr = await ActivateFsrModel.create({
                         userAddress: user,
                         activationAmount,
@@ -341,7 +343,86 @@ async function processEvents(events) {
                         userType
                     });
 
+                    const userDoc = await RegistrationModel.findOneAndUpdate({ userAddress: user },{
+                        $inc: {
+                            activatedFsr: activationAmount
+                        }
+                    });
+
+
+
+
                     console.log("Found New FSR:", newFsr);
+
+
+
+                } catch (error) {
+                    console.log(error);
+                    continue;
+                }
+            }
+            else if (event == "SponsoredTx") {
+                try {
+                    let { userAddress, spnosoredTxHash, dscInUsdPaid, rateDollarPerDsc, lastUsedNonce } = returnValues;
+
+                    dscInUsdPaid = new BigNumber(dscInUsdPaid);
+
+
+                    let userDoc = await RegistrationModel.findOne({ userAddress });
+                    if (!userDoc) {
+                        console.log("No user doc found for sponsored tx:", userAddress);
+                        continue;
+                    }
+                    const {utilizedFsr,activatedFsr} = userDoc;
+                    if (userDoc.userType === "normal") {
+                        console.log("Normal users are not allowed", userDoc);
+                    }
+                    const sponsoredTx = await UpgradedNodes.findOne({ transactionHash: spnosoredTxHash, isPaymentCompleted: false, currency: "USDT" });
+                    if (!sponsoredTx) {
+                        console.log("No sponsored tx found or already completed:", spnosoredTxHash);
+                        continue;
+                    }
+
+                    const { totalAmountInUsd, userAddress: sponsoredUser, amountUsdPaid, nodeNum, mixTxHash } = sponsoredTx;
+
+                    const expectedAmountDscInUsd = new BigNumber(totalAmountInUsd).minus(amountUsdPaid).toFixed(0);
+                    if (!new BigNumber(expectedAmountDscInUsd).isEqualTo((dscInUsdPaid))) {
+                        console.log("Sponsored tx amount mismatch:", expectedAmountDscInUsd, dscInUsdPaid.dividedBy(1e18).toFixed());
+                        continue;
+                    }
+
+                    console.log("Sponsored transaction completed for user:", sponsoredUser);
+
+                    const history = await UpgradedNodes.create({
+                        userAddress: sponsoredUser,
+                        nodeNum: nodeNum,
+                        amountUsdPaid: dscInUsdPaid.toFixed(0),
+                        lastUsedNonce: Number(lastUsedNonce),
+                        time: Number(timestampNormal),
+                        block: Number(block),
+                        transactionHash: spnosoredTxHash,
+                        totalAmountInUsd: totalAmountInUsd,
+                        currency: "DSC",
+                        rateDollarPerDsc,
+                        mixTransactionHash: mixTxHash,
+                        isPaymentCompleted: true,
+                        rankAchievedAt: Number(timestampNormal),
+                        paidBy: {
+                            userAddress: userAddress,
+                            userType: userDoc.userType,
+                        }
+                    });
+
+                    sponsoredTx.isPaymentCompleted = true;
+                    await sponsoredTx.save();
+
+                    userDoc.activatedFsr = activatedFsr - dscInUsdPaid.dividedBy(1e18).toNumber();
+                    userDoc.utilizedFsr = utilizedFsr + dscInUsdPaid.dividedBy(1e18).toNumber();
+                    await userDoc.save();
+
+
+
+                    console.log("Sponsored transaction history created:", history);
 
 
 
