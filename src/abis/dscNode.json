@@ -71,6 +71,31 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "usdt",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dsc",
+                "type": "uint256"
+            }
+        ],
+        "name": "Liquidity",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "address",
                 "name": "userAddress",
@@ -200,6 +225,43 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "spnosoredTxHash",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dscInUsdPaid",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "rateDollarPerDsc",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "lastUsedNonce",
+                "type": "uint32"
+            }
+        ],
+        "name": "SponsoredTx",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "address",
                 "name": "userAddress",
@@ -243,6 +305,25 @@
             }
         ],
         "name": "Staked",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "swappedAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "Swapped",
         "type": "event"
     },
     {
@@ -581,6 +662,40 @@
             }
         ],
         "name": "getHashForDeployment",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "spnosoredTxHash",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dscInUsdToPay",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "rateDollarPerDsc",
+                "type": "uint256"
+            }
+        ],
+        "name": "getHashForSponsorTx",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -984,6 +1099,44 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "spnosoredTxHash",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dscInUsdToPay",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "rateDollarPerDsc",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "sponsorTx",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "systemAddress",
         "outputs": [
@@ -1071,6 +1224,25 @@
             }
         ],
         "name": "userNoncesForNodeUpgrade",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "",
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userNoncesForSponsoringTx",
         "outputs": [
             {
                 "internalType": "uint32",
