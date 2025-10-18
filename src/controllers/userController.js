@@ -1266,7 +1266,7 @@ const activateFsr = async (req, res, next) => {
         if (!isUserExist) throw new Error("You have not registered yet!");
 
         const { userType } = await giveUserType(userAddress);
-        if (userType === "normal") throw new Error("You are not eligible for fsr activation!");
+        if (isUserExist?.userType === "normal") throw new Error("You are not eligible for fsr activation!");
 
         const { currentFsr, utilizedFsr, activatedFsr } = await updateFsrValue(userAddress);
 
@@ -1277,7 +1277,7 @@ const activateFsr = async (req, res, next) => {
         //calcualte 18% of activationAmount
         const { price } = await LivePriceDsc.findOne();
         const dscAmountInUsd = activationAmount * 0.18;
-        const generatedDsc = dscAmountInUsd.dividedBy(price).toNumber();
+        const generatedDsc = dscAmountInUsd/(price);
 
         //generate vrs
         const lastFsrDoc = await ActivateFsrModel.findOne({ userAddress }).sort({ time: -1 });
@@ -1291,15 +1291,15 @@ const activateFsr = async (req, res, next) => {
         const currNonce = await dscNodeContract.methods.userNoncesForStaking(userAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) throw new Error("Your previous activation is not stored yet! Please try again later.");
 
-
         const activationAmountIn1e18 = new BigNumber(activationAmount).multipliedBy(1e18).toFixed(0);
         const dscAmountInUsdIn1e18 = new BigNumber(dscAmountInUsd).multipliedBy(1e18).toFixed(0);
         const generatedDscIn1e18 = new BigNumber(generatedDsc).multipliedBy(1e18).toFixed(0);
         const priceInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
-
+        
         const hash = await dscNodeContract.methods.getHashForActivateFsr(userAddress, activationAmountIn1e18, dscAmountInUsdIn1e18, generatedDscIn1e18, priceInUsdIn1e18).call();
-
-        const vrs = await giveVrsForActivatingFsr(userAddress, dscAmountInUsdIn1e18, activationAmountIn1e18, generatedDscIn1e18, priceInUsdIn1e18, currNonce, hash);
+        
+        console.log("working till here",hash);
+        const vrs = await giveVrsForActivatingFsr(userAddress, dscAmountInUsdIn1e18, activationAmountIn1e18, generatedDscIn1e18, priceInUsdIn1e18, Number(currNonce), hash);
 
         return res.status(200).json({ success: true, message: "Fsr signature generated successfully", vrs });
     } catch (error) {
