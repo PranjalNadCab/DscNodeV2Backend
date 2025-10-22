@@ -373,7 +373,7 @@ function giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmo
     });
 }
 
-function generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay,rateDollarPerDsc, currNonce, hash) {
+function generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay,rateDollarPerDsc, currNonce, hash,sponsoredUserAddress) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -385,7 +385,8 @@ function generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdTo
                 userAddress: userAddress,
                 spnosoredTxHash,
                 remainingDscInUsdToPay,
-                rateDollarPerDsc
+                rateDollarPerDsc,
+                sponsoredUserAddress
             };
 
             const account = web3.eth.accounts.privateKeyToAccount(
@@ -1293,7 +1294,7 @@ const updateFsrValue = async (userAddress) => {
                 return { utilizedFsr: utilizedFsr, activatedFsr: activatedFsr, currentFsr: currentFsr };;
             }
         } else {
-            const fsrFromApi = 500 * 2;
+            const fsrFromApi = 5000 * 2;
             const newFsr = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { currentFsr: fsrFromApi } },

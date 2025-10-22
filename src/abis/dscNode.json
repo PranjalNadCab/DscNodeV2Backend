@@ -253,6 +253,12 @@
                 "internalType": "uint32",
                 "name": "lastUsedNonce",
                 "type": "uint32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sponsoredUser",
+                "type": "address"
             }
         ],
         "name": "SponsoredTx",
@@ -693,6 +699,11 @@
                 "internalType": "uint256",
                 "name": "rateDollarPerDsc",
                 "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "sponsoredUser",
+                "type": "address"
             }
         ],
         "name": "getHashForSponsorTx",
@@ -1102,7 +1113,7 @@
         "inputs": [
             {
                 "internalType": "string",
-                "name": "spnosoredTxHash",
+                "name": "sponsoredTxHash",
                 "type": "string"
             },
             {
@@ -1129,6 +1140,11 @@
                 "internalType": "bytes32",
                 "name": "s",
                 "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "sponsoredUser",
+                "type": "address"
             }
         ],
         "name": "sponsorTx",

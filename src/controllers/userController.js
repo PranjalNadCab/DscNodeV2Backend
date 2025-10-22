@@ -1446,13 +1446,13 @@ const completeSponsoredTx = async(req,res,next)=>{
         } else {
             prevNonce = Number(sponsoredTx.lastUsedNonce);
         }
-        const currNonce = await dscNodeContract.methods.userNoncesForSponsoringTx(user).call();
-        const hash = await dscNodeContract.methods.getHashForSponsoringTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc).call();
+        const currNonce = await dscNodeContract.methods.userNoncesForNodeUpgrade(sponsoredUserAddress).call();
+        const hash = await dscNodeContract.methods.getHashForSponsorTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc,sponsoredUserAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
-            throw new Error("Your previous stake is not stored yet! Please try again later.");
+            throw new Error("Your previous tx is not stored yet! Please try again later.");
         }
 
-        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,hash);
+        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,hash,sponsoredUserAddress);
 
 
 
