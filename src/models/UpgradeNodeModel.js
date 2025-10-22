@@ -53,20 +53,16 @@ const UpgradeNodeSchema = new mongoose.Schema({
         default: "NA"
     },
     paidBy: {
-        userAddress: {
-            type: String,
-            default:null
+        type: {
+            userAddress: { type: String, default: null },
+            userType: { type: String, enum: ["self", "dao", "delegator"], default: "self" },
         },
-        userType: {
-            type: String,
-            enum: ["self", "dao", "delegator"],
-            default: "self",
-        },
+        default: () => ({ userAddress: null, userType: "self" }), // 🔹 default for parent object
     }
 }, { timestamps: true });
 
 
-UpgradeNodeSchema.index({ userAddress: 1, nodeName: 1, mixTxHash: 1, transactionHash: 1 }, { unique: true });
+UpgradeNodeSchema.index({ userAddress: 1, nodeName: 1, mixTxHash: 1, transactionHash: 1, block: 1 }, { unique: true });
 
 const UpgradedNodes = mongoose.model("UpgradedNodes", UpgradeNodeSchema);
 

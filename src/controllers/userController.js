@@ -1356,7 +1356,7 @@ const pendingTxsToSponsor = async (req, res, next) => {
 
                     $or: [
                         { isPaymentCompleted: false },
-                        { paidBy: { $in: ["dao", "delegator"] } }
+                        { "paidBy.userType": { $in: ["dao", "delegator"] } }
                     ]
                 }
             },
@@ -1412,7 +1412,7 @@ const completeSponsoredTx = async(req,res,next)=>{
     try{
 
         let {userAddress,spnosoredTxHash} = req.body;
-
+        ct({userAddress,spnosoredTxHash});
         userAddress = giveCheckSummedAddress(userAddress);
 
         const userDoc = await RegistrationModel.findOne({userAddress});
@@ -1426,6 +1426,7 @@ const completeSponsoredTx = async(req,res,next)=>{
         if(!sponsoredTx) throw new Error("Transaction not found for this user!");
 
         const {userAddress:sponsoredUserAddress,totalAmountInUsd,amountUsdPaid}  = sponsoredTx;
+        console.log({sponsoredUserAddress,totalAmountInUsd,amountUsdPaid});
 
         const remainingDscInUsdToPay = new BigNumber(totalAmountInUsd).minus(amountUsdPaid);
 
@@ -1452,7 +1453,7 @@ const completeSponsoredTx = async(req,res,next)=>{
             throw new Error("Your previous tx is not stored yet! Please try again later.");
         }
 
-        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,hash,sponsoredUserAddress);
+        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,Number(currNonce),hash,sponsoredUserAddress);
 
 
 

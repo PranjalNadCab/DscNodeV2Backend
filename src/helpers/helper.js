@@ -376,7 +376,7 @@ function giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmo
 function generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay,rateDollarPerDsc, currNonce, hash,sponsoredUserAddress) {
     return new Promise(async (resolve, reject) => {
         try {
-
+            console.log("lkasd-----fgsdf",sponsoredUserAddress)
             //call contract to match nonce
 
             const data = {
