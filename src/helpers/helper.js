@@ -1280,7 +1280,7 @@ const updateFsrValue = async (userAddress) => {
         const { currentFsr, utilizedFsr, activatedFsr } = oldDoc;
 
         if (process.env.NODE_ENV === "production") {
-            const res = await axios.get(`https://api.dsclab.ai/api/getFSRvalue?walletAddress=0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed`);
+            const res = await axios.get(`https://api.dsclab.ai/api/getFSRvalue?walletAddress=${userAddress}`);
             if (res.data.success) {
                 const fsrValue = res.data.data.fsr_deposit * 2;
                 const updatedDoc = await RegistrationModel.findOneAndUpdate(
