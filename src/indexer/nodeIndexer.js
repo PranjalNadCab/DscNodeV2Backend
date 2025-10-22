@@ -416,7 +416,7 @@ async function processEvents(events) {
                     sponsoredTx.isPaymentCompleted = true;
                     await sponsoredTx.save();
 
-                    userDoc.activatedFsr = activatedFsr - dscInUsdPaid.dividedBy(1e18).toNumber();
+                    // userDoc.activatedFsr = activatedFsr - dscInUsdPaid.dividedBy(1e18).toNumber();
                     userDoc.utilizedFsr = utilizedFsr + dscInUsdPaid.dividedBy(1e18).toNumber();
                     await userDoc.save();
 

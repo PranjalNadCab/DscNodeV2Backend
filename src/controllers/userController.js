@@ -1379,6 +1379,7 @@ const pendingTxsToSponsor = async (req, res, next) => {
                     nodeName: "$userData.myNode.nodeName",
                     transactionHash: 1,
                     totalAmountInUsd: 1,
+                    paidUsdt: { $toDouble: "$amountUsdPaid" },
                     remainingDsc: {
                         $subtract: [
                             { $toDouble: "$totalAmountInUsd" },
