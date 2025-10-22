@@ -1462,8 +1462,47 @@ const completeSponsoredTx = async(req,res,next)=>{
     }
 }
 
+const fsrActivationHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Convert pagination to numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        // Count total documents for pagination
+        const totalCount = await ActivateFsrModel.countDocuments({ userAddress });
+
+        // Fetch paginated data
+        const history = await ActivateFsrModel.find({ userAddress })
+            .select("-__v -_id -userType -block -userAddress") // exclude unwanted fields
+            .sort({ time: -1 }) // newest first
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            message: "FSR activation history fetched successfully!",
+            data: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalRecords: totalCount,
+                records: history
+            }
+        });
+    } catch (error) {
+        console.error("Error in fsrActivationHistory:", error);
+        next(error);
+    }
+};
+
 module.exports = {
     stakeVrs,
+    fsrActivationHistory,
     completeSponsoredTx,
     activateFsr,
     getLevelIncome,

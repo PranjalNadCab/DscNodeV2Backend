@@ -1293,7 +1293,7 @@ const updateFsrValue = async (userAddress) => {
                 return { utilizedFsr: utilizedFsr, activatedFsr: activatedFsr, currentFsr: currentFsr };;
             }
         } else {
-            const fsrFromApi = 50 * 2;
+            const fsrFromApi = 500 * 2;
             const newFsr = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { currentFsr: fsrFromApi } },

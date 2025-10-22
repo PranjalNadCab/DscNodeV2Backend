@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -25,6 +25,7 @@ router.post("/get-level-income",getLevelIncome);
 router.post("/roi-history",getRoiHistory);
 router.post("/get-nbd-history",nbdPaidHistory);
 router.post("/activate-fsr",activateFsr);
+router.post("/fsr-activation-history",fsrActivationHistory);
 router.post("/pending-tx-sponsor",pendingTxsToSponsor);
 router.post("/complete-sponsored-tx",completeSponsoredTx);
 
