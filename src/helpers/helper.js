@@ -509,7 +509,7 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
     try {
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
-            const { userType } = await giveUserType();
+            const { userType } = await giveUserType(userAddress);
             let currentFsr = 0;
             if(userType === "delegator"){
                 currentFsr = 300000
