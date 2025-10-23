@@ -52,7 +52,15 @@ const RegistrationSchema = new mongoose.Schema({
         type: String,
         default: "0"
     },
+    dscIncomeInUsdWallet: {
+        type: String,
+        default: "0"
+    },
     totalIncomeDscReceived: {
+        type: String,
+        default: "0"
+    },
+    totalIncomeDscInUsdReceived: {
         type: String,
         default: "0"
     },

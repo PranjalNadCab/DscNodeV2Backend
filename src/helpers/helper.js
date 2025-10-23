@@ -783,6 +783,9 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
             const newUsdtIncomeWallet = new BigNumber(regDoc.usdtIncomeWallet || "0").plus(usdt).toFixed(0);
             const newTotalIncomeDsc = new BigNumber(regDoc.totalIncomeDscReceived || "0").plus(tokenUnits).toFixed(0);
             const newTotalIncomeUsdt = new BigNumber(regDoc.totalIncomeUsdtReceived || "0").plus(usdt).toFixed(0);
+            const dscIncomeInUsdWallet = new BigNumber(regDoc.dscIncomeInUsdWallet || "0").plus(tokenUsd).toFixed(0);
+            const totalIncomeDscInUsdReceived = new BigNumber(regDoc.totalIncomeDscInUsdReceived || "0").plus(tokenUsd).toFixed(0);
+
 
             bulkRegOps.push({
                 updateOne: {
@@ -790,8 +793,10 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     update: {
                         $set: {
                             dscIncomeWallet: newDscIncomeWallet,
+                            dscIncomeInUsdWallet:dscIncomeInUsdWallet,
                             usdtIncomeWallet: newUsdtIncomeWallet,
                             totalIncomeDscReceived: newTotalIncomeDsc,
+                            totalIncomeDscInUsdReceived:totalIncomeDscInUsdReceived,
                             totalIncomeUsdtReceived: newTotalIncomeUsdt,
                         }
                     }
