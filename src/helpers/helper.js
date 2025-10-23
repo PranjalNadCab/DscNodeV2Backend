@@ -15,6 +15,7 @@ const RoiModel = require("../models/RoiModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 const jwt = require("jsonwebtoken");
 const { getDaoAndDelegator } = require("./adminHelper");
+const { default: axios } = require("axios");
 
 
 const createJwtToken = async (data) => {
@@ -1277,6 +1278,8 @@ const giveUserType = async (userAddress) => {
 
 const updateFsrValue = async (userAddress) => {
     try {
+
+        console.log("sdfsgsdfg",userAddress)
         if (!userAddress) return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
 
         const fUserAddress = giveCheckSummedAddress(userAddress);
