@@ -329,7 +329,7 @@ async function processEvents(events) {
                     priceInUsd = new BigNumber(priceInUsd).dividedBy(1e18).toNumber();
                     lastUsedNonce = Number(lastUsedNonce);
 
-                    const { userType = "normal" } = await giveUserType();
+                    const { userType = "normal" } = await giveUserType(user);
                     const newFsr = await ActivateFsrModel.create({
                         userAddress: user,
                         activationAmount,
