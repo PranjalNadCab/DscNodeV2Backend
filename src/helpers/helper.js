@@ -510,6 +510,10 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
         const user = await RegistrationModel.findOne({ userAddress });
         if (!user) {
             const { userType } = await giveUserType();
+            let currentFsr = 0;
+            if(userType === "delegator"){
+                currentFsr = 300000
+            }
             const uniqueRandomId = await generateRandomId();
             const newUser = await RegistrationModel.create({
                 uniqueRandomId: uniqueRandomId,
@@ -520,7 +524,8 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
                 nodePurchasingBalance: regAmount,
                 block: Number(block),
                 transactionHash,
-                userType
+                userType,
+                currentFsr
             });
 
             await updateTeamCount(userAddress);
@@ -1280,6 +1285,10 @@ const updateFsrValue = async (userAddress) => {
         if (!oldDoc) {
             console.log("User not found for address:", fUserAddress);
             return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
+        }
+
+        if(oldDoc.userType === "delegator"){
+            return { utilizedFsr: oldDoc.utilizedFsr, activatedFsr: oldDoc.activatedFsr, currentFsr: oldDoc.currentFsr }
         }
 
         const { currentFsr, utilizedFsr, activatedFsr } = oldDoc;

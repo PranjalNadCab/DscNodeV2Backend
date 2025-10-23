@@ -1268,6 +1268,8 @@ const activateFsr = async (req, res, next) => {
         const { userType } = await giveUserType(userAddress);
         if (isUserExist?.userType === "normal") throw new Error("You are not eligible for fsr activation!");
 
+        
+
         const { currentFsr, utilizedFsr, activatedFsr } = await updateFsrValue(userAddress);
 
         const remainingFsr = currentFsr - activatedFsr;
