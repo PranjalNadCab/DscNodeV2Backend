@@ -1,9 +1,15 @@
 const { ranks } = require("../helpers/constant");
-const { giveAdminSettings, ct, createJwtToken } = require("../helpers/helper");
+// const { giveAdminSettings, createJwtToken, ct } = require("../helpers/helper");
+const { ct, createJwtToken,giveAdminSettings } = require("../helpers/helper");
+
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+
+
 
 
 const getAllUsers = async (req, res, next) => {
@@ -269,11 +275,14 @@ const login = async (req, res, next) => {
             throw new Error("Invalid password");
         }
 
-
+        console.log("reached here 1111");
 
 
 
         const jwt = await createJwtToken({ role, walletAddress, password });
+
+        console.log("reached here 22222");
+
         await Admin.findOneAndUpdate({ walletAddress, role }, { $set: { token: jwt } });
         if (isValidPassword) {
             return res.status(200).json({ success: true, token: jwt, message: "Login success",role,walletAddress });

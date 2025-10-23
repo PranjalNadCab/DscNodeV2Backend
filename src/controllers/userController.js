@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");

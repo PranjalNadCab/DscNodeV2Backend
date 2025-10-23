@@ -90,6 +90,7 @@ const createDaoAndDelegatorsAdminInBulk=async()=>{
 
 
 module.exports = {
-    createDaoAndDelegatorsAdminInBulk
+    createDaoAndDelegatorsAdminInBulk,
+    getDaoAndDelegator
 }
 

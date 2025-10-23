@@ -14,7 +14,7 @@ const { default: mongoose } = require("mongoose");
 const RoiModel = require("../models/RoiModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 const jwt = require("jsonwebtoken");
-const { getDaoDelegators } = require("../controllers/adminController");
+const { getDaoAndDelegator } = require("./adminHelper");
 
 
 const createJwtToken = async (data) => {
@@ -1251,7 +1251,7 @@ const giveUserType = async (userAddress) => {
     try {
         if (!userAddress) return { userType: "normal" };
 
-        const { daos, delegators } = await getDaoDelegators();
+        const { daos, delegators } = await getDaoAndDelegator();
         const lowerAddress = userAddress.toLowerCase();
 
         // Check if user exists in daos array
