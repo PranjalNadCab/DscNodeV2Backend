@@ -394,7 +394,9 @@ const getDashboardInfo = async (req, res, next) => {
 
         // Helper function for rank count aggregation with time filter
         const getRankCounts = async (matchTime) => {
-            const matchStage = matchTime ? { $match: { time: { $gte: matchTime } } } : { $match: {} };
+            // const matchStage = matchTime ? { $match: { time: { $gte: matchTime } } } : { $match: {} }; //try toggling for fix data
+            const matchStage = matchTime ? { $match: { rankAchievedAt: { $gte: matchTime } } } : { $match: {} };
+
 
             const result = await RegistrationModel.aggregate([
                 matchStage,
