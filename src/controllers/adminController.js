@@ -638,12 +638,12 @@ const getDashboardInfo3 = async (req, res, next) => {
 
             // 2. Node Registration Income Sums
             nodeRegistrationIncome: {
-                amount: {
+               
                     total: allTimeIncome.nodeReg.amount,
                     today: todayIncome.nodeReg.amount,
                     week: weekIncome.nodeReg.amount,
                     month: monthIncome.nodeReg.amount,
-                }
+                
             },
 
             // 3. Node Deployment Counts (by Name)
