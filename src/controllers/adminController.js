@@ -516,6 +516,15 @@ const getDashboardInfo2 = async (req, res, next) => {
             getNodeHoldingCounts()
         ]);
 
+        // --- Map Node Numbers to Node Names for the final output
+        const nodeHoldingsByName = {};
+        for (const nodeNum in nodeHoldingsData) {
+            const nodeName = nodeValidators.find(nv => nv.nodeNum === parseInt(nodeNum))?.name;
+            if (nodeName) {
+                nodeHoldingsByName[nodeName] = nodeHoldingsData[nodeNum];
+            }
+        }
+
         // --- 3. Consolidate Data ---
 
         const dashboardInfo = {
@@ -534,7 +543,7 @@ const getDashboardInfo2 = async (req, res, next) => {
             },
 
             // 3. Last Node Holdings Count
-            nodeHoldings: nodeHoldingsData,
+            nodeHoldings: nodeHoldingsByName,
 
             // 4. Count of docs whose paidBy.userType is dao or delegator
             daoDelegatorPayments: {
