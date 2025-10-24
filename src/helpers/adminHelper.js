@@ -1,8 +1,11 @@
 const { default: axios } = require("axios");
 const AdminModel = require("../models/AdminModel");
-const { ct } = require("./helper");
+const { ct, giveAdminSettings } = require("./helper");
 const BigNumber = require("bignumber.js");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
+const GapIncomeModel = require("../models/GapIncomeModel");
+const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
+const NodeDeployedModel = require("../models/NodeDeployedModel");
 
 const daoUrl = "https://dao.dsclab.ai/api/getdaoList";
 const delegatorsUrl = "https://dao.dsclab.ai/api/delegatorsList";
@@ -186,10 +189,85 @@ const getNodeHoldingCounts = async () => {
 
 
 
+const getIncomeMetrics = async (startTime) => {
+    const filter = startTime ? { time: { $gte: startTime } } : {};
+    const E_18 = new BigNumber("1e18");
+
+    // 1. Gap Income Aggregation
+    const gapIncomeDocs = await GapIncomeModel.find(filter, 'totalGapIncomeInUsd gapIncomeInUsd gapIncomeInDscInUsd');
+    let totalGapIncomeInUsdSum = new BigNumber(0);
+    let gapIncomeInUsdSum = new BigNumber(0);
+    let gapIncomeInDscInUsdSum = new BigNumber(0);
+
+    gapIncomeDocs.forEach(doc => {
+        // Sums are calculated after converting from 1e18 to normal number
+        totalGapIncomeInUsdSum = totalGapIncomeInUsdSum.plus(new BigNumber(doc.totalGapIncomeInUsd).dividedBy(E_18));
+        gapIncomeInUsdSum = gapIncomeInUsdSum.plus(new BigNumber(doc.gapIncomeInUsd).dividedBy(E_18));
+        gapIncomeInDscInUsdSum = gapIncomeInDscInUsdSum.plus(new BigNumber(doc.gapIncomeInDscInUsd).dividedBy(E_18));
+    });
+
+    // 2. Node Registration Income Aggregation
+    const nodeRegIncomeDocs = await NodeRegIncomeModel.find(filter, 'amount');
+    let nodeRegIncomeSum = new BigNumber(0);
+
+    nodeRegIncomeDocs.forEach(doc => {
+        // Sum is calculated after converting from 1e18 to normal number
+        nodeRegIncomeSum = nodeRegIncomeSum.plus(new BigNumber(doc.amount).dividedBy(E_18));
+    });
+
+    return {
+        gap: {
+            totalGapIncomeInUsd: totalGapIncomeInUsdSum.toString(),
+            gapIncomeInUsd: gapIncomeInUsdSum.toString(),
+            gapIncomeInDscInUsd: gapIncomeInDscInUsdSum.toString(),
+        },
+        nodeReg: {
+            amount: nodeRegIncomeSum.toString(),
+        },
+    };
+};
+
+/**
+ * Calculates the count of deployed nodes grouped by name for a given time range.
+ * @param {number | null} startTime - Unix timestamp for the start of the range (or null for all time).
+ * @returns {object} An object where keys are node names and values are counts.
+ */
+const getNodeDeploymentCounts = async (startTime,nodeValidators) => {
+    const filter = startTime ? { time: { $gte: startTime } } : {};
+
+    const rawCounts = await NodeDeployedModel.aggregate([
+        { $match: filter },
+        {
+            $group: {
+                _id: "$nodeNum",
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    const countsMap = {};
+    rawCounts.forEach(item => {
+        countsMap[item._id] = item.count;
+    });
+
+    // Convert nodeNums to nodeNames and initialize missing counts to 0
+    const namedCounts = {};
+    for (let i = 1; i <= 9; i++) {
+        const name = nodeValidators.find(nv => nv.nodeNum === i)?.name || `Node ${i}`;
+        namedCounts[name] = countsMap[i] || 0;
+    }
+
+    return namedCounts;
+};
+
+
+
 module.exports = {
     createDaoAndDelegatorsAdminInBulk,
     getDaoAndDelegator,
     getNodeHoldingCounts,
-    getMetricsForTimeRange
+    getMetricsForTimeRange,
+    getIncomeMetrics,
+    getNodeDeploymentCounts
 }
 

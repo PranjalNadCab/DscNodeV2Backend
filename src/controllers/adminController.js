@@ -9,7 +9,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-const { getMetricsForTimeRange, getNodeHoldingCounts } = require("../helpers/adminHelper");
+const { getMetricsForTimeRange, getNodeHoldingCounts, getIncomeMetrics, getNodeDeploymentCounts } = require("../helpers/adminHelper");
 
 
 
@@ -499,7 +499,7 @@ const getDashboardInfo2 = async (req, res, next) => {
         const weekStart = moment().startOf('week').unix();
         const monthStart = moment().startOf('month').unix();
 
-        const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
         // --- 2. Fetch All Concurrent Metrics ---
         // Fetch sums/counts for All-Time, Today, Week, and Month concurrently
         const [
@@ -579,6 +579,95 @@ const getDashboardInfo2 = async (req, res, next) => {
     }
 }
 
+const getDashboardInfo3 = async (req, res, next) => {
+    try {
+
+        // --- 1. Define Time Boundaries in Unix Seconds ---
+        const todayStart = moment().startOf('day').unix();
+        const weekStart = moment().startOf('week').unix();
+        const monthStart = moment().startOf('month').unix();
+
+    const {nodeValidators} = await giveAdminSettings();
+
+
+        // --- 2. Fetch All Concurrent Metrics ---
+        // Fetch all income and deployment metrics concurrently
+        const [
+            allTimeIncome,
+            todayIncome,
+            weekIncome,
+            monthIncome,
+            allTimeDeployments,
+            todayDeployments,
+            weekDeployments,
+            monthDeployments
+        ] = await Promise.all([
+            getIncomeMetrics(null),
+            getIncomeMetrics(todayStart),
+            getIncomeMetrics(weekStart),
+            getIncomeMetrics(monthStart),
+            getNodeDeploymentCounts(null,nodeValidators),
+            getNodeDeploymentCounts(todayStart,nodeValidators),
+            getNodeDeploymentCounts(weekStart,nodeValidators),
+            getNodeDeploymentCounts(monthStart,nodeValidators)
+        ]);
+
+        // --- 3. Consolidate Data ---
+        const dashboardInfo = {
+            // 1. Gap Income Sums
+            gapIncome: {
+                totalGapIncomeInUsd: {
+                    total: allTimeIncome.gap.totalGapIncomeInUsd,
+                    today: todayIncome.gap.totalGapIncomeInUsd,
+                    week: weekIncome.gap.totalGapIncomeInUsd,
+                    month: monthIncome.gap.totalGapIncomeInUsd,
+                },
+                gapIncomeInUsd: {
+                    total: allTimeIncome.gap.gapIncomeInUsd,
+                    today: todayIncome.gap.gapIncomeInUsd,
+                    week: weekIncome.gap.gapIncomeInUsd,
+                    month: monthIncome.gap.gapIncomeInUsd,
+                },
+                gapIncomeInDscInUsd: {
+                    total: allTimeIncome.gap.gapIncomeInDscInUsd,
+                    today: todayIncome.gap.gapIncomeInDscInUsd,
+                    week: weekIncome.gap.gapIncomeInDscInUsd,
+                    month: monthIncome.gap.gapIncomeInDscInUsd,
+                },
+            },
+
+            // 2. Node Registration Income Sums
+            nodeRegistrationIncome: {
+                amount: {
+                    total: allTimeIncome.nodeReg.amount,
+                    today: todayIncome.nodeReg.amount,
+                    week: weekIncome.nodeReg.amount,
+                    month: monthIncome.nodeReg.amount,
+                }
+            },
+
+            // 3. Node Deployment Counts (by Name)
+            nodeDeploymentCounts: {
+                total: allTimeDeployments,
+                today: todayDeployments,
+                week: weekDeployments,
+                month: monthDeployments,
+            }
+        };
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Admin dashboard info 3 fetched successfully!",
+            data: dashboardInfo
+        });
+    } catch (error) {
+        console.error("Error fetching admin dashboard info 3:", error);
+        next(error);
+    }
+}
+
+
 module.exports = {
     getAllUsers,
     getDashboardInfo2,
@@ -589,5 +678,6 @@ module.exports = {
     changeRanks,
     getDisabledStakings,
     getAdminInfo,
-    getDashboardInfo
+    getDashboardInfo,
+    getDashboardInfo3
 }
