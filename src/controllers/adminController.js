@@ -9,6 +9,7 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const { getMetricsForTimeRange, getNodeHoldingCounts } = require("../helpers/adminHelper");
 
 
 
@@ -467,6 +468,10 @@ const getDashboardInfo = async (req, res, next) => {
             totalUtilizedFsr: totalUtilizedFsr,
         };
 
+        //Here also give data for deployed nodes using myNode field from registratio schema
+
+
+
         return res.status(200).json({
             success: true,
             message: "Admin dashboard info fetched successfully!",
@@ -480,8 +485,82 @@ const getDashboardInfo = async (req, res, next) => {
     }
 };
 
+
+
+
+// --- Controller Function ---
+
+const getDashboardInfo2 = async (req, res, next) => {
+    try {
+
+        // --- 1. Define Time Boundaries in Unix Seconds ---
+        const todayStart = moment().startOf('day').unix();
+        const weekStart = moment().startOf('week').unix();
+        const monthStart = moment().startOf('month').unix();
+
+        const {nodeValidators} = await giveAdminSettings();
+
+        // --- 2. Fetch All Concurrent Metrics ---
+        // Fetch sums/counts for All-Time, Today, Week, and Month concurrently
+        const [
+            allTimeMetrics,
+            todayMetrics,
+            weekMetrics,
+            monthMetrics,
+            nodeHoldingsData // 3. Node Holdings (only requires one all-time aggregation)
+        ] = await Promise.all([
+            getMetricsForTimeRange(null),
+            getMetricsForTimeRange(todayStart),
+            getMetricsForTimeRange(weekStart),
+            getMetricsForTimeRange(monthStart),
+            getNodeHoldingCounts()
+        ]);
+
+        // --- 3. Consolidate Data ---
+
+        const dashboardInfo = {
+            // 1. Sum of amountUsdPaid w.r.t currency
+            businessByCurrency: {
+                total: { usdt: allTimeMetrics.usdtSum, dsc: allTimeMetrics.dscSum },
+                today: { usdt: todayMetrics.usdtSum, dsc: todayMetrics.dscSum },
+                week: { usdt: weekMetrics.usdtSum, dsc: weekMetrics.dscSum },
+                month: { usdt: monthMetrics.usdtSum, dsc: monthMetrics.dscSum },
+            },
+
+            // 2. Count of incomplete payments (isPaymentCompleted: false)
+            incompletePaymentCount: {
+                total: allTimeMetrics.incompleteCount,
+          
+            },
+
+            // 3. Last Node Holdings Count
+            nodeHoldings: nodeHoldingsData,
+
+            // 4. Count of docs whose paidBy.userType is dao or delegator
+            daoDelegatorPayments: {
+                total: allTimeMetrics.daoDelegatorCount,
+                today: todayMetrics.daoDelegatorCount,
+                week: weekMetrics.daoDelegatorCount,
+                month: monthMetrics.daoDelegatorCount,
+            },
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Admin dashboard info fetched successfully!",
+            data: dashboardInfo
+        });
+
+    } catch (error) {
+        // Log the error for internal debugging
+        console.error("Error fetching admin node dashboard info:", error);
+        next(error);
+    }
+}
+
 module.exports = {
     getAllUsers,
+    getDashboardInfo2,
     getDaoDelegators,
     login,
     getUpgradedNodesHistory,

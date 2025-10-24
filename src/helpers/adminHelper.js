@@ -1,7 +1,8 @@
 const { default: axios } = require("axios");
 const AdminModel = require("../models/AdminModel");
 const { ct } = require("./helper");
-const BigNumber = require("bignumber.js")
+const BigNumber = require("bignumber.js");
+const UpgradedNodes = require("../models/UpgradeNodeModel");
 
 const daoUrl = "https://dao.dsclab.ai/api/getdaoList";
 const delegatorsUrl = "https://dao.dsclab.ai/api/delegatorsList";
@@ -89,8 +90,98 @@ const createDaoAndDelegatorsAdminInBulk=async()=>{
 }
 
 
+/**
+ * Calculates sum of amountUsdPaid by currency for a given time range,
+ * and counts payments by DAO/Delegator, and incomplete payments.
+ * @param {number | null} startTime - Unix timestamp for the start of the range (or null for all time).
+ * @returns {object} Aggregated metrics for the time range.
+ */
+const getMetricsForTimeRange = async (startTime) => {
+    const matchFilter = startTime ? { time: { $gte: startTime } } : {};
+
+    const rawData = await UpgradedNodes.find(matchFilter, 'amountUsdPaid currency isPaymentCompleted paidBy.userType');
+
+    let usdtSum = new BigNumber(0);
+    let dscSum = new BigNumber(0);
+    let incompleteCount = 0;
+    let daoDelegatorCount = 0;
+
+    const E_18 = new BigNumber("1e18");
+
+    rawData.forEach(doc => {
+        // 1. Sum by Currency (Amount is 1e18 string)
+        const amountUsd = new BigNumber(doc.amountUsdPaid).dividedBy(E_18);
+        if (doc.currency === 'USDT') {
+            usdtSum = usdtSum.plus(amountUsd);
+        } else if (doc.currency === 'DSC') {
+            dscSum = dscSum.plus(amountUsd);
+        }
+
+        // 2. Count Incomplete Payments
+        if (doc.isPaymentCompleted === false) {
+            incompleteCount++;
+        }
+
+        // 4. Count DAO/Delegator Payments
+        if (doc.paidBy && ["dao", "delegator"].includes(doc.paidBy.userType)) {
+            daoDelegatorCount++;
+        }
+    });
+
+    return {
+        usdtSum: usdtSum.toString(),
+        dscSum: dscSum.toString(),
+        incompleteCount,
+        daoDelegatorCount
+    };
+};
+
+/**
+ * Calculates the last (highest) node number holding count per user.
+ * @returns {object} An object where keys are nodeNum (1-9) and values are counts.
+ */
+const getNodeHoldingCounts = async () => {
+    const nodeHoldings = await UpgradedNodes.aggregate([
+        // Sort to get the highest nodeNum first for each user
+        { $sort: { userAddress: 1, nodeNum: -1, time: -1 } },
+        // Group by userAddress to get the last (highest) nodeNum purchased
+        {
+            $group: {
+                _id: "$userAddress",
+                lastNodeNum: { $first: "$nodeNum" }
+            }
+        },
+        // Group by the lastNodeNum to count the holdings
+        {
+            $group: {
+                _id: "$lastNodeNum",
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    const holdingsMap = {};
+    // Initialize all 1-9 nodes to 0
+    for (let i = 1; i <= 9; i++) {
+        holdingsMap[i] = 0;
+    }
+
+    // Populate with actual counts
+    nodeHoldings.forEach(item => {
+        if (item._id >= 1 && item._id <= 9) {
+             holdingsMap[item._id] = item.count;
+        }
+    });
+
+    return holdingsMap;
+};
+
+
+
 module.exports = {
     createDaoAndDelegatorsAdminInBulk,
-    getDaoAndDelegator
+    getDaoAndDelegator,
+    getNodeHoldingCounts,
+    getMetricsForTimeRange
 }
 
