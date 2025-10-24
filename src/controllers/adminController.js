@@ -1,12 +1,14 @@
+const { BigNumber } = require("bignumber.js");
 const { ranks } = require("../helpers/constant");
 // const { giveAdminSettings, createJwtToken, ct } = require("../helpers/helper");
-const { ct, createJwtToken,giveAdminSettings } = require("../helpers/helper");
+const { ct, createJwtToken, giveAdminSettings } = require("../helpers/helper");
 
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
 
 
 
@@ -285,7 +287,7 @@ const login = async (req, res, next) => {
 
         await Admin.findOneAndUpdate({ walletAddress, role }, { $set: { token: jwt } });
         if (isValidPassword) {
-            return res.status(200).json({ success: true, token: jwt, message: "Login success",role,walletAddress });
+            return res.status(200).json({ success: true, token: jwt, message: "Login success", role, walletAddress });
         } else {
             throw new Error("Invalid credentials");
 
@@ -295,33 +297,186 @@ const login = async (req, res, next) => {
     }
 }
 
-const getAdminInfo = async(req,res,next)=>{
-    try{
+const getAdminInfo = async (req, res, next) => {
+    try {
 
-        const {role,walletAddress} = req.adminDecodedData;
+        const { role, walletAddress } = req.adminDecodedData;
 
-        const adminInfo = await Admin.findOne({role,walletAddress},{role:1,walletAddress:1});
-        if(!adminInfo) throw new Error("Admin info not found!");
+        const adminInfo = await Admin.findOne({ role, walletAddress }, { role: 1, walletAddress: 1 });
+        if (!adminInfo) throw new Error("Admin info not found!");
 
-        return res.status(200).json({success:true,adminInfo});
-        
-    }catch(error){
+        return res.status(200).json({ success: true, adminInfo });
+
+    } catch (error) {
         next(error);
     }
 }
 
-const getDaoDelegators = async(req,res,next)=>{
-    try{
-        const [daos,delegators] = await Promise.all([
-            Admin.find({role:"dao"},{role:1,walletAddress:1}),
-            Admin.find({role:"delegator"},{role:1,walletAddress:1})
+const getDaoDelegators = async (req, res, next) => {
+    try {
+        const [daos, delegators] = await Promise.all([
+            Admin.find({ role: "dao" }, { role: 1, walletAddress: 1 }),
+            Admin.find({ role: "delegator" }, { role: 1, walletAddress: 1 })
         ]);
-        return res.status(200).json({success:true,daos,delegators});
+        return res.status(200).json({ success: true, daos, delegators });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
+
+const getDashboardInfo = async (req, res, next) => {
+    try {
+        // --- 1. Define Time Boundaries in Unix Seconds ---
+        const todayStart = moment().startOf('day').unix();
+        const weekStart = moment().startOf('week').unix();
+        const monthStart = moment().startOf('month').unix();
+
+        // --- 2. User Counts (Total, Today, Week, Month) ---
+        const [
+            totalUsers,
+            todayUsers,
+            weekUsers,
+            monthUsers
+        ] = await Promise.all([
+            RegistrationModel.countDocuments({}),
+            RegistrationModel.countDocuments({ time: { $gte: todayStart } }),
+            RegistrationModel.countDocuments({ time: { $gte: weekStart } }),
+            RegistrationModel.countDocuments({ time: { $gte: monthStart } })
+        ]);
+
+        // --- 3. Business Totals and FSR Totals (Combined Aggregation) ---
+        const businessAndFsrData = await RegistrationModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    // Business (Raw Data)
+                    totalUserStake: { $sum: "$userTotalStakeInUsd" },
+                    // Collect all strings for precise BigNumber calculation in JavaScript
+                    allNodePurchasingBalances: { $push: "$nodePurchasingBalance" },
+                    // FSR Totals
+                    totalActivatedFsr: { $sum: "$activatedFsr" },
+                    totalUtilizedFsr: { $sum: "$utilizedFsr" },
+                }
+            }
+        ]);
+
+        let totalBusinessUsd = new BigNumber(0);
+        let businessFromNodePurchasingUsd = new BigNumber(0);
+        let businessFromStakeUsd = new BigNumber(0);
+        let totalActivatedFsr = 0;
+        let totalUtilizedFsr = 0;
+
+        if (businessAndFsrData.length > 0) {
+            const data = businessAndFsrData[0];
+
+            // 4. Business from Stake
+            businessFromStakeUsd = new BigNumber(data.totalUserStake || 0);
+
+            // 3. Business from Node Purchasing (Handling 1e18 string)
+            data.allNodePurchasingBalances.forEach(balanceStr => {
+                if (balanceStr && balanceStr !== "0") {
+                    // Convert 1e18 string to USD by dividing by 10^18
+                    const nodeBalanceUsd = new BigNumber(balanceStr).dividedBy(new BigNumber("1e18"));
+                    businessFromNodePurchasingUsd = businessFromNodePurchasingUsd.plus(nodeBalanceUsd);
+                }
+            });
+
+            // 2. Total Business
+            totalBusinessUsd = businessFromStakeUsd.plus(businessFromNodePurchasingUsd);
+
+            // 6. FSR Totals
+            totalActivatedFsr = data.totalActivatedFsr || 0;
+            totalUtilizedFsr = data.totalUtilizedFsr || 0;
+        }
+
+        // --- 5. Rankwise User Counts ---
+
+        // Helper function for rank count aggregation with time filter
+        const getRankCounts = async (matchTime) => {
+            const matchStage = matchTime ? { $match: { time: { $gte: matchTime } } } : { $match: {} };
+
+            const result = await RegistrationModel.aggregate([
+                matchStage,
+                { $group: { _id: "$currentRank", count: { $sum: 1 } } }
+            ]);
+
+            // Convert array of objects to a single object: { "RankName": count, ... }
+            return result.reduce((acc, item) => {
+                acc[item._id] = item.count;
+                return acc;
+            }, {});
+        };
+
+        const [
+            rankCountsTotal,
+            rankCountsToday,
+            rankCountsWeek,
+            rankCountsMonth
+        ] = await Promise.all([
+            getRankCounts(null), // All time
+            getRankCounts(todayStart),
+            getRankCounts(weekStart),
+            getRankCounts(monthStart)
+        ]);
+
+        // Format rank data for detailed breakdown and overall count
+        const rankData = ranks.map(rankInfo => ({
+            rank: rankInfo.rank,
+            totalCount: rankCountsTotal[rankInfo.rank] || 0,
+            todayCount: rankCountsToday[rankInfo.rank] || 0,
+            weekCount: rankCountsWeek[rankInfo.rank] || 0,
+            monthCount: rankCountsMonth[rankInfo.rank] || 0,
+        }));
+
+        // Format the overall rank counts as requested (e.g., Mentor: 4, Master: 30)
+        const totalRankCountsFormatted = rankData.reduce((acc, r) => {
+            acc[r.rank] = r.totalCount;
+            return acc;
+        }, {});
+
+        // Final response structure
+        const dashboardInfo = {
+            // 1. User Counts
+            totalUsers: totalUsers,
+            todayRegisteredUsers: todayUsers,
+            weekRegisteredUsers: weekUsers,
+            monthRegisteredUsers: monthUsers,
+
+            // 2. Total Business (String representation for BigNumber precision)
+            totalBusinessUsd: totalBusinessUsd.toString(),
+
+            // 3. Business from Node Purchasing (String representation for BigNumber precision)
+            businessFromNodePurchasingUsd: businessFromNodePurchasingUsd.toString(),
+
+            // 4. Business from Stake (String representation for BigNumber precision)
+            businessFromStakeUsd: businessFromStakeUsd.toString(),
+
+            // 5. Rankwise Counts
+            rankwiseUsers: {
+                // Overall rank counts in the requested format
+                total: totalRankCountsFormatted,
+                // Detailed breakdown including time-filtered counts
+                details: rankData,
+            },
+
+            // 6. FSR Totals
+            totalActivatedFsr: totalActivatedFsr,
+            totalUtilizedFsr: totalUtilizedFsr,
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Admin dashboard info fetched successfully!",
+            data: dashboardInfo
+        });
+
+    } catch (error) {
+        // Log the error for internal debugging
+        console.error("Error fetching dashboard info:", error);
+        next(error);
+    }
+};
 
 module.exports = {
     getAllUsers,
@@ -331,5 +486,6 @@ module.exports = {
     manageNodeStakings,
     changeRanks,
     getDisabledStakings,
-    getAdminInfo
+    getAdminInfo,
+    getDashboardInfo
 }
