@@ -488,7 +488,8 @@ const getDashboardInfo = async (req, res, next) => {
 
 
 
-// --- Controller Function ---
+
+
 
 const getDashboardInfo2 = async (req, res, next) => {
     try {
@@ -499,7 +500,6 @@ const getDashboardInfo2 = async (req, res, next) => {
         const monthStart = moment().startOf('month').unix();
 
         const {nodeValidators} = await giveAdminSettings();
-
         // --- 2. Fetch All Concurrent Metrics ---
         // Fetch sums/counts for All-Time, Today, Week, and Month concurrently
         const [
@@ -516,7 +516,9 @@ const getDashboardInfo2 = async (req, res, next) => {
             getNodeHoldingCounts()
         ]);
 
-        // --- Map Node Numbers to Node Names for the final output
+        // --- 3. Consolidate Data ---
+
+        // Map Node Numbers to Node Names for the final output
         const nodeHoldingsByName = {};
         for (const nodeNum in nodeHoldingsData) {
             const nodeName = nodeValidators.find(nv => nv.nodeNum === parseInt(nodeNum))?.name;
@@ -524,8 +526,6 @@ const getDashboardInfo2 = async (req, res, next) => {
                 nodeHoldingsByName[nodeName] = nodeHoldingsData[nodeNum];
             }
         }
-
-        // --- 3. Consolidate Data ---
 
         const dashboardInfo = {
             // 1. Sum of amountUsdPaid w.r.t currency
@@ -539,18 +539,30 @@ const getDashboardInfo2 = async (req, res, next) => {
             // 2. Count of incomplete payments (isPaymentCompleted: false)
             incompletePaymentCount: {
                 total: allTimeMetrics.incompleteCount,
-          
             },
 
-            // 3. Last Node Holdings Count
+            // 3. Last Node Holdings Count (Now using names)
             nodeHoldings: nodeHoldingsByName,
 
             // 4. Count of docs whose paidBy.userType is dao or delegator
+            // Updated structure to show DAO and Delegator counts separately
             daoDelegatorPayments: {
-                total: allTimeMetrics.daoDelegatorCount,
-                today: todayMetrics.daoDelegatorCount,
-                week: weekMetrics.daoDelegatorCount,
-                month: monthMetrics.daoDelegatorCount,
+                total: {
+                    dao: allTimeMetrics.daoCount,
+                    delegator: allTimeMetrics.delegatorCount,
+                },
+                today: {
+                    dao: todayMetrics.daoCount,
+                    delegator: todayMetrics.delegatorCount,
+                },
+                week: {
+                    dao: weekMetrics.daoCount,
+                    delegator: weekMetrics.delegatorCount,
+                },
+                month: {
+                    dao: monthMetrics.daoCount,
+                    delegator: monthMetrics.delegatorCount,
+                },
             },
         };
 

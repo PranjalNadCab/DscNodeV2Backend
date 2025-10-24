@@ -104,7 +104,9 @@ const getMetricsForTimeRange = async (startTime) => {
     let usdtSum = new BigNumber(0);
     let dscSum = new BigNumber(0);
     let incompleteCount = 0;
-    let daoDelegatorCount = 0;
+    // Updated to track DAO and Delegator counts separately
+    let daoCount = 0;
+    let delegatorCount = 0;
 
     const E_18 = new BigNumber("1e18");
 
@@ -122,9 +124,13 @@ const getMetricsForTimeRange = async (startTime) => {
             incompleteCount++;
         }
 
-        // 4. Count DAO/Delegator Payments
-        if (doc.paidBy && ["dao", "delegator"].includes(doc.paidBy.userType)) {
-            daoDelegatorCount++;
+        // 4. Count DAO/Delegator Payments - Updated logic
+        if (doc.paidBy) {
+            if (doc.paidBy.userType === "dao") {
+                daoCount++;
+            } else if (doc.paidBy.userType === "delegator") {
+                delegatorCount++;
+            }
         }
     });
 
@@ -132,7 +138,9 @@ const getMetricsForTimeRange = async (startTime) => {
         usdtSum: usdtSum.toString(),
         dscSum: dscSum.toString(),
         incompleteCount,
-        daoDelegatorCount
+        // Return separate counts
+        daoCount,
+        delegatorCount
     };
 };
 
