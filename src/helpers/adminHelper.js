@@ -6,32 +6,33 @@ const UpgradedNodes = require("../models/UpgradeNodeModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 const NodeDeployedModel = require("../models/NodeDeployedModel");
+const Admin = require("../models/AdminModel");
 
 const daoUrl = "https://dao.dsclab.ai/api/getdaoList";
 const delegatorsUrl = "https://dao.dsclab.ai/api/delegatorsList";
 
-const getDaoAndDelegator = async()=>{
-    try{
+const getDaoAndDelegator = async () => {
+    try {
 
-        const [daoList,delegatorLilst] = await Promise.all([
+        const [daoList, delegatorLilst] = await Promise.all([
             axios.get(daoUrl),
             axios.get(delegatorsUrl)
         ]);
 
         // console.log("DAO List:", daoList.data.data);
         // console.log("Delegator List:", delegatorLilst.data.data);
-        const daos  = daoList.data.data.filter((item,index)=>item.Add);
-        const delegators = delegatorLilst.data.data.filter((item,index)=>item.Add);
-        return {daos,delegators};
-    }catch(error){
+        const daos = daoList.data.data.filter((item, index) => item.Add);
+        const delegators = delegatorLilst.data.data.filter((item, index) => item.Add);
+        return { daos, delegators };
+    } catch (error) {
         console.error("Error in getDaoAndDelegator:", error);
-        throw {daos:[],delegators:[]};
+        throw { daos: [], delegators: [] };
     }
 }
 
-const generateDefaultDaoDelegatorDoc = async (role,walletAddress,password) => {
+const generateDefaultDaoDelegatorDoc = async (role, walletAddress, password) => {
     try {
-        const existingAdmin = await AdminModel.findOne({role,walletAddress});
+        const existingAdmin = await AdminModel.findOne({ role, walletAddress });
         if (!existingAdmin) {
             // ct({role,walletAddress,password,existingAdmin,message:"Default admin document creation skipped (already exists)."});
             const defaultDoc = new AdminModel({
@@ -52,14 +53,14 @@ const generateDefaultDaoDelegatorDoc = async (role,walletAddress,password) => {
                     part2: 3
                 },
                 lastUpdatedMonthForNodeValidators: process.env.START_MONTH || "October",
-                role:role,
+                role: role,
                 walletAddress,
                 password
             });
             await defaultDoc.save();
-            ct({role,walletAddress,password,message:"Default admin document created successfully."});
+            ct({ role, walletAddress, password, message: "Default admin document created successfully." });
         }
-         else {
+        else {
             console.log("Admin document of dao and delegator already exists.");
         }
     } catch (error) {
@@ -67,27 +68,27 @@ const generateDefaultDaoDelegatorDoc = async (role,walletAddress,password) => {
     }
 }
 
-const createDaoAndDelegatorsAdminInBulk=async()=>{
-    try{
-        const {daos,delegators} = await getDaoAndDelegator();
-        for  (const dao of daos){
-            let {target_address} = dao;
-            if(process.env.NODE_ENV === "development"){
+const createDaoAndDelegatorsAdminInBulk = async () => {
+    try {
+        const { daos, delegators } = await getDaoAndDelegator();
+        for (const dao of daos) {
+            let { target_address } = dao;
+            if (process.env.NODE_ENV === "development") {
                 target_address = "0x2abae3a15E764AFa3948b2Cb04E81f0718d8f846";
             }
-            await generateDefaultDaoDelegatorDoc("dao",target_address,process.env.DAO_PASSWORD);
+            await generateDefaultDaoDelegatorDoc("dao", target_address, process.env.DAO_PASSWORD);
         }
 
-        for  (const delegator of delegators){
-            let {target_address} = delegator;
-            if(process.env.NODE_ENV === "development"){
+        for (const delegator of delegators) {
+            let { target_address } = delegator;
+            if (process.env.NODE_ENV === "development") {
                 target_address = "0x2abae3a15E764AFa3948b2Cb04E81f0718d8f846";
             }
-            
-            await generateDefaultDaoDelegatorDoc("delegator",target_address,process.env.DELEGATOR_PASSWORD);
+
+            await generateDefaultDaoDelegatorDoc("delegator", target_address, process.env.DELEGATOR_PASSWORD);
         }
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
@@ -180,7 +181,7 @@ const getNodeHoldingCounts = async () => {
     // Populate with actual counts
     nodeHoldings.forEach(item => {
         if (item._id >= 1 && item._id <= 9) {
-             holdingsMap[item._id] = item.count;
+            holdingsMap[item._id] = item.count;
         }
     });
 
@@ -232,7 +233,7 @@ const getIncomeMetrics = async (startTime) => {
  * @param {number | null} startTime - Unix timestamp for the start of the range (or null for all time).
  * @returns {object} An object where keys are node names and values are counts.
  */
-const getNodeDeploymentCounts = async (startTime,nodeValidators) => {
+const getNodeDeploymentCounts = async (startTime, nodeValidators) => {
     const filter = startTime ? { time: { $gte: startTime } } : {};
 
     const rawCounts = await NodeDeployedModel.aggregate([
@@ -261,6 +262,91 @@ const getNodeDeploymentCounts = async (startTime,nodeValidators) => {
 };
 
 
+const updateDaoDelegatorForAdmins = async () => {
+    try {
+        const { daos, delegators } = await getDaoAndDelegator();
+
+        // Extract lowercase addresses for comparison
+        const daoAddresses = daos.map(obj => obj.target_address?.toLowerCase());
+        const delegatorAddresses = delegators.map(obj => obj.target_address?.toLowerCase());
+
+        const allValidAddresses = [...daoAddresses, ...delegatorAddresses];
+
+        const existingAdmins = await Admin.find({ role: { $ne: "admin" } });
+        // console.log('existing admins', existingAdmins);
+        console.table({ existingAdminsLength: existingAdmins.length,allValidAddresses:allValidAddresses.length, message: "Existing DAO/Delegator admins fetched." });
+
+        const bulkOps = [];
+
+        // 1️⃣ Delete those not in DAO or Delegator list
+        const toDelete = existingAdmins.filter(
+            admin => !allValidAddresses.includes(admin.walletAddress.toLowerCase())
+        );
+
+        if (toDelete.length > 0) {
+            ct({ toDeleteLength: toDelete.length, message: "Admins to be deleted:" });
+            bulkOps.push(
+                ...toDelete.map(admin => ({
+                    deleteOne: { filter: { walletAddress: admin.walletAddress } }
+                }))
+            );
+        }
+
+        // 2️⃣ Insert missing DAOs
+        for (const dao of daoAddresses) {
+            const exists = existingAdmins.some(
+                admin => admin.walletAddress.toLowerCase() === dao
+            );
+            if (!exists) {
+                bulkOps.push({
+                    insertOne: {
+                        document: {
+                            walletAddress: dao,
+                            role: "dao",
+                            withdrawDeductionPercent: 5, // ✅ provide defaults
+                            nodeValidators: [],
+                            stakeRatio: { part1: 0, part2: 0 },
+                            disabledStakings: []
+                        }
+                    }
+                });
+            }
+        }
+
+        // 3️⃣ Insert missing Delegators
+        for (const delegator of delegatorAddresses) {
+            const exists = existingAdmins.some(
+                admin => admin.walletAddress.toLowerCase() === delegator
+            );
+            if (!exists) {
+                bulkOps.push({
+                    insertOne: {
+                        document: {
+                            walletAddress: delegator,
+                            role: "delegator",
+                            withdrawDeductionPercent: 5,
+                            nodeValidators: [],
+                            stakeRatio: { part1: 0, part2: 0 },
+                            disabledStakings: []
+                        }
+                    }
+                });
+            }
+        }
+
+        // 4️⃣ Execute all bulk operations
+        if (bulkOps.length > 0) {
+            await Admin.bulkWrite(bulkOps);
+            console.log("✅ DAO and Delegator records synced successfully.");
+        } else {
+            console.log("ℹ️ No changes required — already in sync.");
+        }
+    } catch (error) {
+        console.error("❌ Error updating DAO/Delegator admins:", error);
+    }
+};
+
+
 
 module.exports = {
     createDaoAndDelegatorsAdminInBulk,
@@ -268,6 +354,7 @@ module.exports = {
     getNodeHoldingCounts,
     getMetricsForTimeRange,
     getIncomeMetrics,
-    getNodeDeploymentCounts
+    getNodeDeploymentCounts,
+    updateDaoDelegatorForAdmins
 }
 

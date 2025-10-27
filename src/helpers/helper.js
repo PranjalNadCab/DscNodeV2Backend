@@ -55,7 +55,7 @@ const ct = (payload) => {
 
 const generateDefaultAdminDoc = async () => {
     try {
-        const existingAdmin = await AdminModel.findOne({});
+        const existingAdmin = await AdminModel.findOne({role:"admin"});
         if (!existingAdmin) {
             const defaultAdmin = new AdminModel({
                 withdrawDeductionPercent: 5, // Default deduction percent
@@ -1333,4 +1333,43 @@ const updateFsrValue = async (userAddress) => {
     }
 }
 
-module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx }
+const refreshDaoDelegatorUsers = async()=>{
+    try{
+        const { daos,delegators } = await getDaoAndDelegator();
+
+        const bulkOps = [];
+
+        const cursor = RegistrationModel.find({}).cursor();
+
+        for await (const user of cursor) {
+            const lowerAddress = user.userAddress.toLowerCase();
+            let newType = "normal";
+
+            const isDao = daos.some(obj => obj.target_address?.toLowerCase() === lowerAddress);
+            if (isDao) newType = "dao";
+            else {
+                const isDelegator = delegators.some(obj => obj.target_address?.toLowerCase() === lowerAddress);
+                if (isDelegator) newType = "delegator";
+            }
+
+            if (user.userType !== newType) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { userAddress: user.userAddress },
+                        update: { $set: { userType: newType } }
+                    }
+                });
+            }
+        }
+
+        if(bulkOps.length>0){
+            await RegistrationModel.bulkWrite(bulkOps);
+            console.log("DAO and Delegator user types refreshed successfully.");
+        }
+
+    }catch(error){
+        console.log(error);
+    }
+}
+
+module.exports = { giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx }

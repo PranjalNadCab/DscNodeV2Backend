@@ -11,11 +11,11 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
-const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk } = require("./src/helpers/adminHelper");
+const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk, updateDaoDelegatorForAdmins } = require("./src/helpers/adminHelper");
 
 
 
@@ -64,6 +64,8 @@ if (process.env.NODE_ENV !== "development") {
             console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
             const res = await getLivePrice();
             console.log("Live DSC Price fetched successfully:", res);
+            await updateDaoDelegatorForAdmins();
+            await refreshDaoDelegatorUsers();
         } catch (err) {
             console.error('Error in monthly cron job:', err);
         }
@@ -108,7 +110,9 @@ const server = app.listen(PORT, async () => {
         await dscNodeListEvents();
         // await generateDefaultAdminDoc();
         // await createDaoAndDelegatorsAdminInBulk();
-      
+        // await updateDaoDelegatorForAdmins();
+        // await refreshDaoDelegatorUsers();
+
     } else {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
