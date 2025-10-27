@@ -1,5 +1,5 @@
 const { BigNumber } = require("bignumber.js");
-const { ranks } = require("../helpers/constant");
+const { ranks, ratioUsdDsc } = require("../helpers/constant");
 // const { giveAdminSettings, createJwtToken, ct } = require("../helpers/helper");
 const { ct, createJwtToken, giveAdminSettings } = require("../helpers/helper");
 
@@ -846,10 +846,12 @@ const getNodeDeployers = async (req, res, next) => {
 const getNodePricesAndRatios = async (req, res, next) => {
     try {
 
+        const {nodeValidators} = await giveAdminSettings();
+        const usdDscRatio = ratioUsdDsc();
 
 
 
-        return res.status(200).json({ success: true, message: "Node Prices & Ratios fetched successfully!" });
+        return res.status(200).json({ success: true, message: "Node Prices & Ratios fetched successfully!",nodeValidators ,usdDscRatio});
     } catch (error) {
         next(error);
     }

@@ -17,8 +17,8 @@ router.get("/get-dao-delegators",adminAuthentication,getDaoDelegators);
 router.get("/get-dashboard-info",getDashboardInfo);
 router.get("/get-dashboard-info2",getDashboardInfo2);
 router.get("/get-dashboard-info3",getDashboardInfo3);
-router.get("/node-deployers",getNodeDeployers);
-router.get("/node-prices-ratios",getNodePricesAndRatios);
+router.get("/node-deployers",adminAuthentication,getNodeDeployers);
+router.get("/node-prices-ratios",adminAuthentication,getNodePricesAndRatios);
 
 
 
