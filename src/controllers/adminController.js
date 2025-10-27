@@ -806,6 +806,25 @@ const getNodeDeployers = async (req, res, next) => {
         // Count total documents for pagination info
         const totalRecords = await NodeDeployedModel.countDocuments();
 
+        const result = await NodeDeployedModel.aggregate([
+            {
+                $group: {
+                    _id: "$nodeNum",              // group by nodeNum
+                    totalDeployed: { $sum: 1 }    // count how many docs per nodeNum
+                }
+            },
+            {
+                $project: {
+                    _id: 0,                       // remove MongoDB's _id
+                    nodeNum: "$_id",
+                    totalDeployed: 1
+                }
+            },
+            {
+                $sort: { nodeNum: 1 }           // sort ascending from 1 → 9
+            }
+        ]);
+
         return res.status(200).json({
             success: true,
             message: "Data fetched for Node deployers!",
@@ -814,7 +833,9 @@ const getNodeDeployers = async (req, res, next) => {
             page,
             limit,
             totalPages: Math.ceil(totalRecords / limit),
-            count: nodeDeployers.length
+            count: nodeDeployers.length,
+            nodeOverview: result,
+
         });
 
     } catch (error) {
