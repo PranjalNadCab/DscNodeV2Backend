@@ -863,17 +863,17 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
 
 
 
-        const adminDoc = await AdminModel.findOne({});
+        const adminDoc = await AdminModel.findOne({role: "admin"});
         if (!adminDoc) {
             console.log("Admin doc not found");
             return;
         }
         const nodeInfo = adminDoc.nodeValidators.find(n => n.nodeNum === nodeNum);
+        console.log("----------->>>>>",nodeInfo,adminDoc)
         if (!nodeInfo) {
             console.log(`Invalid node name ${nodeInfo.name}`);
             return;
         }
-        console.log("jksdhfgsdfghdfhed", nodeInfo)
         // purchasedNodes.push({
         //     nodeName: nodeInfo.name,
         //     purchasedAt: time,

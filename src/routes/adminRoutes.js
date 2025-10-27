@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3 } = require("../controllers/adminController");
+const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios } = require("../controllers/adminController");
 const { adminAuthentication } = require("../middlewares/adminAuth");
 
 
@@ -17,6 +17,10 @@ router.get("/get-dao-delegators",adminAuthentication,getDaoDelegators);
 router.get("/get-dashboard-info",getDashboardInfo);
 router.get("/get-dashboard-info2",getDashboardInfo2);
 router.get("/get-dashboard-info3",getDashboardInfo3);
+router.get("/node-deployers",getNodeDeployers);
+router.get("/node-prices-ratios",getNodePricesAndRatios);
+
+
 
 
 

@@ -10,6 +10,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const { getMetricsForTimeRange, getNodeHoldingCounts, getIncomeMetrics, getNodeDeploymentCounts } = require("../helpers/adminHelper");
+const NodeDeployedModel = require("../models/NodeDeployedModel");
 
 
 
@@ -781,9 +782,63 @@ const getDashboardInfo3 = async (req, res, next) => {
     }
 }
 
+const getNodeDeployers = async (req, res, next) => {
+    try {
+        let { page = 1, limit = 10 } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+
+        const skip = (page - 1) * limit;
+
+        // Fetch paginated data
+        const nodeDeployers = await NodeDeployedModel.find(
+            {},
+            { _id: 0, createdAt: 0, updatedAt: 0, __v: 0, block: 0 }
+        )
+            .skip(skip)
+            .limit(limit)
+            .sort({ time: -1 }) // optional: latest first
+            .lean();
+
+        // Count total documents for pagination info
+        const totalRecords = await NodeDeployedModel.countDocuments();
+
+        return res.status(200).json({
+            success: true,
+            message: "Data fetched for Node deployers!",
+            nodeDeployers,
+            totalRecords,
+            page,
+            limit,
+            totalPages: Math.ceil(totalRecords / limit),
+            count: nodeDeployers.length
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getNodePricesAndRatios = async (req, res, next) => {
+    try {
+
+
+
+
+        return res.status(200).json({ success: true, message: "Node Prices & Ratios fetched successfully!" });
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 module.exports = {
     getAllUsers,
+    getNodeDeployers,
+    getNodePricesAndRatios,
     getDashboardInfo2,
     getDaoDelegators,
     login,
