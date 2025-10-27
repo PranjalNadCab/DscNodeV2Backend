@@ -341,7 +341,7 @@ function giveVrsForNodeConversion(userAddress, nodeNum, currNonce, hash) {
     });
 }
 
-function giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmountIn1e18,generatedDscIn1e18,priceInUsdIn1e18, currNonce, hash) {
+function giveVrsForActivatingFsr(userAddress, dscAmountInUsdIn1e18, activationAmountIn1e18, generatedDscIn1e18, priceInUsdIn1e18, currNonce, hash) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -374,10 +374,10 @@ function giveVrsForActivatingFsr(userAddress,dscAmountInUsdIn1e18, activationAmo
     });
 }
 
-function generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay,rateDollarPerDsc, currNonce, hash,sponsoredUserAddress) {
+function generateVrsForSponsorTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay, rateDollarPerDsc, currNonce, hash, sponsoredUserAddress) {
     return new Promise(async (resolve, reject) => {
         try {
-            console.log("lkasd-----fgsdf",sponsoredUserAddress)
+            console.log("lkasd-----fgsdf", sponsoredUserAddress)
             //call contract to match nonce
 
             const data = {
@@ -512,7 +512,7 @@ const registerUser = async (userAddress, time, sponsorAddress, regAmount, block,
         if (!user) {
             const { userType } = await giveUserType(userAddress);
             let currentFsr = 0;
-            if(userType === "delegator"){
+            if (userType === "delegator") {
                 currentFsr = 300000
             }
             const uniqueRandomId = await generateRandomId();
@@ -597,31 +597,33 @@ const updateUserTotalSelfStakeUsdt = async (userAddress, totalStakeAmountInUsd) 
         console.log(error, "Error in updateUserTotalStakeUsdt");
     }
 
-    const getDirectsNodeBalanceSum = async (fUserAddress) => {
-        try {
-            // 1️⃣ Get all directs for a user
-            const userDirects = await RegistrationModel.find({ sponsorAddress: fUserAddress }, { nodePurchasingBalance: 1 });
 
-            // 2️⃣ Sum balances using BigNumber
-            let totalBalance = new BigNumber(0);
-
-            userDirects.forEach((user) => {
-                const balanceStr = user.nodePurchasingBalance || "0";
-                totalBalance = totalBalance.plus(new BigNumber(balanceStr));
-            });
-
-            // 3️⃣ Convert from wei (1e18) to normal number (like ether)
-            const totalInNormal = totalBalance.dividedBy(1e18).toNumber();
-
-            console.log(`Total Node Purchasing Balance for ${fUserAddress}:`, totalInNormal);
-
-            return totalInNormal;
-        } catch (err) {
-            console.error("Error fetching directs' nodePurchasingBalance sum:", err);
-            return 0;
-        }
-    };
 }
+
+const getDirectsNodeBalanceSum = async (fUserAddress) => {
+    try {
+        // 1️⃣ Get all directs for a user
+        const userDirects = await RegistrationModel.find({ sponsorAddress: fUserAddress }, { nodePurchasingBalance: 1 });
+
+        // 2️⃣ Sum balances using BigNumber
+        let totalBalance = new BigNumber(0);
+
+        userDirects.forEach((user) => {
+            const balanceStr = user.nodePurchasingBalance || "0";
+            totalBalance = totalBalance.plus(new BigNumber(balanceStr));
+        });
+
+        // 3️⃣ Convert from wei (1e18) to normal number (like ether)
+        const totalInNormal = totalBalance.dividedBy(1e18).toNumber();
+
+        console.log(`Total Node Purchasing Balance for ${fUserAddress}:`, totalInNormal);
+
+        return totalInNormal;
+    } catch (err) {
+        console.error("Error fetching directs' nodePurchasingBalance sum:", err);
+        return 0;
+    }
+};
 
 const manageRank = async (userAddress) => {
     try {
@@ -799,10 +801,10 @@ const giveGapIncome = async (senderAddress, stakingAmountIn1e18, rankDuringStaki
                     update: {
                         $set: {
                             dscIncomeWallet: newDscIncomeWallet,
-                            dscIncomeInUsdWallet:dscIncomeInUsdWallet,
+                            dscIncomeInUsdWallet: dscIncomeInUsdWallet,
                             usdtIncomeWallet: newUsdtIncomeWallet,
                             totalIncomeDscReceived: newTotalIncomeDsc,
-                            totalIncomeDscInUsdReceived:totalIncomeDscInUsdReceived,
+                            totalIncomeDscInUsdReceived: totalIncomeDscInUsdReceived,
                             totalIncomeUsdtReceived: newTotalIncomeUsdt,
                         }
                     }
@@ -1279,7 +1281,7 @@ const giveUserType = async (userAddress) => {
 const updateFsrValue = async (userAddress) => {
     try {
 
-        console.log("sdfsgsdfg",userAddress)
+        console.log("sdfsgsdfg", userAddress)
         if (!userAddress) return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
 
         const fUserAddress = giveCheckSummedAddress(userAddress);
@@ -1290,7 +1292,7 @@ const updateFsrValue = async (userAddress) => {
             return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
         }
 
-        if(oldDoc.userType === "delegator"){
+        if (oldDoc.userType === "delegator") {
             return { utilizedFsr: oldDoc.utilizedFsr, activatedFsr: oldDoc.activatedFsr, currentFsr: oldDoc.currentFsr }
         }
 
@@ -1331,4 +1333,4 @@ const updateFsrValue = async (userAddress) => {
     }
 }
 
-module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount,giveVrsForActivatingFsr,generateVrsForSponsorTx }
+module.exports = { giveUserType, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx }
