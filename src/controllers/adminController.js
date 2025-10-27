@@ -539,6 +539,9 @@ const getDashboardInfo2 = async (req, res, next) => {
             // 2. Count of incomplete payments (isPaymentCompleted: false)
             incompletePaymentCount: {
                 total: allTimeMetrics.incompleteCount,
+                today: todayMetrics.incompleteCount,
+                week: weekMetrics.incompleteCount,
+                month: monthMetrics.incompleteCount,
             },
 
             // 3. Last Node Holdings Count (Now using names)
