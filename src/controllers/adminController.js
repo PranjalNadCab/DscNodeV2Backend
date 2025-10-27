@@ -91,6 +91,93 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
+// const getUpgradedNodesHistory = async (req, res, next) => {
+//     try {
+//         let { page = 1, limit = 10, query = "", fromTime, toTime } = req.query;
+
+//         page = parseInt(page);
+//         limit = parseInt(limit);
+//         if (page < 1) page = 1;
+//         if (limit < 1) limit = 10;
+//         const skip = (page - 1) * limit;
+
+//         // Base filter
+//         const filter = {};
+
+//         // 🔍 Search filter
+//         if (query) {
+//             const regex = new RegExp(query, "i");
+//             filter.$or = [
+//                 { transactionHash: regex },
+//                 { mixTransactionHash: regex },
+//                 { currency: regex },
+//             ];
+//         }
+
+//         // ⏰ Date filter
+//         const gte = fromTime && !isNaN(Number(fromTime)) ? Number(fromTime) : null;
+//         const lte = toTime && !isNaN(Number(toTime)) ? Number(toTime) : null;
+
+//         if (gte !== null && lte !== null) filter.time = { $gte: gte, $lte: lte };
+//         else if (gte !== null) filter.time = { $gte: gte };
+//         else if (lte !== null) filter.time = { $lte: lte };
+
+//         // Aggregation to join RegistrationModel and fetch uniqueRandomId
+//         const history = await UpgradedNodes.aggregate([
+//             { $match: filter },
+//             { $sort: { time: -1 } },
+//             { $skip: skip },
+//             { $limit: limit },
+//             {
+//                 $lookup: {
+//                     from: "registration", // collection name in MongoDB
+//                     localField: "userAddress",
+//                     foreignField: "userAddress",
+//                     as: "userInfo",
+//                 },
+//             },
+//             {
+//                 $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true },
+//             },
+//             {
+//                 $project: {
+//                     nodeNum: 1,
+//                     lastUsedNonce: 1,
+//                     totalAmountInUsd: 1,
+//                     amountUsdPaid: 1,
+//                     time: 1,
+//                     currency: 1,
+//                     isPaymentCompleted: 1,
+//                     rateDollarPerDsc: 1,
+//                     block: 1,
+//                     transactionHash: 1,
+//                     mixTransactionHash: 1,
+//                     createdAt: 1,
+//                     updatedAt: 1,
+//                     userAddress: 1,
+//                     uniqueRandomId: "$userInfo.uniqueRandomId",
+//                 },
+//             },
+//         ]);
+
+//         // Count total records (without pagination)
+//         const totalRecords = await UpgradedNodes.countDocuments(filter);
+
+//         res.json({
+//             success: true,
+//             totalRecords,
+//             page,
+//             limit,
+//             totalPages: Math.ceil(totalRecords / limit),
+//             count: history.length,
+//             history,
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         next(err);
+//     }
+// };
+
 const getUpgradedNodesHistory = async (req, res, next) => {
     try {
         let { page = 1, limit = 10, query = "", fromTime, toTime } = req.query;
@@ -101,7 +188,6 @@ const getUpgradedNodesHistory = async (req, res, next) => {
         if (limit < 1) limit = 10;
         const skip = (page - 1) * limit;
 
-        // Base filter
         const filter = {};
 
         // 🔍 Search filter
@@ -122,15 +208,41 @@ const getUpgradedNodesHistory = async (req, res, next) => {
         else if (gte !== null) filter.time = { $gte: gte };
         else if (lte !== null) filter.time = { $lte: lte };
 
-        // Aggregation to join RegistrationModel and fetch uniqueRandomId
         const history = await UpgradedNodes.aggregate([
             { $match: filter },
-            { $sort: { time: -1 } },
+
+            // 1️⃣ Group by mixTransactionHash (but treat "NA" as its own unique doc)
+            {
+                $group: {
+                    _id: {
+                        $cond: [
+                            { $ne: ["$mixTransactionHash", "NA"] },
+                            "$mixTransactionHash",
+                            "$_id",
+                        ],
+                    },
+                    docs: { $push: "$$ROOT" },
+                    latestTime: { $max: "$time" },
+                },
+            },
+
+            // 2️⃣ Sort groups by their latest time (latest first)
+            { $sort: { latestTime: -1 } },
+
+            // 3️⃣ Flatten back to normal documents (preserving group order)
+            { $unwind: "$docs" },
+
+            // 4️⃣ Replace root with actual doc
+            { $replaceRoot: { newRoot: "$docs" } },
+
+            // 5️⃣ Pagination
             { $skip: skip },
             { $limit: limit },
+
+            // 6️⃣ Lookup user info
             {
                 $lookup: {
-                    from: "registration", // collection name in MongoDB
+                    from: "registration",
                     localField: "userAddress",
                     foreignField: "userAddress",
                     as: "userInfo",
@@ -160,7 +272,6 @@ const getUpgradedNodesHistory = async (req, res, next) => {
             },
         ]);
 
-        // Count total records (without pagination)
         const totalRecords = await UpgradedNodes.countDocuments(filter);
 
         res.json({
@@ -590,7 +701,7 @@ const getDashboardInfo3 = async (req, res, next) => {
         const weekStart = moment().startOf('week').unix();
         const monthStart = moment().startOf('month').unix();
 
-    const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
 
 
         // --- 2. Fetch All Concurrent Metrics ---
@@ -609,10 +720,10 @@ const getDashboardInfo3 = async (req, res, next) => {
             getIncomeMetrics(todayStart),
             getIncomeMetrics(weekStart),
             getIncomeMetrics(monthStart),
-            getNodeDeploymentCounts(null,nodeValidators),
-            getNodeDeploymentCounts(todayStart,nodeValidators),
-            getNodeDeploymentCounts(weekStart,nodeValidators),
-            getNodeDeploymentCounts(monthStart,nodeValidators)
+            getNodeDeploymentCounts(null, nodeValidators),
+            getNodeDeploymentCounts(todayStart, nodeValidators),
+            getNodeDeploymentCounts(weekStart, nodeValidators),
+            getNodeDeploymentCounts(monthStart, nodeValidators)
         ]);
 
         // --- 3. Consolidate Data ---
@@ -641,12 +752,12 @@ const getDashboardInfo3 = async (req, res, next) => {
 
             // 2. Node Registration Income Sums
             nodeRegistrationIncome: {
-               
-                    total: allTimeIncome.nodeReg.amount,
-                    today: todayIncome.nodeReg.amount,
-                    week: weekIncome.nodeReg.amount,
-                    month: monthIncome.nodeReg.amount,
-                
+
+                total: allTimeIncome.nodeReg.amount,
+                today: todayIncome.nodeReg.amount,
+                week: weekIncome.nodeReg.amount,
+                month: monthIncome.nodeReg.amount,
+
             },
 
             // 3. Node Deployment Counts (by Name)
