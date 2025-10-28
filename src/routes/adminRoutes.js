@@ -19,8 +19,8 @@ router.get("/get-dashboard-info2",getDashboardInfo2);
 router.get("/get-dashboard-info3",getDashboardInfo3);
 router.get("/node-deployers",adminAuthentication,getNodeDeployers);
 router.get("/node-prices-ratios",adminAuthentication,getNodePricesAndRatios);
-router.get("/fsr-recharge-history",adminAuthentication,fsrRechargeHistory);
-router.get("/recharge-fsr",adminAuthentication,rechargeFsr);
+router.post("/fsr-recharge-history",adminAuthentication,fsrRechargeHistory);
+router.post("/recharge-fsr",adminAuthentication,rechargeFsr);
 
 
 

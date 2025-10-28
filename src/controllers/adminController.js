@@ -880,6 +880,22 @@ const fsrRechargeHistory = async (req, res, next) => {
             .limit(limit)
             .lean();
 
+            const totalPerUser = await AdminRechargeFsrDelegator.aggregate([
+                {
+                    $group: {
+                        _id: "$userAddress",
+                        totalAmount: { $sum: "$amount" },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userAddress: "$_id",
+                        totalAmount: 1,
+                    },
+                },
+            ]);
+
         // Send response
         return res.status(200).json({
             success: true,
@@ -891,6 +907,7 @@ const fsrRechargeHistory = async (req, res, next) => {
                 limit,
                 totalPages: Math.ceil(totalCount / limit),
             },
+            totalPerUser
         });
     } catch (error) {
         next(error);
