@@ -880,20 +880,33 @@ const fsrRechargeHistory = async (req, res, next) => {
             .limit(limit)
             .lean();
 
-            const totalPerUser = await AdminRechargeFsrDelegator.aggregate([
+            const totalPerUser = await RegistrationModel.aggregate([
                 {
-                    $group: {
-                        _id: "$userAddress",
-                        totalAmount: { $sum: "$amount" },
-                    },
+                    $match: { userType: "delegator" }
+                },
+                {
+                    $lookup: {
+                        from: "adminrechargefsrdelegators", // ✅ actual collection name in MongoDB
+                        localField: "userAddress",
+                        foreignField: "userAddress",
+                        as: "recharges"
+                    }
+                },
+                {
+                    $addFields: {
+                        totalAmount: { 
+                            $sum: "$recharges.amount"  // ✅ sum amounts from lookup array
+                        }
+                    }
                 },
                 {
                     $project: {
                         _id: 0,
-                        userAddress: "$_id",
-                        totalAmount: 1,
-                    },
-                },
+                        userAddress: 1,
+                        uniqueRandomId: 1,
+                        totalAmount: 1
+                    }
+                }
             ]);
 
         // Send response
@@ -958,7 +971,7 @@ const rechargeFsr = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            message: `FSR recharge of ${amount} for user ${userAddress} processed successfully!`,
+            message: `FSR recharge of ${amount} processed successfully!`,
         });
     } catch (error) {
         // Rollback if anything fails
