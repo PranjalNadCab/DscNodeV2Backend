@@ -176,7 +176,11 @@ async function processEvents(events) {
                         rateDollarPerDsc: rate,
                         mixTransactionHash: mixTxHash,
                         isPaymentCompleted: isPaymentCompleted,
-                        rankAchievedAt: Number(timestampNormal)
+                        rankAchievedAt: Number(timestampNormal),
+                        paidBy: {
+                            userAddress: user,
+                            userType: 'self',
+                        }
                     });
 
                     let rankDuringStaking = null;
