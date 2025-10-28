@@ -400,11 +400,11 @@ async function processEvents(events) {
                         lastUsedNonce: Number(lastUsedNonce),
                         time: Number(timestampNormal),
                         block: Number(block),
-                        transactionHash: spnosoredTxHash,
+                        transactionHash: transactionHash,
                         totalAmountInUsd: totalAmountInUsd,
                         currency: "DSC",
                         rateDollarPerDsc,
-                        mixTransactionHash: mixTxHash,
+                        mixTransactionHash: spnosoredTxHash,
                         isPaymentCompleted: true,
                         rankAchievedAt: Number(timestampNormal),
                         paidBy: {
