@@ -269,6 +269,7 @@ const getUpgradedNodesHistory = async (req, res, next) => {
                     updatedAt: 1,
                     userAddress: 1,
                     uniqueRandomId: "$userInfo.uniqueRandomId",
+                    paidBy:1
                 },
             },
         ]);
