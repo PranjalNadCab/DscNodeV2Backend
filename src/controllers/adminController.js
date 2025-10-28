@@ -1,7 +1,7 @@
 const { BigNumber } = require("bignumber.js");
 const { ranks, ratioUsdDsc } = require("../helpers/constant");
 // const { giveAdminSettings, createJwtToken, ct } = require("../helpers/helper");
-const { ct, createJwtToken, giveAdminSettings } = require("../helpers/helper");
+const { ct, createJwtToken, giveAdminSettings, giveCheckSummedAddress } = require("../helpers/helper");
 
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
@@ -11,6 +11,9 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const { getMetricsForTimeRange, getNodeHoldingCounts, getIncomeMetrics, getNodeDeploymentCounts } = require("../helpers/adminHelper");
 const NodeDeployedModel = require("../models/NodeDeployedModel");
+const AdminRechargeFsrDelegator = require("../models/AdminRechargeFsrDelegator");
+const mongoose = require("mongoose");
+
 
 
 
@@ -67,7 +70,7 @@ const getAllUsers = async (req, res, next) => {
             myNode: 1,
             isNodeRegDone: 1,
             createdAt: 1,
-            totalIncomeDscInUsdReceived:1
+            totalIncomeDscInUsdReceived: 1
         };
 
         // Fetch users
@@ -270,7 +273,7 @@ const getUpgradedNodesHistory = async (req, res, next) => {
                     updatedAt: 1,
                     userAddress: 1,
                     uniqueRandomId: "$userInfo.uniqueRandomId",
-                    paidBy:1
+                    paidBy: 1
                 },
             },
         ]);
@@ -848,22 +851,112 @@ const getNodeDeployers = async (req, res, next) => {
 const getNodePricesAndRatios = async (req, res, next) => {
     try {
 
-        const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
         const usdDscRatio = ratioUsdDsc();
 
 
 
-        return res.status(200).json({ success: true, message: "Node Prices & Ratios fetched successfully!",nodeValidators ,usdDscRatio});
+        return res.status(200).json({ success: true, message: "Node Prices & Ratios fetched successfully!", nodeValidators, usdDscRatio });
     } catch (error) {
         next(error);
     }
 }
 
+const fsrRechargeHistory = async (req, res, next) => {
+    try {
+        let { page = 1, limit = 10 } = req.body; // default values
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination info
+        const totalCount = await AdminRechargeFsrDelegator.countDocuments({});
+
+        // Fetch paginated results
+        const history = await AdminRechargeFsrDelegator.find({})
+            .sort({ time: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // Send response
+        return res.status(200).json({
+            success: true,
+            message: "FSR recharge history fetched successfully!",
+            data: history,
+            pagination: {
+                total: totalCount,
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const rechargeFsr = async (req, res, next) => {
+    const session = await mongoose.startSession();
+
+    try {
+        let { userAddress, amount, userType = "delegator" } = req.body;
+
+        if (!userAddress || !amount) throw new Error("All fields are required!");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Start transaction
+        session.startTransaction();
+
+        // 1️⃣ Update user's FSR
+        const updateUserDoc = await RegistrationModel.findOneAndUpdate(
+            { userAddress },
+            { $inc: { currentFsr: amount } },
+            { new: true, session }
+        );
+
+        if (!updateUserDoc) throw new Error("User not found!");
+
+        // 2️⃣ Create recharge record
+        const newRechargeRecord = await AdminRechargeFsrDelegator.create(
+            [
+                {
+                    userAddress,
+                    amount,
+                    userType,
+                    status: "completed",
+                    time: moment().unix(),
+                },
+            ],
+            { session }
+        );
+
+        // 3️⃣ Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        console.log("--->>> New Recharge done", newRechargeRecord[0]);
+
+        return res.status(200).json({
+            success: true,
+            message: `FSR recharge of ${amount} for user ${userAddress} processed successfully!`,
+        });
+    } catch (error) {
+        // Rollback if anything fails
+        await session.abortTransaction();
+        session.endSession();
+        next(error);
+    }
+};
 
 module.exports = {
     getAllUsers,
     getNodeDeployers,
+    rechargeFsr,
     getNodePricesAndRatios,
+    fsrRechargeHistory,
     getDashboardInfo2,
     getDaoDelegators,
     login,
