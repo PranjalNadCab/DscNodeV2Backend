@@ -67,6 +67,7 @@ const getAllUsers = async (req, res, next) => {
             myNode: 1,
             isNodeRegDone: 1,
             createdAt: 1,
+            totalIncomeDscInUsdReceived:1
         };
 
         // Fetch users
