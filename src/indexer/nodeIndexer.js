@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId, giveUserType } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId, giveUserType, manageUserWalletForDsc } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -314,7 +314,7 @@ async function processEvents(events) {
 
                     console.log("Dsc withdraw doc created:", newWithdraw);
 
-                    await manageUserWallet(userAddress, null, new BigNumber(amountDsc).toFixed());
+                    await manageUserWalletForDsc(userAddress,amountDscInUsd );
 
 
                 } catch (error) {
@@ -475,8 +475,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "66872032"; 
-        // toBlock = "66872032"
+        // lastSyncBlock = "70517439"; 
+        // toBlock = "70517439"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);

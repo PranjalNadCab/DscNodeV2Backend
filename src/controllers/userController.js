@@ -17,6 +17,7 @@ const NodeRegIncomeModel = require("../models/NodeRegIncomeModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const ActivateFsrModel = require("../models/ActivateFsrModel.js");
+const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 
 
 
@@ -375,7 +376,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
 
 const withdrawIncomeDsc = async (req, res, next) => {
     try {
-        let { userAddress, amountDsc, amountDscInUsd, priceDscInUsd } = req.body;
+        let { userAddress, amountDscInUsd } = req.body;
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
@@ -396,16 +397,23 @@ const withdrawIncomeDsc = async (req, res, next) => {
         const userRegDoc = await RegistrationModel.findOne({ userAddress });
         if (!userRegDoc) throw new Error("User not found. Please register first.");
 
-        let { dscIncomeWallet } = userRegDoc;
+        let { dscIncomeInUsdWallet } = userRegDoc;
 
         // Convert stored string balances to BigNumber
-        dscIncomeWallet = new BigNumber(dscIncomeWallet);   // already in 1e18
+        dscIncomeInUsdWallet = new BigNumber(dscIncomeInUsdWallet);   // already in 1e18
+
+        if (dscIncomeInUsdWallet.lt(new BigNumber(amountDscInUsd).multipliedBy(1e18))) {
+            throw new Error("Insufficient DSC in USD balance in wallet.");
+        }
 
         // Convert request amounts to 1e18
-        const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
+        // const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
+        const livePrice= await getLivePrice();
+        ct({livePrice});
 
         const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed();
-        const priceDscInUsdIn1e18 = new BigNumber(priceDscInUsd).multipliedBy(1e18).toFixed();
+        const amountDscIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).dividedBy(livePrice);
+        const priceDscInUsdIn1e18 = new BigNumber(livePrice).multipliedBy(1e18).toFixed();
 
         const amountDscIn1e18AfterDeduction = amountDscIn1e18.multipliedBy(0.95).toFixed(0);
         const amountDscInUsdIn1e18AfterDeduction = new BigNumber(amountDscInUsdIn1e18).multipliedBy(0.95).toFixed(0);
@@ -417,12 +425,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
 
 
-        // ✅ Case 2: Withdraw only DSC
-
-        if (dscIncomeWallet.lt(amountDscIn1e18)) {
-            throw new Error("Insufficient DSC balance in wallet.");
-        }
-
+   
 
 
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
@@ -439,13 +442,12 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
 
         const hash = await dscNodeContract.methods.getHashForWithdrawIncomeDsc(userAddress, amountDscIn1e18.toFixed(0), amountDscInUsdIn1e18, amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction, priceDscInUsdIn1e18).call();
-        // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18, priceDscInUsdIn1e18, userAddress, hash, Number(currNonce), amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeDsc(amountDscInUsdIn1e18, amountDscIn1e18.toFixed(0), priceDscInUsdIn1e18, userAddress, hash, Number(currNonce), amountDscInUsdIn1e18AfterDeduction, amountDscIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
-            message: "Withdraw income request validated successfully. (Transfer logic not implemented yet.)",
+            message: "Withdraw income request validated successfully.",
             vrsSign
         });
 

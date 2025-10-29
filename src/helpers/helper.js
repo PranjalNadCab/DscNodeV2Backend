@@ -956,6 +956,44 @@ const manageUserWallet = async (user, amountInUsdt = null, amountInDsc = null) =
     }
 }
 
+//only for dsc income
+const manageUserWalletForDsc = async (user, amountInUsd) => {
+    try {
+
+
+
+        if (!user) return;
+        const fUser = giveCheckSummedAddress(user);
+        const userDoc = await RegistrationModel.findOne({ userAddress: fUser });
+        if (!userDoc) {
+            console.log("User not found for address:", fUser);
+            return;
+        }
+
+        let newDscIncomeInUsdWallet = userDoc.dscIncomeInUsdWallet || "0";
+
+       
+        if (amountInUsd && Number(amountInUsd) > 0) {
+            newDscIncomeInUsdWallet = new BigNumber(newDscIncomeInUsdWallet).minus(new BigNumber(amountInUsd)).toFixed(0);
+        }
+
+        ct({ uid: "jkr674", newDscIncomeInUsdWallet,user })
+        const updatedUser = await RegistrationModel.findOneAndUpdate(
+            { userAddress: fUser },
+            { $set: {dscIncomeInUsdWallet: newDscIncomeInUsdWallet } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            console.log("Failed to update user wallet for address:", fUser);
+        } else {
+            console.log("User wallet updated successfully for address:", fUser);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 const generateRandomId = async () => {
     try {
         let newRandomId;
@@ -1372,4 +1410,4 @@ const refreshDaoDelegatorUsers = async()=>{
     }
 }
 
-module.exports = { giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx }
+module.exports = { giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx,manageUserWalletForDsc }
