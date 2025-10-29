@@ -324,8 +324,12 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         // Convert request amounts to 1e18
         const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18);
 
+        const {withdrawDeductionPercent} = await giveAdminSettings();
 
-        const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(0.95).toFixed(0);
+        let deductionPerValue = (100-withdrawDeductionPercent)/100 ;
+
+
+        const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(deductionPerValue).toFixed(0);
 
         // ✅ Validate amounts
         if (amountUsdtIn1e18.isZero()) {
@@ -356,7 +360,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         const hash = await dscNodeContract.methods.getHashForWithdrawIncomeUsdt(userAddress, amountUsdtIn1e18.toFixed(0), amountUsdtIn1e18AfterDeduction).call();
         // If validation passed, continue with withdrawal (not implemented yet)
 
-        const vrsSign = await giveVrsForWithdrawIncomeUsdt(amountUsdtIn1e18, userAddress, hash, Number(currNonce), amountUsdtIn1e18AfterDeduction);
+        const vrsSign = await giveVrsForWithdrawIncomeUsdt(amountUsdtIn1e18.toFixed(0), userAddress, hash, Number(currNonce), amountUsdtIn1e18AfterDeduction);
 
         return res.status(200).json({
             success: true,
