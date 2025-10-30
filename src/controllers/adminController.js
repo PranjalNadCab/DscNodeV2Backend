@@ -14,6 +14,8 @@ const NodeDeployedModel = require("../models/NodeDeployedModel");
 const AdminRechargeFsrDelegator = require("../models/AdminRechargeFsrDelegator");
 const mongoose = require("mongoose");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
+const SwappingModel = require("../models/SwappingModel");
+const LiquidityModel = require("../models/LiquidityModel");
 
 
 
@@ -1060,8 +1062,43 @@ const withdrawalHistory = async (req, res, next) => {
     }
 };
 
+const getDashboardInfo4 = async(req,res,next)=>{
+    try{
+
+        const totalSwappingAmount = await SwappingModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalUsdtSwappings: { $sum: "$swappedAmount" }
+                }
+            }
+        ]);
+        const totalLiquidityAdditions = await LiquidityModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalUsdtLiquidity: { $sum: "$usdt" },
+                    totalDscLiquidity: { $sum: "$dsc" }
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            success:true,
+            totalUsdtSwappings: totalSwappingAmount.length > 0 ? totalSwappingAmount[0].totalUsdtSwappings : 0,
+            totalUsdtLiquidity: totalLiquidityAdditions.length > 0 ? totalLiquidityAdditions[0].totalUsdtLiquidity : 0,
+            totalDscLiquidity: totalLiquidityAdditions.length > 0 ? totalLiquidityAdditions[0].totalDscLiquidity : 0
+
+        });
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     getAllUsers,
+    getDashboardInfo4,
     withdrawalHistory,
     getNodeDeployers,
     rechargeFsr,
