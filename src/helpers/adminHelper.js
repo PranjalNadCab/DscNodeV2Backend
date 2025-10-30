@@ -284,7 +284,6 @@ const updateDaoDelegatorForAdmins = async () => {
         );
 
         if (toDelete.length > 0) {
-            ct({ toDeleteLength: toDelete.length, message: "Admins to be deleted:" });
             bulkOps.push(
                 ...toDelete.map(admin => ({
                     deleteOne: { filter: { walletAddress: admin.walletAddress } }

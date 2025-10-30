@@ -1319,20 +1319,20 @@ const giveUserType = async (userAddress) => {
 const updateFsrValue = async (userAddress) => {
     try {
 
-        console.log("sdfsgsdfg", userAddress)
         if (!userAddress) return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
-
+        
         const fUserAddress = giveCheckSummedAddress(userAddress);
-
-        let oldDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }, { currentFsr: 1, utilizedFsr: 1, activatedFsr: 1 }).lean();
+        
+        let oldDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }, { currentFsr: 1, utilizedFsr: 1, activatedFsr: 1,userType:1 }).lean();
         if (!oldDoc) {
             console.log("User not found for address:", fUserAddress);
             return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
         }
-
+        
         if (oldDoc.userType === "delegator") {
             return { utilizedFsr: oldDoc.utilizedFsr, activatedFsr: oldDoc.activatedFsr, currentFsr: oldDoc.currentFsr }
         }
+        console.log("sdfsg----sdfg", oldDoc)
 
         const { currentFsr, utilizedFsr, activatedFsr } = oldDoc;
 
