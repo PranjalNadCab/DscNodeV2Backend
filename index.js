@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== "development") {
     // }, {
     //     timezone: 'Asia/Kolkata'
     // });
-    cron.schedule('*/5 * * * *', async () => {
+    cron.schedule('*/1 * * * *', async () => {
         try {
             console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
             const res = await getLivePrice();
