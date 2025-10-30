@@ -13,6 +13,7 @@ const { getMetricsForTimeRange, getNodeHoldingCounts, getIncomeMetrics, getNodeD
 const NodeDeployedModel = require("../models/NodeDeployedModel");
 const AdminRechargeFsrDelegator = require("../models/AdminRechargeFsrDelegator");
 const mongoose = require("mongoose");
+const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 
 
 
@@ -880,34 +881,34 @@ const fsrRechargeHistory = async (req, res, next) => {
             .limit(limit)
             .lean();
 
-            const totalPerUser = await RegistrationModel.aggregate([
-                {
-                    $match: { userType: "delegator" }
-                },
-                {
-                    $lookup: {
-                        from: "adminrechargefsrdelegators", // ✅ actual collection name in MongoDB
-                        localField: "userAddress",
-                        foreignField: "userAddress",
-                        as: "recharges"
-                    }
-                },
-                {
-                    $addFields: {
-                        totalAmount: { 
-                            $sum: "$recharges.amount"  // ✅ sum amounts from lookup array
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        userAddress: 1,
-                        uniqueRandomId: 1,
-                        totalAmount: 1
+        const totalPerUser = await RegistrationModel.aggregate([
+            {
+                $match: { userType: "delegator" }
+            },
+            {
+                $lookup: {
+                    from: "adminrechargefsrdelegators", // ✅ actual collection name in MongoDB
+                    localField: "userAddress",
+                    foreignField: "userAddress",
+                    as: "recharges"
+                }
+            },
+            {
+                $addFields: {
+                    totalAmount: {
+                        $sum: "$recharges.amount"  // ✅ sum amounts from lookup array
                     }
                 }
-            ]);
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userAddress: 1,
+                    uniqueRandomId: 1,
+                    totalAmount: 1
+                }
+            }
+        ]);
 
         // Send response
         return res.status(200).json({
@@ -981,8 +982,85 @@ const rechargeFsr = async (req, res, next) => {
     }
 };
 
+const withdrawalHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.body;
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const query = {};
+
+        // 🔍 Search filter (userAddress or uniqueRandomId)
+        if (search) {
+            // First, check if search matches a uniqueRandomId
+            const reg = await RegistrationModel.findOne({
+                uniqueRandomId: { $regex: search, $options: "i" },
+            }).select("userAddress uniqueRandomId");
+
+            if (reg) {
+                query.userAddress = reg.userAddress;
+            } else {
+                query.userAddress = { $regex: search, $options: "i" };
+            }
+        }
+
+        // 🧩 Lookup registration data
+        const pipeline = [
+            { $match: query },
+            { $sort: { time: -1 } },
+            {
+                $lookup: {
+                    from: "registration",
+                    localField: "userAddress",
+                    foreignField: "userAddress",
+                    as: "registrationData",
+                },
+            },
+            { $unwind: "$registrationData" },
+            {
+                $project: {
+                    _id: 0,
+                    userAddress: 1,
+                    amountInUsdt: 1,
+                    amountInUsdtAfterDeduction: 1,
+                    amountInDscInUsd: 1,
+                    amountInDscInUsdAfterDeduction: 1,
+                    amountInDsc: 1,
+                    amountInDscAfterDeduction: 1,
+                    time: 1,
+                    block: 1,
+                    transactionHash: 1,
+                    uniqueRandomId: "$registrationData.uniqueRandomId",
+                },
+            },
+            { $skip: skip },
+            { $limit: parseInt(limit) },
+        ];
+
+        // 📜 Fetch paginated history
+        const history = await WithdrawIncomeModel.aggregate(pipeline);
+
+        // 🧮 Total count for pagination
+        const totalRecords = await WithdrawIncomeModel.countDocuments(query);
+        const totalPages = Math.ceil(totalRecords / parseInt(limit));
+
+        return res.status(200).json({
+            success: true,
+            message: "Withdrawal history fetched successfully!",
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages,
+                totalRecords,
+            },
+            history: history,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllUsers,
+    withdrawalHistory,
     getNodeDeployers,
     rechargeFsr,
     getNodePricesAndRatios,

@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr } = require("../controllers/adminController");
+const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr, withdrawalHistory } = require("../controllers/adminController");
 const { adminAuthentication } = require("../middlewares/adminAuth");
 
 
@@ -21,6 +21,8 @@ router.get("/node-deployers",adminAuthentication,getNodeDeployers);
 router.get("/node-prices-ratios",adminAuthentication,getNodePricesAndRatios);
 router.post("/fsr-recharge-history",adminAuthentication,fsrRechargeHistory);
 router.post("/recharge-fsr",adminAuthentication,rechargeFsr);
+router.post("/withdrawal-history",withdrawalHistory);
+
 
 
 
