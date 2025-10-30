@@ -13,6 +13,8 @@ const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
 const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 const ActivateFsrModel = require("../models/ActivateFsrModel.js");
+const SwappingModel = require("../models/SwappingModel.js");
+const LiquidityModel = require("../models/LiquidityModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -435,6 +437,45 @@ async function processEvents(events) {
                     continue;
                 }
             }
+            else if(event == "Swapped"){
+                try{
+                    const {userAddress,swappedAmount} = returnValues;
+
+                    const swapped = await SwappingModel.create({
+                        userAddress,
+                        swappedAmount: new BigNumber(swappedAmount).dividedBy(1e18).toNumber(),
+                        block: Number(block),
+                        transactionHash
+                    });
+
+                    console.log("Swapped amount--->>",swapped);
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
+               
+
+            }
+            else if(event == "Liquidity"){
+                try{
+                    const {userAddress,usdt,dsc} = returnValues;
+
+                    const addedLiquidity = await LiquidityModel.create({
+                        userAddress,
+                        usdt: new BigNumber(usdt).dividedBy(1e18).toNumber(),
+                        dsc: new BigNumber(dsc).dividedBy(1e18).toNumber(),
+                        block: Number(block),
+                        transactionHash
+                    });
+
+                    console.log("Added liquidity--->>",addedLiquidity);
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
+
+            }
             else {
                 console.log("Got no events!");
             }
@@ -475,8 +516,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "70517439"; 
-        // toBlock = "70517439"
+        // lastSyncBlock = "70499894"; 
+        // toBlock = "70499894"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);
