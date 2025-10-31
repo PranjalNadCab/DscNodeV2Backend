@@ -46,7 +46,7 @@ const gapIncome = {
 
 
 const ratioUsdDsc = () => {
-    const START_MONTH = process.env.START_MONTH || "2025-09"; // format YYYY-MM
+    const START_MONTH = process.env.START_MONTH || "2025-11"; // format YYYY-MM
 
     // fixed 9 months
     const MONTHS_COUNT = 9;
@@ -71,8 +71,7 @@ const ratioUsdDsc = () => {
     }
 
     const monthKey = moment().format("MMMM").toLowerCase(); 
-    console.log(usdDscRatio[monthKey] )
-    return usdDscRatio[monthKey] || null;
+    return usdDscRatio[monthKey] ? usdDscRatio[monthKey] : { usd: 55, dsc: 45 };
 }
 
 const zeroAddressTxhash = "0x0000000000000000000000000000000000000000000000000000000000000000";
