@@ -16,6 +16,11 @@ const mongoose = require("mongoose");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel");
 const SwappingModel = require("../models/SwappingModel");
 const LiquidityModel = require("../models/LiquidityModel");
+const ActivateFsrModel = require("../models/ActivateFsrModel");
+const RoiModel = require("../models/RoiModel");
+const GapIncomeModel = require("../models/GapIncomeModel");
+const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
+const NbdFundModel = require("../models/NbdFundsModel");
 
 
 
@@ -74,8 +79,8 @@ const getAllUsers = async (req, res, next) => {
             isNodeRegDone: 1,
             createdAt: 1,
             totalIncomeDscInUsdReceived: 1,
-            usdtIncomeWallet:1,
-            dscIncomeInUsdWallet:1
+            usdtIncomeWallet: 1,
+            dscIncomeInUsdWallet: 1
         };
 
         // Fetch users
@@ -1062,8 +1067,8 @@ const withdrawalHistory = async (req, res, next) => {
     }
 };
 
-const getDashboardInfo4 = async(req,res,next)=>{
-    try{
+const getDashboardInfo4 = async (req, res, next) => {
+    try {
 
         const totalSwappingAmount = await SwappingModel.aggregate([
             {
@@ -1084,20 +1089,268 @@ const getDashboardInfo4 = async(req,res,next)=>{
         ]);
 
         return res.status(200).json({
-            success:true,
+            success: true,
             totalUsdtSwappings: totalSwappingAmount.length > 0 ? totalSwappingAmount[0].totalUsdtSwappings : 0,
             totalUsdtLiquidity: totalLiquidityAdditions.length > 0 ? totalLiquidityAdditions[0].totalUsdtLiquidity : 0,
             totalDscLiquidity: totalLiquidityAdditions.length > 0 ? totalLiquidityAdditions[0].totalDscLiquidity : 0
 
         });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
+// Utility: safely normalize amount from 1e18 string or normal number
+const normalizeAmount = (val) => {
+    if (!val) return new BigNumber(0);
+    const bigVal = new BigNumber(val);
+    return bigVal.isGreaterThan(1e12) ? bigVal.dividedBy(1e18) : bigVal; // heuristic: 1e18 formatted if too large
+};
+
+// ====================================================================
+// 1️⃣  FSR ACTIVATION HISTORY
+// ====================================================================
+const adminFsrActivationHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const query = search
+            ? { userAddress: { $regex: search, $options: "i" } }
+            : {};
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            ActivateFsrModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+            ActivateFsrModel.countDocuments(query),
+        ]);
+
+        // Compute sums
+        let totalActivationAmount = new BigNumber(0);
+        let totalDscAmountInUsd = new BigNumber(0);
+
+        data.forEach((item) => {
+            totalActivationAmount = totalActivationAmount.plus(
+                normalizeAmount(item.activationAmount)
+            );
+            totalDscAmountInUsd = totalDscAmountInUsd.plus(
+                normalizeAmount(item.dscAmountInUsd)
+            );
+        });
+
+        return res.status(200).json({
+            success: true,
+            total,
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data,
+            sums: {
+                totalActivationAmount: totalActivationAmount.toFixed(),
+                totalDscAmountInUsd: totalDscAmountInUsd.toFixed(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ====================================================================
+// 2️⃣  ROI INCOME HISTORY
+// ====================================================================
+const adminRoiIncomeHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const query = search
+            ? { userAddress: { $regex: search, $options: "i" } }
+            : {};
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            RoiModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+            RoiModel.countDocuments(query),
+        ]);
+
+        let totalRoiDscAssurance = new BigNumber(0);
+
+        data.forEach((item) => {
+            totalRoiDscAssurance = totalRoiDscAssurance.plus(
+                normalizeAmount(item.roiDscAssurance)
+            );
+        });
+
+        return res.status(200).json({
+            success: true,
+            total,
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data,
+            sums: {
+                totalRoiDscAssurance: totalRoiDscAssurance.toFixed(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ====================================================================
+// 3️⃣  GAP INCOME HISTORY
+// ====================================================================
+const adminGapIncomeHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const query = search
+            ? {
+                $or: [
+                    { senderAddress: { $regex: search, $options: "i" } },
+                    { receiverAddress: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            GapIncomeModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+            GapIncomeModel.countDocuments(query),
+        ]);
+
+        let totalGapIncomeInUsd = new BigNumber(0);
+        let totalGapIncomeInDscInUsd = new BigNumber(0);
+
+        data.forEach((item) => {
+            totalGapIncomeInUsd = totalGapIncomeInUsd.plus(
+                normalizeAmount(item.gapIncomeInUsd)
+            );
+            totalGapIncomeInDscInUsd = totalGapIncomeInDscInUsd.plus(
+                normalizeAmount(item.gapIncomeInDscInUsd)
+            );
+        });
+
+        return res.status(200).json({
+            success: true,
+            total,
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data,
+            sums: {
+                totalGapIncomeInUsd: totalGapIncomeInUsd.toFixed(),
+                totalGapIncomeInDscInUsd: totalGapIncomeInDscInUsd.toFixed(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ====================================================================
+// 4️⃣  LEVEL INCOME HISTORY (NodeRegIncomeModel)
+// ====================================================================
+const adminLevelIncomeHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const query = search
+            ? {
+                $or: [
+                    { senderAddress: { $regex: search, $options: "i" } },
+                    { receiverAddress: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            NodeRegIncomeModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+            NodeRegIncomeModel.countDocuments(query),
+        ]);
+
+        let totalAmountNbdPaid = new BigNumber(0);
+
+        data.forEach((item) => {
+            totalAmountNbdPaid = totalAmountNbdPaid.plus(
+                normalizeAmount(item.amountNbdPaid)
+            );
+        });
+
+        return res.status(200).json({
+            success: true,
+            total,
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data,
+            sums: {
+                totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ====================================================================
+// 5️⃣  NBD FUND HISTORY
+// ====================================================================
+const adminNbdHistory = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const query = search
+            ? { userAddress: { $regex: search, $options: "i" } }
+            : {};
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            NbdFundModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+            NbdFundModel.countDocuments(query),
+        ]);
+
+        let totalAmountNbdPaid = new BigNumber(0);
+
+        data.forEach((item) => {
+            totalAmountNbdPaid = totalAmountNbdPaid.plus(
+                normalizeAmount(item.amountNbdPaid)
+            );
+        });
+
+        return res.status(200).json({
+            success: true,
+            total,
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data,
+            sums: {
+                totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllUsers,
+    adminNbdHistory,
+    adminFsrActivationHistory,
+    adminRoiIncomeHistory,
+    adminGapIncomeHistory,
+    adminLevelIncomeHistory,
     getDashboardInfo4,
     withdrawalHistory,
     getNodeDeployers,

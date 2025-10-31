@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr, withdrawalHistory, getDashboardInfo4 } = require("../controllers/adminController");
+const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr, withdrawalHistory, getDashboardInfo4, adminFsrActivationHistory, adminRoiIncomeHistory, adminGapIncomeHistory, adminLevelIncomeHistory, adminNbdHistory } = require("../controllers/adminController");
 const { adminAuthentication } = require("../middlewares/adminAuth");
 
 
@@ -24,6 +24,16 @@ router.get("/node-prices-ratios",adminAuthentication,getNodePricesAndRatios);
 router.post("/fsr-recharge-history",adminAuthentication,fsrRechargeHistory);
 router.post("/recharge-fsr",adminAuthentication,rechargeFsr);
 router.post("/withdrawal-history",withdrawalHistory);
+router.post("/fsr-activation-history",adminFsrActivationHistory);
+router.post("/roi-income-history",adminRoiIncomeHistory);
+router.post("/gap-income-history",adminGapIncomeHistory);
+router.post("/level-income-history",adminLevelIncomeHistory);
+router.post("/nbd-history",adminNbdHistory);
+
+
+
+
+
 
 
 
