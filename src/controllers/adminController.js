@@ -1146,7 +1146,7 @@ const adminFsrActivationHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            data,
+            history: data,
             sums: {
                 totalActivationAmount: totalActivationAmount.toFixed(),
                 totalDscAmountInUsd: totalDscAmountInUsd.toFixed(),
@@ -1190,7 +1190,7 @@ const adminRoiIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            data,
+            history:data,
             sums: {
                 totalRoiDscAssurance: totalRoiDscAssurance.toFixed(),
             },
@@ -1242,7 +1242,7 @@ const adminGapIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            data,
+            history:data,
             sums: {
                 totalGapIncomeInUsd: totalGapIncomeInUsd.toFixed(),
                 totalGapIncomeInDscInUsd: totalGapIncomeInDscInUsd.toFixed(),
@@ -1291,7 +1291,7 @@ const adminLevelIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            data,
+            history:data,
             sums: {
                 totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
             },
@@ -1334,7 +1334,7 @@ const adminNbdHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            data,
+            history:data,
             sums: {
                 totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
             },
