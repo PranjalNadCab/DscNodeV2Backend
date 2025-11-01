@@ -298,6 +298,8 @@ const withdrawIncomeUsdt = async (req, res, next) => {
     try {
         let { userAddress, amountUsdt } = req.body;
 
+        throw new Error("Currently unavailable!");
+
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
             .filter(([key, val]) => val === undefined || val === null || val === "" || (typeof val === "string" && val.trim() === ""))
@@ -377,6 +379,8 @@ const withdrawIncomeUsdt = async (req, res, next) => {
 const withdrawIncomeDsc = async (req, res, next) => {
     try {
         let { userAddress, amountDscInUsd } = req.body;
+
+        throw new Error("Currently unavailable!");
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
