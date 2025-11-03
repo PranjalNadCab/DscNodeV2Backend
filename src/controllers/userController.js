@@ -1377,19 +1377,73 @@ const pendingTxsToSponsor = async (req, res, next) => {
         }
 
         // 3️⃣ Get pending upgrade transactions of these users
+        // const pendingTxs = await UpgradedNodes.aggregate([
+        //     {
+        //         $match: {
+        //             userAddress: { $in: allDownlineAddresses },
+
+
+        //             $or: [
+        //                 { isPaymentCompleted: false },
+        //                 // { "paidBy.userType": { $in: ["dao", "delegator"] } }
+        //             ]
+        //         }
+        //     },
+        //     // 4️⃣ Join registration data for userId and sponsorId
+        //     {
+        //         $lookup: {
+        //             from: "registration",
+        //             localField: "userAddress",
+        //             foreignField: "userAddress",
+        //             as: "userData"
+        //         }
+        //     },
+        //     { $unwind: "$userData" },
+        //     {
+        //         $project: {
+        //             _id: 0,
+        //             userId: "$userData.uniqueRandomId",
+        //             userAddress: 1,
+        //             sponsorAddress: "$userData.sponsorAddress",
+        //             // nodeName: {
+        //             //     $cond: {
+        //             //         if: { $eq: ["$userData.myNode", null] },
+        //             //         then: null,
+        //             //         else: "$userData.myNode.nodeName"
+        //             //     }
+        //             // },
+        //             transactionHash: 1,
+        //             totalAmountInUsd: 1,
+        //             paidUsdt: { $toDouble: "$amountUsdPaid" },
+        //             remainingDsc: {
+        //                 $subtract: [
+        //                     { $toDouble: "$totalAmountInUsd" },
+        //                     { $toDouble: "$amountUsdPaid" }
+        //                 ]
+        //             },
+        //             status: {
+        //                 $cond: [
+        //                     { $eq: ["$isPaymentCompleted", false] },
+        //                     "Pay",
+        //                     "Paid"
+        //                 ]
+        //             },
+        //             nodeNum: 1
+        //         }
+        //     }
+        // ]);
+
         const pendingTxs = await UpgradedNodes.aggregate([
             {
                 $match: {
                     userAddress: { $in: allDownlineAddresses },
-
-
                     $or: [
                         { isPaymentCompleted: false },
                         // { "paidBy.userType": { $in: ["dao", "delegator"] } }
                     ]
                 }
             },
-            // 4️⃣ Join registration data for userId and sponsorId
+            // 🔹 Join with registration data
             {
                 $lookup: {
                     from: "registration",
@@ -1399,36 +1453,60 @@ const pendingTxsToSponsor = async (req, res, next) => {
                 }
             },
             { $unwind: "$userData" },
+
+            // 🔹 Lookup previous node (same user, smaller nodeNum, highest one)
+            {
+                $lookup: {
+                    from: "upgradednodes",
+                    let: { user: "$userAddress", currentNodeNum: "$nodeNum" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$userAddress", "$$user"] },
+                                        { $lt: ["$nodeNum", "$$currentNodeNum"] }
+                                    ]
+                                }
+                            }
+                        },
+                        { $sort: { nodeNum: -1 } },
+                        { $limit: 1 }
+                    ],
+                    as: "prevNode"
+                }
+            },
+            {
+                $unwind: { path: "$prevNode", preserveNullAndEmptyArrays: true }
+            },
+
+            // 🔹 Compute remainingDsc
             {
                 $project: {
                     _id: 0,
                     userId: "$userData.uniqueRandomId",
                     userAddress: 1,
                     sponsorAddress: "$userData.sponsorAddress",
-                    // nodeName: {
-                    //     $cond: {
-                    //         if: { $eq: ["$userData.myNode", null] },
-                    //         then: null,
-                    //         else: "$userData.myNode.nodeName"
-                    //     }
-                    // },
+                    nodeNum: 1,
                     transactionHash: 1,
                     totalAmountInUsd: 1,
                     paidUsdt: { $toDouble: "$amountUsdPaid" },
+                    prevTotalAmountInUsd: { $toDouble: "$prevNode.totalAmountInUsd" },
+                    // remainingDsc = (current.total - prev.total) - paidUsdt
                     remainingDsc: {
                         $subtract: [
-                            { $toDouble: "$totalAmountInUsd" },
+                            {
+                                $subtract: [
+                                    { $toDouble: "$totalAmountInUsd" },
+                                    { $ifNull: [{ $toDouble: "$prevNode.totalAmountInUsd" }, 0] }
+                                ]
+                            },
                             { $toDouble: "$amountUsdPaid" }
                         ]
                     },
                     status: {
-                        $cond: [
-                            { $eq: ["$isPaymentCompleted", false] },
-                            "Pay",
-                            "Paid"
-                        ]
-                    },
-                    nodeNum: 1
+                        $cond: [{ $eq: ["$isPaymentCompleted", false] }, "Pay", "Paid"]
+                    }
                 }
             }
         ]);
