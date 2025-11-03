@@ -142,11 +142,15 @@ async function processEvents(events) {
             else if (event == "UpgradeNode") {
                 try {
                     let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd, mixTxHash, currency, rate } = returnValues;
-                    amountUsdtPaid = new BigNumber(amount).toFixed(0);
+                   let amountUsdtPaid = new BigNumber(amount).toFixed(0);
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
                     let isPaymentCompleted = true;
+                    const userPrevNode = await UpgradedNodes.findOne({
+                        userAddress: user,
+                        nodeNum: { $lt: Number(nodeNum) }
+                    }).sort({ nodeNum: -1 });
                     if (mixTxHash == zeroAddressTxhash) {
                         isPaymentCompleted = false;
                         mixTxHash = transactionHash
@@ -159,10 +163,7 @@ async function processEvents(events) {
                         const userUsdtStakePart = userPendingUpgradeNodes.find((item) => {
                             return item.currency === "USDT";
                         });
-                        const userPrevNode = await UpgradedNodes.findOne({
-                            userAddress: user,
-                            nodeNum: { $lt: Number(nodeNum) }
-                        }).sort({ nodeNum: -1 });
+                       
                         const netTotalAmountInUsd = userPrevNode ? new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(userPrevNode.totalAmountInUsd) : new BigNumber(userUsdtStakePart.totalAmountInUsd);
                         const remainingUsdToPay = new BigNumber(netTotalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
 
@@ -198,7 +199,7 @@ async function processEvents(events) {
                     if (!regDoc) {
                         console.log("No registration doc found for user while upgrading node:", user);
                     }
-                    rankDuringStaking = regDoc.currentRank;
+                    rankDuringStaking = regDoc.currentRank || "Beginner";
                     const { nodeValidators } = await giveAdminSettings();
                     const myNode = nodeValidators.find(n => n.nodeNum === Number(nodeNum));
 
@@ -221,7 +222,9 @@ async function processEvents(events) {
 
                     if (isPaymentCompleted && mixTxHash !== "NA") {
                         const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: user, nodeNum: Number(nodeNum) });
-                        const stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
+                        let stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
+                        stakingAmountIn1e18  = new BigNumber(stakingAmountIn1e18).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+
                         const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
                         const dscStakedInUsdtIn1e18 = userTotalUpgradeDocs.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                             return sum.plus(item.amountUsdPaid)
@@ -233,7 +236,8 @@ async function processEvents(events) {
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                        await giveGapIncome(user, totalAmountInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum, Number(nodeNum));
+                            const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+                        await giveGapIncome(user, netAmountPaidInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum, Number(nodeNum));
 
                     } else {
                         console.log("do nothing for incomeplete node upgrades");
