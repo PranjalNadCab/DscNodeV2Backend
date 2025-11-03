@@ -1525,7 +1525,7 @@ const completeSponsoredTx = async (req, res, next) => {
     try {
 
         let { userAddress, spnosoredTxHash } = req.body;
-        throw new Error("Sponsoring transactions is paused temporarily!");
+        // throw new Error("Sponsoring transactions is paused temporarily!");
         ct({ userAddress, spnosoredTxHash });
         userAddress = giveCheckSummedAddress(userAddress);
 
@@ -1542,7 +1542,17 @@ const completeSponsoredTx = async (req, res, next) => {
         const { userAddress: sponsoredUserAddress, totalAmountInUsd, amountUsdPaid } = sponsoredTx;
         console.log({ sponsoredUserAddress, totalAmountInUsd, amountUsdPaid });
 
-        const remainingDscInUsdToPay = new BigNumber(totalAmountInUsd).minus(amountUsdPaid);
+        const prevNode = await UpgradedNodes.findOne({
+            userAddress: sponsoredUserAddress,
+            nodeNum: { $lt: sponsoredTx.nodeNum },
+            isPaymentCompleted: true
+        }).sort({ nodeNum: -1 });
+
+        let netTotalAmountInUsd = new BigNumber(totalAmountInUsd).minus(prevNode ? new BigNumber(prevNode.totalAmountInUsd) : 0);
+
+
+
+        const remainingDscInUsdToPay = new BigNumber(netTotalAmountInUsd).minus(amountUsdPaid);
 
         let remainingActivatedFsr = new BigNumber(userDoc.activatedFsr).minus(userDoc.utilizedFsr);
         remainingActivatedFsr = (remainingActivatedFsr).multipliedBy(1e18);

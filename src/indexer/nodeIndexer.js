@@ -142,7 +142,7 @@ async function processEvents(events) {
             else if (event == "UpgradeNode") {
                 try {
                     let { user, nodeNum, amount, lastUsedNonce, totalAmountInUsd, mixTxHash, currency, rate } = returnValues;
-                   let amountUsdtPaid = new BigNumber(amount).toFixed(0);
+                    let amountUsdtPaid = new BigNumber(amount).toFixed(0);
                     totalAmountInUsd = new BigNumber(totalAmountInUsd).toFixed(0);
                     rate = new BigNumber(rate).toFixed(0);
 
@@ -163,7 +163,7 @@ async function processEvents(events) {
                         const userUsdtStakePart = userPendingUpgradeNodes.find((item) => {
                             return item.currency === "USDT";
                         });
-                       
+
                         const netTotalAmountInUsd = userPrevNode ? new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(userPrevNode.totalAmountInUsd) : new BigNumber(userUsdtStakePart.totalAmountInUsd);
                         const remainingUsdToPay = new BigNumber(netTotalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
 
@@ -225,7 +225,7 @@ async function processEvents(events) {
                     if (isPaymentCompleted && mixTxHash !== "NA") {
                         const userTotalUpgradeDocs = await UpgradedNodes.find({ userAddress: user, nodeNum: Number(nodeNum) });
                         let stakingAmountIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).totalAmountInUsd;
-                        stakingAmountIn1e18  = new BigNumber(stakingAmountIn1e18).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+                        stakingAmountIn1e18 = new BigNumber(stakingAmountIn1e18).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
 
                         const usdtStakedIn1e18 = userTotalUpgradeDocs.find((item) => { return item.currency === "USDT" }).amountUsdPaid;
                         const dscStakedInUsdtIn1e18 = userTotalUpgradeDocs.filter((item) => item.currency === "DSC").reduce((sum, item) => {
@@ -238,7 +238,7 @@ async function processEvents(events) {
                             { $set: { isPaymentCompleted: true } }
                         );
                     } else if (mixTxHash === "NA") {
-                            const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+                        const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
                         await giveGapIncome(user, netAmountPaidInUsd, rankDuringStaking, amountInUsdt, amountInDscInUsd, "node", rateDollarPerDscInNum, Number(nodeNum));
 
                     } else {
@@ -395,16 +395,34 @@ async function processEvents(events) {
                         console.log("Normal users are not allowed", userDoc);
                     }
                     const sponsoredTx = await UpgradedNodes.findOne({ transactionHash: spnosoredTxHash, isPaymentCompleted: false, currency: "USDT" });
+
                     if (!sponsoredTx) {
                         console.log("No sponsored tx found or already completed:", spnosoredTxHash);
                         continue;
                     }
 
-                    const { totalAmountInUsd, userAddress: sponsoredUser, amountUsdPaid, nodeNum, mixTxHash } = sponsoredTx;
+                    const prevNode = await UpgradedNodes.findOne({
+                        userAddress: sponsoredTx.userAddress,
+                        nodeNum: { $lt: sponsoredTx.nodeNum },
+                        isPaymentCompleted: true
+                    }).sort({ nodeNum: -1 });
 
-                    const expectedAmountDscInUsd = new BigNumber(totalAmountInUsd).minus(amountUsdPaid).toFixed(0);
-                    if (!new BigNumber(expectedAmountDscInUsd).isEqualTo((dscInUsdPaid))) {
-                        console.log("Sponsored tx amount mismatch:", expectedAmountDscInUsd, dscInUsdPaid.dividedBy(1e18).toFixed());
+                    const { totalAmountInUsd, userAddress: sponsoredUser, amountUsdPaid, nodeNum, mixTxHash } = sponsoredTx;
+                    let netTotalAmountInUsd = new BigNumber(totalAmountInUsd).minus(prevNode ? new BigNumber(prevNode.totalAmountInUsd) : 0);
+
+
+                    const expectedAmountDscInUsd = new BigNumber(netTotalAmountInUsd).minus(amountUsdPaid).toFixed(0);
+                    // if (!new BigNumber(expectedAmountDscInUsd).isEqualTo((dscInUsdPaid))) {
+                    //     console.log("Sponsored tx amount mismatch:", expectedAmountDscInUsd, dscInUsdPaid.dividedBy(1e18).toFixed());
+                    //     continue;
+                    // }
+                    const difference = new BigNumber(expectedAmountDscInUsd).minus(dscInUsdPaid);
+                    if (difference.abs().gt(0.5)) {
+                        console.log(
+                            "Sponsored tx amount mismatch:",
+                            expectedAmountDscInUsd,
+                            dscInUsdPaid.dividedBy(1e18).toFixed()
+                        );
                         continue;
                     }
 
