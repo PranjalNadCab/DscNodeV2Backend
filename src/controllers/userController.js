@@ -704,7 +704,7 @@ const upgradeNode = async (req, res, next) => {
             }, new BigNumber(0));
             const userRemainingUsdToPay = new BigNumber(targetTotalAmount).minus(userUsdtPaymentAlreadyPaid).minus(userDscAlreadyPaid);
 
-            ct({ targetTotalAmount: targetTotalAmount.toFixed(), userUsdtPaymentAlreadyPaid: userUsdtPaymentAlreadyPaid, userDscAlreadyPaid: userDscAlreadyPaid.toFixed(), userRemainingUsdToPay: userRemainingUsdToPay.toFixed() });
+            // ct({ targetTotalAmount: targetTotalAmount.toFixed(), userUsdtPaymentAlreadyPaid: userUsdtPaymentAlreadyPaid, userDscAlreadyPaid: userDscAlreadyPaid.toFixed(), userRemainingUsdToPay: userRemainingUsdToPay.toFixed() });
 
             // if ((amountInUsd === 0) || amountInUsdIn1e18.isGreaterThan(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
             if ((amountInUsd === 0) || !amountInUsdIn1e18.isEqualTo(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
