@@ -59,19 +59,19 @@ if (process.env.NODE_ENV !== "development") {
     // }, {
     //     timezone: 'Asia/Kolkata'
     // });
-    cron.schedule('*/1 * * * *', async () => {
-        try {
-            console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-            const res = await getLivePrice();
-            console.log("Live DSC Price fetched successfully:", res);
-            await updateDaoDelegatorForAdmins();
-            await refreshDaoDelegatorUsers();
-        } catch (err) {
-            console.error('Error in monthly cron job:', err);
-        }
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // cron.schedule('*/1 * * * *', async () => {
+    //     try {
+    //         console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    //         const res = await getLivePrice();
+    //         console.log("Live DSC Price fetched successfully:", res);
+    //         await updateDaoDelegatorForAdmins();
+    //         await refreshDaoDelegatorUsers();
+    //     } catch (err) {
+    //         console.error('Error in monthly cron job:', err);
+    //     }
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 
 } else {
     // cron.schedule('*/2 * * * *', async () => {
@@ -114,11 +114,11 @@ const server = app.listen(PORT, async () => {
         // await refreshDaoDelegatorUsers();
 
     } else {
-        const res = await getLivePrice();
-        console.log("Live DSC Price fetched successfully:", res);
-        await generateDefaultAdminDoc();
-        await createDaoAndDelegatorsAdminInBulk();
-        await dscNodeListEvents();
+        // const res = await getLivePrice();
+        // console.log("Live DSC Price fetched successfully:", res);
+        // await generateDefaultAdminDoc();
+        // await createDaoAndDelegatorsAdminInBulk();
+        // await dscNodeListEvents();
     }
 });
 

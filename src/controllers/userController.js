@@ -1405,13 +1405,13 @@ const pendingTxsToSponsor = async (req, res, next) => {
                     userId: "$userData.uniqueRandomId",
                     userAddress: 1,
                     sponsorAddress: "$userData.sponsorAddress",
-                    nodeName: {
-                        $cond: {
-                            if: { $eq: ["$userData.myNode", null] },
-                            then: null,
-                            else: "$userData.myNode.nodeName"
-                        }
-                    },
+                    // nodeName: {
+                    //     $cond: {
+                    //         if: { $eq: ["$userData.myNode", null] },
+                    //         then: null,
+                    //         else: "$userData.myNode.nodeName"
+                    //     }
+                    // },
                     transactionHash: 1,
                     totalAmountInUsd: 1,
                     paidUsdt: { $toDouble: "$amountUsdPaid" },
