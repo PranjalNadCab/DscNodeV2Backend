@@ -1281,7 +1281,6 @@ const activateFsr = async (req, res, next) => {
     try {
         let { activationAmount, userAddress } = req.body;
 
-        throw new Error("Currently service is disabled!");
 
         if (!activationAmount || isNaN(activationAmount) || Number(activationAmount) <= 0) throw new Error("Please provide valid amount to activate fsr");
 
@@ -1526,6 +1525,7 @@ const completeSponsoredTx = async (req, res, next) => {
     try {
 
         let { userAddress, spnosoredTxHash } = req.body;
+        throw new Error("Sponsoring transactions is paused temporarily!");
         ct({ userAddress, spnosoredTxHash });
         userAddress = giveCheckSummedAddress(userAddress);
 
