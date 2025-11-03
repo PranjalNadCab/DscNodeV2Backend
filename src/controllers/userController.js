@@ -654,7 +654,7 @@ const upgradeNode = async (req, res, next) => {
             const ratioUsdtDsc = ratioUsdDsc();
             const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).minus(lastNode.totalAmountInUsd).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
             const netAmountInUsdIn1e18 = (new BigNumber(nodeToUpgrade.selfStaking).minus(lastNode.totalAmountInUsd)).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
-            ct({ usdtPartIfMixedTx: usdtPartIfMixedTx.toFixed(), netAmountInUsdIn1e18: netAmountInUsdIn1e18.toFixed(),selfStaking: nodeToUpgrade.selfStaking, lastNodeTotalAmount: lastNode.totalAmountInUsd });
+            ct({ usdtPartIfMixedTx: usdtPartIfMixedTx.toFixed(), netAmountInUsdIn1e18: netAmountInUsdIn1e18.toFixed(), selfStaking: nodeToUpgrade.selfStaking, lastNodeTotalAmount: lastNode.totalAmountInUsd });
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
@@ -696,8 +696,8 @@ const upgradeNode = async (req, res, next) => {
                     break; // stop as soon as the first match is found
                 }
             }
-            console.log("---->>>>",targetNode)
-            const targetTotalAmount =targetNode == null? userUsdtPartTx.totalAmountInUsd :  new BigNumber(userUsdtPartTx.totalAmountInUsd).minus(targetNode.totalAmountInUsd);
+            console.log("---->>>>", targetNode)
+            const targetTotalAmount = targetNode == null ? userUsdtPartTx.totalAmountInUsd : new BigNumber(userUsdtPartTx.totalAmountInUsd).minus(targetNode.totalAmountInUsd);
             const userUsdtPaymentAlreadyPaid = userUsdtPartTx.amountUsdPaid;
             const userDscAlreadyPaid = userSpecificNodes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                 return sum.plus(new BigNumber(item.amountUsdPaid));
@@ -1281,6 +1281,8 @@ const activateFsr = async (req, res, next) => {
     try {
         let { activationAmount, userAddress } = req.body;
 
+        throw new Error("Currently service is disabled!");
+
         if (!activationAmount || isNaN(activationAmount) || Number(activationAmount) <= 0) throw new Error("Please provide valid amount to activate fsr");
 
         userAddress = giveCheckSummedAddress(userAddress);
@@ -1383,7 +1385,7 @@ const pendingTxsToSponsor = async (req, res, next) => {
 
                     $or: [
                         { isPaymentCompleted: false },
-                        { "paidBy.userType": { $in: ["dao", "delegator"] } }
+                        // { "paidBy.userType": { $in: ["dao", "delegator"] } }
                     ]
                 }
             },
@@ -1403,7 +1405,13 @@ const pendingTxsToSponsor = async (req, res, next) => {
                     userId: "$userData.uniqueRandomId",
                     userAddress: 1,
                     sponsorAddress: "$userData.sponsorAddress",
-                    nodeName: "$userData.myNode.nodeName",
+                    nodeName: {
+                        $cond: {
+                            if: { $eq: ["$userData.myNode", null] },
+                            then: null,
+                            else: "$userData.myNode.nodeName"
+                        }
+                    },
                     transactionHash: 1,
                     totalAmountInUsd: 1,
                     paidUsdt: { $toDouble: "$amountUsdPaid" },
