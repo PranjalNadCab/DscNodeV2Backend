@@ -58,7 +58,6 @@ const generateDefaultDaoDelegatorDoc = async (role, walletAddress, password) => 
                 password
             });
             await defaultDoc.save();
-            ct({ role, walletAddress, password, message: "Default admin document created successfully." });
         }
         else {
             console.log("Admin document of dao and delegator already exists.");

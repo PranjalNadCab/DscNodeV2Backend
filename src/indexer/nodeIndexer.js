@@ -159,7 +159,12 @@ async function processEvents(events) {
                         const userUsdtStakePart = userPendingUpgradeNodes.find((item) => {
                             return item.currency === "USDT";
                         });
-                        const remainingUsdToPay = new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
+                        const userPrevNode = await UpgradedNodes.findOne({
+                            userAddress: user,
+                            nodeNum: { $lt: Number(nodeNum) }
+                        }).sort({ nodeNum: -1 });
+                        const netTotalAmountInUsd = userPrevNode ? new BigNumber(userUsdtStakePart.totalAmountInUsd).minus(userPrevNode.totalAmountInUsd) : new BigNumber(userUsdtStakePart.totalAmountInUsd);
+                        const remainingUsdToPay = new BigNumber(netTotalAmountInUsd).minus(amountUsdPaidForDsc).minus(userUsdtStakePart.amountUsdPaid);
 
                         isPaymentCompleted = remainingUsdToPay.isEqualTo(0) ? true : false;
 
@@ -316,7 +321,7 @@ async function processEvents(events) {
 
                     console.log("Dsc withdraw doc created:", newWithdraw);
 
-                    await manageUserWalletForDsc(userAddress,amountDscInUsd );
+                    await manageUserWalletForDsc(userAddress, amountDscInUsd);
 
 
                 } catch (error) {
@@ -349,7 +354,7 @@ async function processEvents(events) {
                         userType
                     });
 
-                    const userDoc = await RegistrationModel.findOneAndUpdate({ userAddress: user },{
+                    const userDoc = await RegistrationModel.findOneAndUpdate({ userAddress: user }, {
                         $inc: {
                             activatedFsr: activationAmount
                         }
@@ -379,7 +384,7 @@ async function processEvents(events) {
                         console.log("No user doc found for sponsored tx:", userAddress);
                         continue;
                     }
-                    const {utilizedFsr,activatedFsr} = userDoc;
+                    const { utilizedFsr, activatedFsr } = userDoc;
                     if (userDoc.userType === "normal") {
                         console.log("Normal users are not allowed", userDoc);
                     }
@@ -437,9 +442,9 @@ async function processEvents(events) {
                     continue;
                 }
             }
-            else if(event == "Swapped"){
-                try{
-                    const {userAddress,swappedAmount} = returnValues;
+            else if (event == "Swapped") {
+                try {
+                    const { userAddress, swappedAmount } = returnValues;
 
                     const swapped = await SwappingModel.create({
                         userAddress,
@@ -448,17 +453,17 @@ async function processEvents(events) {
                         transactionHash
                     });
 
-                    console.log("Swapped amount--->>",swapped);
-                }catch(error){
+                    console.log("Swapped amount--->>", swapped);
+                } catch (error) {
                     console.log(error);
                     continue;
                 }
-               
+
 
             }
-            else if(event == "Liquidity"){
-                try{
-                    const {userAddress,usdt,dsc} = returnValues;
+            else if (event == "Liquidity") {
+                try {
+                    const { userAddress, usdt, dsc } = returnValues;
 
                     const addedLiquidity = await LiquidityModel.create({
                         userAddress,
@@ -468,9 +473,9 @@ async function processEvents(events) {
                         transactionHash
                     });
 
-                    console.log("Added liquidity--->>",addedLiquidity);
+                    console.log("Added liquidity--->>", addedLiquidity);
 
-                }catch(error){
+                } catch (error) {
                     console.log(error);
                     continue;
                 }

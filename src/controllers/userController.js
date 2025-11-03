@@ -243,7 +243,7 @@ const getUserInfo = async (req, res, next) => {
 
         const { currentFsr, utilizedFsr, activatedFsr } = await updateFsrValue(userAddress);
         const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
-        if(!userDoc) throw new Error("User not found. Please register first.");
+        if (!userDoc) throw new Error("User not found. Please register first.");
 
 
         return res.status(200).json({ success: true, message: "User info fetched successfully", userInfo: userDoc ? userDoc : null });
@@ -327,9 +327,9 @@ const withdrawIncomeUsdt = async (req, res, next) => {
         // Convert request amounts to 1e18
         const amountUsdtIn1e18 = new BigNumber(amountUsdt).multipliedBy(1e18);
 
-        const {withdrawDeductionPercent} = await giveAdminSettings();
+        const { withdrawDeductionPercent } = await giveAdminSettings();
 
-        let deductionPerValue = (100-withdrawDeductionPercent)/100 ;
+        let deductionPerValue = (100 - withdrawDeductionPercent) / 100;
 
 
         const amountUsdtIn1e18AfterDeduction = amountUsdtIn1e18.multipliedBy(deductionPerValue).toFixed(0);
@@ -412,8 +412,8 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
         // Convert request amounts to 1e18
         // const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18);
-        const livePrice= await getLivePrice();
-        ct({livePrice});
+        const livePrice = await getLivePrice();
+        ct({ livePrice });
 
         const amountDscInUsdIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).toFixed();
         const amountDscIn1e18 = new BigNumber(amountDscInUsd).multipliedBy(1e18).dividedBy(livePrice);
@@ -429,7 +429,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
 
 
-   
+
 
 
         const lastWithdraw = await WithdrawIncomeModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
@@ -652,12 +652,14 @@ const upgradeNode = async (req, res, next) => {
             // const { status, message, amountToDeductInBn = null, mixTxHash = "NA" } = validateUpgradeNodeConditions(totalAmountInUsd, amountInUsd, currency, amountToDeduct,"0",lastNode,nodeValidators,nodeNum)
             // if (!status) throw new Error(message);
             const ratioUsdtDsc = ratioUsdDsc();
-            const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
-            console.log("klsdgdfgsdfg", ratioUsdtDsc, usdtPartIfMixedTx.toFixed())
+            const usdtPartIfMixedTx = new BigNumber(nodeToUpgrade.selfStaking).minus(lastNode.totalAmountInUsd).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
+            const netAmountInUsdIn1e18 = (new BigNumber(nodeToUpgrade.selfStaking).minus(lastNode.totalAmountInUsd)).multipliedBy(ratioUsdtDsc.usd).dividedBy(100);
+            ct({ usdtPartIfMixedTx: usdtPartIfMixedTx.toFixed(), netAmountInUsdIn1e18: netAmountInUsdIn1e18.toFixed(),selfStaking: nodeToUpgrade.selfStaking, lastNodeTotalAmount: lastNode.totalAmountInUsd });
+
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
                 //all good initiate 100% usdt or dsc tx
                 // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
+                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(lastNode.totalAmountInUsd);
 
                 mixTxHash = "NA";
 
@@ -665,9 +667,10 @@ const upgradeNode = async (req, res, next) => {
                 // console.log("------------------->",amountToDeduct.toFixed());
                 generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
 
-            } else if ((currency === "USDT") && (amountInUsdIn1e18.isEqualTo(usdtPartIfMixedTx))) {
-                // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
-                amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
+            } else if ((currency === "USDT") && (netAmountInUsdIn1e18.isEqualTo(usdtPartIfMixedTx))) {
+
+                amountToDeduct = amountToDeduct.plus(usdtPartIfMixedTx);
+
 
                 mixTxHash = zeroAddressTxhash;
                 generatedDsc = amountToDeduct.dividedBy(price).toFixed(0);
@@ -681,23 +684,33 @@ const upgradeNode = async (req, res, next) => {
             if (currency === "USDT") throw new Error("You have a pending DSC to pay for your last node upgradation!");
             if (currency === "DSC" && totalAmountInUsdIn1e18.isGreaterThan(lastNode.totalAmountInUsd)) throw new Error("You have already paid some amount for this node! Pay remaining DSC amount only!");
 
-            const userNodes = await UpgradedNodes.find({ userAddress, nodeNum }).sort({ time: -1 });
-            const userUsdtPartTx = userNodes.find((item) => {
+            const userSpecificNodes = await UpgradedNodes.find({ userAddress, nodeNum }).sort({ time: -1 });
+            const userUsdtPartTx = userSpecificNodes.find((item) => {
                 return item.currency === "USDT"
             });
-            console.log("sdfasdf", userNodes);
-            const targetTotalAmount = userUsdtPartTx.totalAmountInUsd;
+            // console.log("sdfasdf", userNodes);
+            let targetNode = null;
+            for (const node of userNodes) {
+                if (node.nodeNum < nodeNum) {
+                    targetNode = node;
+                    break; // stop as soon as the first match is found
+                }
+            }
+            console.log("---->>>>",targetNode)
+            const targetTotalAmount =targetNode == null? userUsdtPartTx.totalAmountInUsd :  new BigNumber(userUsdtPartTx.totalAmountInUsd).minus(targetNode.totalAmountInUsd);
             const userUsdtPaymentAlreadyPaid = userUsdtPartTx.amountUsdPaid;
-            const userDscAlreadyPaid = userNodes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
+            const userDscAlreadyPaid = userSpecificNodes.filter((item) => item.currency === "DSC").reduce((sum, item) => {
                 return sum.plus(new BigNumber(item.amountUsdPaid));
             }, new BigNumber(0));
             const userRemainingUsdToPay = new BigNumber(targetTotalAmount).minus(userUsdtPaymentAlreadyPaid).minus(userDscAlreadyPaid);
+
+            ct({ targetTotalAmount: targetTotalAmount.toFixed(), userUsdtPaymentAlreadyPaid: userUsdtPaymentAlreadyPaid, userDscAlreadyPaid: userDscAlreadyPaid.toFixed(), userRemainingUsdToPay: userRemainingUsdToPay.toFixed() });
 
             // if ((amountInUsd === 0) || amountInUsdIn1e18.isGreaterThan(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
             if ((amountInUsd === 0) || !amountInUsdIn1e18.isEqualTo(userRemainingUsdToPay)) throw new Error(`You have to pay $${new BigNumber(userRemainingUsdToPay).dividedBy(1e18).toFixed()} of DSC only!`);
 
 
-            if (!totalAmountInUsdIn1e18.isEqualTo(targetTotalAmount)) throw new Error("You cannot change total amount in mix transaction!");
+            // if (!totalAmountInUsdIn1e18.isEqualTo(targetTotalAmount)) throw new Error("You cannot change total amount in mix transaction!");
 
 
 
@@ -712,8 +725,7 @@ const upgradeNode = async (req, res, next) => {
 
 
             if ((totalAmountInUsd === amountInUsd) && (currency === "USDT" || currency === "DSC") && (amountInUsdIn1e18.isEqualTo(nodeToUpgrade.selfStaking))) {
-                //all good initiate 100% usdt or dsc tx
-                // amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18).minus(nodePurchasingBalance);
+
                 amountToDeduct = amountToDeduct.plus(amountInUsdIn1e18);
 
                 mixTxHash = "NA";
@@ -1281,7 +1293,7 @@ const activateFsr = async (req, res, next) => {
         const { userType } = await giveUserType(userAddress);
         if (isUserExist?.userType === "normal") throw new Error("You are not eligible for fsr activation!");
 
-        
+
 
         const { currentFsr, utilizedFsr, activatedFsr } = await updateFsrValue(userAddress);
 
@@ -1292,7 +1304,7 @@ const activateFsr = async (req, res, next) => {
         //calcualte 18% of activationAmount
         const { price } = await LivePriceDsc.findOne();
         const dscAmountInUsd = activationAmount * 0.18;
-        const generatedDsc = dscAmountInUsd/(price);
+        const generatedDsc = dscAmountInUsd / (price);
 
         //generate vrs
         const lastFsrDoc = await ActivateFsrModel.findOne({ userAddress }).sort({ time: -1 });
@@ -1310,10 +1322,10 @@ const activateFsr = async (req, res, next) => {
         const dscAmountInUsdIn1e18 = new BigNumber(dscAmountInUsd).multipliedBy(1e18).toFixed(0);
         const generatedDscIn1e18 = new BigNumber(generatedDsc).multipliedBy(1e18).toFixed(0);
         const priceInUsdIn1e18 = new BigNumber(price).multipliedBy(1e18).toFixed(0);
-        
+
         const hash = await dscNodeContract.methods.getHashForActivateFsr(userAddress, activationAmountIn1e18, dscAmountInUsdIn1e18, generatedDscIn1e18, priceInUsdIn1e18).call();
-        
-        console.log("working till here",hash);
+
+        console.log("working till here", hash);
         const vrs = await giveVrsForActivatingFsr(userAddress, dscAmountInUsdIn1e18, activationAmountIn1e18, generatedDscIn1e18, priceInUsdIn1e18, Number(currNonce), hash);
 
         return res.status(200).json({ success: true, message: "Fsr signature generated successfully", vrs });
@@ -1424,32 +1436,32 @@ const pendingTxsToSponsor = async (req, res, next) => {
     }
 };
 
-const completeSponsoredTx = async(req,res,next)=>{
-    try{
+const completeSponsoredTx = async (req, res, next) => {
+    try {
 
-        let {userAddress,spnosoredTxHash} = req.body;
-        ct({userAddress,spnosoredTxHash});
+        let { userAddress, spnosoredTxHash } = req.body;
+        ct({ userAddress, spnosoredTxHash });
         userAddress = giveCheckSummedAddress(userAddress);
 
-        const userDoc = await RegistrationModel.findOne({userAddress});
-        if(!userDoc) throw new Error("User not found!");
+        const userDoc = await RegistrationModel.findOne({ userAddress });
+        if (!userDoc) throw new Error("User not found!");
 
-        if(userDoc.userType === "normal") throw new Error("You are not allowed for sponsoring transactions");
+        if (userDoc.userType === "normal") throw new Error("You are not allowed for sponsoring transactions");
 
 
-        const sponsoredTx  = await UpgradedNodes.findOne({isPaymentCompleted:false,currency:"USDT",transactionHash:spnosoredTxHash});
+        const sponsoredTx = await UpgradedNodes.findOne({ isPaymentCompleted: false, currency: "USDT", transactionHash: spnosoredTxHash });
 
-        if(!sponsoredTx) throw new Error("Transaction not found for this user!");
+        if (!sponsoredTx) throw new Error("Transaction not found for this user!");
 
-        const {userAddress:sponsoredUserAddress,totalAmountInUsd,amountUsdPaid}  = sponsoredTx;
-        console.log({sponsoredUserAddress,totalAmountInUsd,amountUsdPaid});
+        const { userAddress: sponsoredUserAddress, totalAmountInUsd, amountUsdPaid } = sponsoredTx;
+        console.log({ sponsoredUserAddress, totalAmountInUsd, amountUsdPaid });
 
         const remainingDscInUsdToPay = new BigNumber(totalAmountInUsd).minus(amountUsdPaid);
 
         let remainingActivatedFsr = new BigNumber(userDoc.activatedFsr).minus(userDoc.utilizedFsr);
-        remainingActivatedFsr  = (remainingActivatedFsr).multipliedBy(1e18);
+        remainingActivatedFsr = (remainingActivatedFsr).multipliedBy(1e18);
 
-        if(remainingActivatedFsr.isLessThan(remainingDscInUsdToPay))throw new Error(`Insufficient activated fsr! You need $${remainingDscInUsdToPay.dividedBy(1e18).toNumber()} for sponsoring this transaction!`);
+        if (remainingActivatedFsr.isLessThan(remainingDscInUsdToPay)) throw new Error(`Insufficient activated fsr! You need $${remainingDscInUsdToPay.dividedBy(1e18).toNumber()} for sponsoring this transaction!`);
 
 
 
@@ -1464,17 +1476,17 @@ const completeSponsoredTx = async(req,res,next)=>{
             prevNonce = Number(sponsoredTx.lastUsedNonce);
         }
         const currNonce = await dscNodeContract.methods.userNoncesForNodeUpgrade(sponsoredUserAddress).call();
-        const hash = await dscNodeContract.methods.getHashForSponsorTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc,sponsoredUserAddress).call();
+        const hash = await dscNodeContract.methods.getHashForSponsorTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc, sponsoredUserAddress).call();
         if ((prevNonce + 1) !== Number(currNonce)) {
             throw new Error("Your previous tx is not stored yet! Please try again later.");
         }
 
-        const vrs = await generateVrsForSponsorTx(userAddress,spnosoredTxHash,remainingDscInUsdToPay.toFixed(0),rateDollarPerDsc,Number(currNonce),hash,sponsoredUserAddress);
+        const vrs = await generateVrsForSponsorTx(userAddress, spnosoredTxHash, remainingDscInUsdToPay.toFixed(0), rateDollarPerDsc, Number(currNonce), hash, sponsoredUserAddress);
 
 
 
-        return res.status(200).json({success:true,message:"Signature generated successfully!",vrs});
-    }catch(error){
+        return res.status(200).json({ success: true, message: "Signature generated successfully!", vrs });
+    } catch (error) {
         next(error);
     }
 }
