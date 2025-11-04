@@ -638,13 +638,16 @@ const manageRank = async (userAddress) => {
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
         const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).plus(directsNodeSums).toNumber();
-        const matchedRank = ranks.find(r => userTargetStakeForRankUpgradation >= r.lowerBound && userTargetStakeForRankUpgradation <= r.upperBound);
+        const matchedRank = ranks.find(r => userTargetStakeForRankUpgradation >= r.lowerBound && userTargetStakeForRankUpgradation <= r.upperBound) || ranks[0];
         console.log("matchedRank", matchedRank);
         // ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
 
         const currTimeInUnix = moment().unix();
 
-        if (matchedRank && (matchedRank.rank !== userInfo.currentRank)) {
+        const currentRankGrade = ranks.find(r => r.rank === userInfo.currentRank)?.grade || 1;
+        const matchedRankGrade = matchedRank ? matchedRank.grade : 1;
+
+        if (matchedRank && (matchedRank.rank !== userInfo.currentRank) && (matchedRankGrade > currentRankGrade)) {
             const updatedUser = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { currentRank: matchedRank.rank, rankAchievedAt: currTimeInUnix } },
