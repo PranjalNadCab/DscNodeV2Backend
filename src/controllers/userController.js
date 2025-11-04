@@ -298,7 +298,7 @@ const withdrawIncomeUsdt = async (req, res, next) => {
     try {
         let { userAddress, amountUsdt } = req.body;
 
-        throw new Error("Currently unavailable!");
+        // throw new Error("Currently unavailable!");
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
@@ -380,7 +380,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
     try {
         let { userAddress, amountDscInUsd } = req.body;
 
-        throw new Error("Currently unavailable!");
+        // throw new Error("Currently unavailable!");
 
         // ✅ Validate required fields
         const missingFields = Object.entries(req.body)
