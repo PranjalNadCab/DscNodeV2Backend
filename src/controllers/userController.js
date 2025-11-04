@@ -1625,11 +1625,30 @@ const fsrActivationHistory = async (req, res, next) => {
     }
 };
 
+const userDeployedNode = async (req, res, next) => {
+    try{
+
+        let {userAddress} = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const depoyedNode = await NodeDeployedModel.findOne({userAddress}).sort({time:-1});
+
+
+    return res.status(200).json({ success: true, message: "User deployed node fetched successfully!", depoyedNode:depoyedNode  });
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
     fsrActivationHistory,
     completeSponsoredTx,
     activateFsr,
+    userDeployedNode,
     getLevelIncome,
     getIdToAddress,
     getNodeUpgradeHistory,

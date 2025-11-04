@@ -1,64 +1,64 @@
 const mongoose = require("mongoose");
 
 
-const nodeDeployedSchema = new mongoose.Schema({   
+const nodeDeployedSchema = new mongoose.Schema({
     nodeNum: {
         type: Number,
         required: true,
     },
-    userAddress:{
-        type:String,
-        trim:true,
-        requried:true
+    userAddress: {
+        type: String,
+        trim: true,
+        requried: true
     },
-    time:{
-        type:Number,
-        default:()=>Math.floor(Date.now()/1000)
+    time: {
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
-    block:{
-        type:Number,
-        required:true
+    block: {
+        type: Number,
+        required: true
     },
-    transactionHash:{
-        type:String,
-        required:true,
+    transactionHash: {
+        type: String,
+        required: true,
     },
-    baseMinValue:{
-        type:String,
-        default:null
+    baseMinValue: {
+        type: String,
+        default: null
     },
-    currGenratedRoi:{
-        type:String,
-        default:""
+    currGenratedRoi: {
+        type: String,
+        default: ""
     },
-    lastRoiDistributed:{
-        type:Number,
-        default:()=>Math.floor(Date.now()/1000)
+    lastRoiDistributed: {
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
-    baseMinAss:{
-        type:String,
-       default:null
+    baseMinAss: {
+        type: String,
+        default: null
     },
-    conversionMonth:{
-        type:String,
-        default:null
+    conversionMonth: {
+        type: String,
+        default: null
     },
-    name:{
-        type:String,
-        default:null
+    name: {
+        type: String,
+        default: null
     },
-    sudoLink:{
-        type:String,
-        default:null
+    sudoLink: {
+        type: String,
+        default: null
     },
-    mobile:{
-        type:String,
-        default:null
+    mobile: {
+        type: String,
+        default: null
     }
-},{ timestamps: true });
+}, { timestamps: true });
 
 
-nodeDeployedSchema.index({ userAddress: 1,nodeNum:1 },{unique:true});
+nodeDeployedSchema.index({ userAddress: 1, nodeNum: 1 }, { unique: true });
 
 const NodeDeployedModel = mongoose.model("NodeDeployed", nodeDeployedSchema);
 
