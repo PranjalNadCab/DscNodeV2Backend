@@ -18,6 +18,7 @@ const NbdFundModel = require("../models/NbdFundsModel.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const { getLivePrice } = require("../utils/liveDscPriceApi.js");
+const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
 
 
 
@@ -1643,8 +1644,80 @@ const userDeployedNode = async (req, res, next) => {
     }
 }
 
+const assuranceFeeHistory = async(req,res,next)=> {
+    try{
+        let {userAddress, page=1, limit=10} = req.body; 
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Convert pagination to numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+        // Count total documents for pagination
+
+        const totalCount = await AssuranceFeeModel.countDocuments({ userAddress });
+        // Fetch paginated data
+        const history = await AssuranceFeeModel.find({ userAddress })
+            .select("-__v -_id -createdAt -updatedAt") // exclude unwanted fields
+            .sort({ time: -1 }) // newest first
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Assurance fee history fetched successfully!",
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalRecords: totalCount
+            },
+            assuranceHistory: history
+        });
+
+    }catch(error){
+        next(error);
+    }
+}
+
+const getUserAssuranceFeeInfo = async(req,res,next)=>{
+    try{
+
+        let {userAddress} = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const userDeployedNode = await NodeDeployedModel.findOne({userAddress},{nodeNum:1}).sort({time:-1});
+
+        const totalAssuranceFeeDoc = await AssuranceFeeModel.aggregate([
+            { $match: { userAddress } },
+            {
+                $group: {
+                    _id: null,
+                    totalAssuranceFeePaid: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        const totalAssuranceFeePaid = totalAssuranceFeeDoc.length > 0 ? totalAssuranceFeeDoc[0].totalAssuranceFeePaid : 0;
+        const lastPayment = await AssuranceFeeModel.findOne({userAddress}).sort({time:-1});
+        console.log({totalAssuranceFeePaid,lastPayment,userDeployedNode});
+        return res.status(200).json({ success: true, message: "User assurance fee info fetched successfully!", feeInfo:{ totalAssuranceFeePaid, lastPayment,userDeployedNode} });
+
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    getUserAssuranceFeeInfo,
+    assuranceFeeHistory,
     fsrActivationHistory,
     completeSponsoredTx,
     activateFsr,
