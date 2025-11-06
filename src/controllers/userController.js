@@ -1659,7 +1659,7 @@ const assuranceFeeHistory = async(req,res,next)=> {
         const totalCount = await AssuranceFeeModel.countDocuments({ userAddress });
         // Fetch paginated data
         const history = await AssuranceFeeModel.find({ userAddress })
-            .select("-__v -_id -createdAt -updatedAt") // exclude unwanted fields
+            .select("-__v  -createdAt -updatedAt") // exclude unwanted fields
             .sort({ time: -1 }) // newest first
             .skip((page - 1) * limit)
             .limit(limit)

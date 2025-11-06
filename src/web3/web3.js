@@ -24,7 +24,7 @@ const dscNodeContract = new web3.eth.Contract(
 
 const nodeBillingContract = new web3.eth.Contract(
     BILLING_ABI,
-    process.env.DSCNODE_CONTRACT_ADDRESS
+    process.env.NODE_BILLING_CONTRACT_ADDRESS
 );
 
 module.exports = {

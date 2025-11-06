@@ -17,6 +17,7 @@ const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
 const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk, updateDaoDelegatorForAdmins } = require("./src/helpers/adminHelper");
 const { giveUserTeam } = require("./src/bugFixer");
+const { billingListEvents } = require("./src/indexer/billingIndexer");
 
 
 
@@ -113,6 +114,7 @@ const server = app.listen(PORT, async () => {
         // await createDaoAndDelegatorsAdminInBulk();
         // await updateDaoDelegatorForAdmins();
         // await refreshDaoDelegatorUsers();
+        await billingListEvents();
 
     } else {
 
