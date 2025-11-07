@@ -86,125 +86,6 @@ const updateNodeValueAssurance = async () => {
     }
 }
 
-// const giveRoiToNodeHolders = async () => {
-//     let session;
-//     try {
-//         // Start a session
-//         session = await mongoose.startSession();
-//         session.startTransaction();
-
-//         // Use cursor with session
-//         const cursor = NodeDeployedModel.find({}).cursor({ session });
-//         const currTime = moment().unix();
-
-//         for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
-//             const { nodeNum, userAddress, baseMinValue, currGenratedRoi, baseMinAss, conversionMonth, time, lastRoiDistributed } = doc;
-
-//             let daysPassed = 0;
-//             if (process.env.NODE_ENV === "development") {
-//                 //treat 2mins as 1 day
-
-//                 daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 120);
-
-//             } else {
-
-//                 daysPassed = Math.floor((currTime - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
-
-//             }
-//             if (daysPassed < 1) {
-//                 console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
-//                 continue;
-//             }
-
-
-//             const x = new BigNumber(baseMinAss || "0"); // baseMinAss as BigNumber
-
-//             // Convert `time` (seconds) → moment object
-//             const start = moment.unix(time);
-//             const now = moment();
-
-//             // Days since node conversion
-//             const diffInDays = now.diff(start, "days");
-
-//             // 30 days = 1 month (fixed)
-//             const monthIndex = Math.floor(diffInDays / 30) + 1; // 1-based
-
-//             // Monthly ROI based on slab
-//             let monthlyROI = new BigNumber(0);
-
-//             if (monthIndex >= 1 && monthIndex <= 6) {
-//                 monthlyROI = x;
-//             } else if (monthIndex >= 7 && monthIndex <= 12) {
-//                 monthlyROI = x.div(2);
-//             } else if (monthIndex >= 13 && monthIndex <= 18) {
-//                 monthlyROI = x.div(4);
-//             } else {
-//                 monthlyROI = new BigNumber(0);
-//             }
-
-//             // Daily ROI = monthly / 30
-//             const dailyROI = monthlyROI.div(30).multipliedBy(daysPassed); // still in 1e18 precision
-
-
-
-//             await RoiModel.create({
-//                 userAddress,
-//                 nodeNum,
-//                 baseMinAss,
-//                 roiDscAssurance: dailyROI.toFixed(0), // still in 1e18 precision
-//                 time: moment().unix(),
-//                 roiGeneratedForNumDay: daysPassed
-//             });
-
-//             const totalRoiTillNow = new BigNumber(currGenratedRoi || "0").plus(dailyROI);
-
-//             const updationTimeForRoiDistributed = process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix();
-//             // If you need to save/update currGenratedRoi back to Mongo:
-//             await NodeConverted.updateOne(
-//                 { _id: doc._id },
-//                 { $set: { currGenratedRoi: totalRoiTillNow.toFixed(0), lastRoiDistributed: updationTimeForRoiDistributed } },
-//                 { session }
-//             );
-
-
-//             // Fetch current values of allTimeRoi and roiWithdrawWallet
-//             const regDoc = await RegistrationModel.findOne({ userAddress }).session(session);
-
-//             if (!regDoc) {
-//                 throw new Error(`Registration doc not found for userAddress: ${userAddress}`);
-//             }
-
-//             const currentAllTimeRoi = new BigNumber(regDoc.allTimeRoi || "0");
-//             const currentRoiWithdrawWallet = new BigNumber(regDoc.roiWithdrawWallet || "0");
-
-//             // Add dailyROI to both
-//             const updatedAllTimeRoi = currentAllTimeRoi.plus(dailyROI);
-//             const updatedRoiWithdrawWallet = currentRoiWithdrawWallet.plus(dailyROI);
-
-//             // Update back in DB
-//             await RegistrationModel.updateOne(
-//                 { userAddress },
-//                 {
-//                     $set: {
-//                         allTimeRoi: updatedAllTimeRoi.toFixed(0),
-//                         roiWithdrawWallet: updatedRoiWithdrawWallet.toFixed(0)
-//                     }
-//                 },
-//                 { session }
-//             );
-//         }
-
-//         // Commit transaction
-//         await session.commitTransaction();
-//         console.log("Transaction committed ✅");
-//     } catch (error) {
-//         if (session) await session.abortTransaction();
-//         console.error("Error in giveRoiToNodeHolders:", error);
-//     } finally {
-//         if (session) session.endSession();
-//     }
-// };
-
 const giveRoiToNodeHolders = async () => {
     try {
         // 💡 Define current date and time (real or mock)
@@ -242,21 +123,21 @@ const giveRoiToNodeHolders = async () => {
 
         for await (const doc of paidFees) {
             const { userAddress, nodeNum, seqMonth, calendarMonth } = doc;
-            
+
             let deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum });
-            if(!deploymentDoc){
+            if (!deploymentDoc) {
                 console.log(`No deployment doc found for user ${userAddress} and node ${nodeNum}, skipping...`);
                 continue;
             }
-            
-            const {time,baseMinValue,lastRoiDistributed,conversionMonth,currGenratedRoi,baseMinAss} = deploymentDoc;
-            ct({ uid:"paid fees",userAddress, baseMinAss:new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth });
+
+            const { time, baseMinValue, lastRoiDistributed, conversionMonth, currGenratedRoi, baseMinAss } = deploymentDoc;
+            ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth });
             const perDayMinAssurance = new BigNumber(baseMinAss).dividedBy(targetDays);
             // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
-            if(process.env.NODE_ENV==="development"){
+            if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 120);
-            }else{
+            } else {
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
 
             }
@@ -268,37 +149,42 @@ const giveRoiToNodeHolders = async () => {
 
             const totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
 
-            const {ratio} = await givePaymentRatioForDeployedNode(userAddress,nodeNum);
-            const {usdt,dsc} = ratio;
+            const { ratio } = await givePaymentRatioForDeployedNode(userAddress, nodeNum);
+            const { usdt, dsc } = ratio;
 
             const dscAllocation = totalRoi.multipliedBy(dsc).dividedBy(100);
             const swapAllocation = totalRoi.multipliedBy(usdt).dividedBy(100);
 
-            await RoiModel.create({
+            const roiDoc = await RoiModel.create({
                 userAddress,
                 nodeNum,
                 baseMinAss,
-                time: now.unix(),
+                time: process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix(),
                 dscAllocation: dscAllocation.toFixed(0),
                 swapAllocation: swapAllocation.toFixed(0),
                 roiGeneratedForNumDay: daysPassed
             });
 
-            const userRegDoc = await RegistrationModel.findOne({ userAddress });
+            if (roiDoc) {
 
-            if(!userRegDoc){
-                console.log(`No registration doc found for user ${userAddress}, skipping...`);
-                continue;
+                ct({userAddress,nodeNum,baseMinAss,time:roiDoc.time,dscAllocation:roiDoc.dscAllocation,swapAllocation:roiDoc.swapAllocation,daysPassed});
+
+                const userRegDoc = await RegistrationModel.findOne({ userAddress });
+
+                if (!userRegDoc) {
+                    console.log(`No registration doc found for user ${userAddress}, skipping...`);
+                    continue;
+                }
+
+                userRegDoc.allTimeRoi = new BigNumber(userRegDoc.allTimeRoi || "0").plus(totalRoi).toFixed(0);
+                userRegDoc.dscAllocation = new BigNumber(userRegDoc.dscAllocation || "0").plus(dscAllocation).toFixed(0);
+                userRegDoc.swapAllocation = new BigNumber(userRegDoc.swapAllocation || "0").plus(swapAllocation).toFixed(0);
+                await userRegDoc.save();
+
+                deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || "0").plus(totalRoi).toFixed(0);
+                deploymentDoc.lastRoiDistributed = now.startOf('day').unix();
+                await deploymentDoc.save();
             }
-
-            userRegDoc.allTimeRoi = new BigNumber(userRegDoc.allTimeRoi || "0").plus(totalRoi).toFixed(0);
-            updatedUser.dscAllocation = new BigNumber(userRegDoc.dscAllocation || "0").plus(dscAllocation).toFixed(0);
-            updatedUser.swapAllocation = new BigNumber(userRegDoc.swapAllocation || "0").plus(swapAllocation).toFixed(0);
-            await userRegDoc.save();
-
-            deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || "0").plus(totalRoi).toFixed(0);
-            deploymentDoc.lastRoiDistributed = now.startOf('day').unix();
-            await deploymentDoc.save();
 
         }
 
