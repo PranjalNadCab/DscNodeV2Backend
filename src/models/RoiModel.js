@@ -1,37 +1,41 @@
 const mongoose = require("mongoose");
 
 
-const roiModelSchema = new mongoose.Schema({   
+const roiModelSchema = new mongoose.Schema({
     nodeNum: {
         type: Number,
         required: true,
     },
-    userAddress:{
-        type:String,
-        trim:true,
-        requried:true
+    userAddress: {
+        type: String,
+        trim: true,
+        requried: true
     },
-    time:{
-        type:Number,
-        default:()=>Math.floor(Date.now()/1000)
+    dscAllocation:{
+        type: String,
+        default: "0"
     },
-    roiDscAssurance:{
-        type:String,
-        default:""
+    swapAllocation:{
+        type: String,
+        default: "0"
     },
-    baseMinAss:{
-        type:String,
-       default:null
+    time: {
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
-    roiGeneratedForNumDay:{
-        type:Number,
-        default:1
+    baseMinAss: {
+        type: String,
+        default: null
+    },
+    roiGeneratedForNumDay: {
+        type: Number,
+        default: 1
     }
 
-},{ timestamps: true });
+}, { timestamps: true });
 
 
-roiModelSchema.index({ userAddress: 1,nodeNum:1,time:1 },{unique:true});
+roiModelSchema.index({ userAddress: 1, nodeNum: 1, time: 1 }, { unique: true });
 
 const RoiModel = mongoose.model("Roi", roiModelSchema);
 

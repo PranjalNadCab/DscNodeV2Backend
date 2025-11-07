@@ -120,6 +120,14 @@ const RegistrationSchema = new mongoose.Schema({
         type:String,
         enum:["normal","dao","delegator"],
         default:"normal"
+    },
+    swapAllocation:{
+        type:String,
+        default:"0"
+    },
+    dscAllocation:{
+        type:String,
+        default:"0"
     }
 }, { timestamps: true, collection: 'registration' });
 

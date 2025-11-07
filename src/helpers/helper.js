@@ -55,7 +55,7 @@ const ct = (payload) => {
 
 const generateDefaultAdminDoc = async () => {
     try {
-        const existingAdmin = await AdminModel.findOne({role:"admin"});
+        const existingAdmin = await AdminModel.findOne({ role: "admin" });
         if (!existingAdmin) {
             const defaultAdmin = new AdminModel({
                 withdrawDeductionPercent: 5, // Default deduction percent
@@ -866,13 +866,13 @@ const updateUserNodeInfo = async (user, nodeNum, time) => {
 
 
 
-        const adminDoc = await AdminModel.findOne({role: "admin"});
+        const adminDoc = await AdminModel.findOne({ role: "admin" });
         if (!adminDoc) {
             console.log("Admin doc not found");
             return;
         }
         const nodeInfo = adminDoc.nodeValidators.find(n => n.nodeNum === nodeNum);
-        console.log("----------->>>>>",nodeInfo,adminDoc)
+        console.log("----------->>>>>", nodeInfo, adminDoc)
         if (!nodeInfo) {
             console.log(`Invalid node name ${nodeInfo.name}`);
             return;
@@ -975,15 +975,15 @@ const manageUserWalletForDsc = async (user, amountInUsd) => {
 
         let newDscIncomeInUsdWallet = userDoc.dscIncomeInUsdWallet || "0";
 
-       
+
         if (amountInUsd && Number(amountInUsd) > 0) {
             newDscIncomeInUsdWallet = new BigNumber(newDscIncomeInUsdWallet).minus(new BigNumber(amountInUsd)).toFixed(0);
         }
 
-        ct({ uid: "jkr674", newDscIncomeInUsdWallet,user })
+        ct({ uid: "jkr674", newDscIncomeInUsdWallet, user })
         const updatedUser = await RegistrationModel.findOneAndUpdate(
             { userAddress: fUser },
-            { $set: {dscIncomeInUsdWallet: newDscIncomeInUsdWallet } },
+            { $set: { dscIncomeInUsdWallet: newDscIncomeInUsdWallet } },
             { new: true }
         );
 
@@ -1323,15 +1323,15 @@ const updateFsrValue = async (userAddress) => {
     try {
 
         if (!userAddress) return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
-        
+
         const fUserAddress = giveCheckSummedAddress(userAddress);
-        
-        let oldDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }, { currentFsr: 1, utilizedFsr: 1, activatedFsr: 1,userType:1 }).lean();
+
+        let oldDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }, { currentFsr: 1, utilizedFsr: 1, activatedFsr: 1, userType: 1 }).lean();
         if (!oldDoc) {
             console.log("User not found for address:", fUserAddress);
             return { utilizedFsr: 0, activatedFsr: 0, currentFsr: 0 };
         }
-        
+
         if (oldDoc.userType === "delegator") {
             return { utilizedFsr: oldDoc.utilizedFsr, activatedFsr: oldDoc.activatedFsr, currentFsr: oldDoc.currentFsr }
         }
@@ -1374,9 +1374,9 @@ const updateFsrValue = async (userAddress) => {
     }
 }
 
-const refreshDaoDelegatorUsers = async()=>{
-    try{
-        const { daos,delegators } = await getDaoAndDelegator();
+const refreshDaoDelegatorUsers = async () => {
+    try {
+        const { daos, delegators } = await getDaoAndDelegator();
 
         const bulkOps = [];
 
@@ -1403,12 +1403,12 @@ const refreshDaoDelegatorUsers = async()=>{
             }
         }
 
-        if(bulkOps.length>0){
+        if (bulkOps.length > 0) {
             await RegistrationModel.bulkWrite(bulkOps);
             console.log("DAO and Delegator user types refreshed successfully.");
         }
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
@@ -1421,15 +1421,92 @@ const refreshDaoDelegatorUsers = async()=>{
 
 function getTargetDaysFromCalendarMonth(calendarMonth) {
 
-    if(!calendarMonth || typeof calendarMonth !== "string") return 31;
+    if (!calendarMonth || typeof calendarMonth !== "string") return 31;
     // Parse the input month
     const startDate = moment(calendarMonth, "MMMM YYYY").date(7); // 7th of given month
     const endDate = moment(startDate).add(1, "month").date(6);     // 6th of next month
-  
+
     // Calculate the difference in days (inclusive)
     const diffDays = endDate.diff(startDate, "days") + 1;
-  
-    return diffDays;
-  }
 
-module.exports = {getTargetDaysFromCalendarMonth, giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx,manageUserWalletForDsc }
+    return diffDays;
+}
+
+const givePaymentRatioForDeployedNode = async (userAddress, nodeNum) => {
+    try {
+        if (!userAddress || !nodeNum) return { status: false, ratio: { usd: 0, dsc: 0 } };
+
+        const fUserAddress = giveCheckSummedAddress(userAddress);
+
+        const userNodeDocs = await UpgradedNodes.find({ userAddress: fUserAddress, nodeNum: Number(nodeNum) }).sort({ time: -1 }).lean();
+        if (!userNodeDocs || userNodeDocs.length === 0)
+            return { status: false, ratio: { usd: 0, dsc: 0 } };
+
+        // ✅ Get the current node total amount (same across all docs for this node)
+        const currentTotal = new BigNumber(userNodeDocs[0].totalAmountInUsd);
+
+        // ✅ Find previous node doc
+        const prevNodeDoc = await UpgradedNodes.findOne({
+            userAddress: fUserAddress,
+            nodeNum: { $lt: Number(nodeNum) },
+        })
+            .sort({ nodeNum: -1 })
+            .lean();
+
+        // ✅ Determine previous total (0 if not found)
+        const prevTotal = prevNodeDoc
+            ? new BigNumber(prevNodeDoc.totalAmountInUsd)
+            : new BigNumber(0);
+
+        // ✅ Target amount for this node
+        const targetAmount = currentTotal.minus(prevTotal);
+
+        // ✅ Initialize accumulators
+        let totalUsdPaid_USDT = new BigNumber(0);
+        let totalUsdPaid_DSC = new BigNumber(0);
+
+        // ✅ Sum payments by currency
+        for (const doc of userNodeDocs) {
+            const paid = new BigNumber(doc.amountUsdPaid);
+
+            if (doc.currency === "USDT") {
+                totalUsdPaid_USDT = totalUsdPaid_USDT.plus(paid);
+            } else if (doc.currency === "DSC") {
+                totalUsdPaid_DSC = totalUsdPaid_DSC.plus(paid);
+            }
+        }
+
+        // ✅ Calculate ratios vs. target amount
+        const ratioUSDT = totalUsdPaid_USDT
+            .dividedBy(targetAmount)
+            .multipliedBy(100)
+            .toFixed(2);
+
+        const ratioDSC = totalUsdPaid_DSC
+            .dividedBy(targetAmount)
+            .multipliedBy(100)
+            .toFixed(2);
+
+            console.log("----->>>>>",Number(ratioUSDT),Number(ratioDSC))
+
+        return {
+            status: true,
+            ratio: {
+                usdt: Number(ratioUSDT),
+                dsc: Number(ratioDSC),
+            },
+            totals: {
+                usdtPaid: totalUsdPaid_USDT.dividedBy(1e18).toString(),
+                dscPaid: totalUsdPaid_DSC.dividedBy(1e18).toString(),
+                targetAmount: targetAmount.dividedBy(1e18).toString(),
+                currentTotal: currentTotal.dividedBy(1e18).toString(),
+                prevTotal: prevTotal.dividedBy(1e18).toString(),
+            },
+        };
+    } catch (error) {
+        console.log(error);
+        return { status: false, ratio: { usd: 0, dsc: 0 } };
+    }
+}
+
+module.exports = { getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }

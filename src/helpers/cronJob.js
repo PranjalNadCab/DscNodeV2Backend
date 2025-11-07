@@ -1,7 +1,7 @@
 const moment = require("moment");
 const Admin = require("../models/AdminModel");
 const { BigNumber } = require("bignumber.js");
-const { ct, getTargetDaysFromCalendarMonth } = require("./helper");
+const { ct, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode } = require("./helper");
 const { default: mongoose } = require("mongoose");
 // const NodeConverted = require("../models/NodeConvertedModel");
 const RoiModel = require("../models/RoiModel");
@@ -243,7 +243,7 @@ const giveRoiToNodeHolders = async () => {
         for await (const doc of paidFees) {
             const { userAddress, nodeNum, seqMonth, calendarMonth } = doc;
             
-            const deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum });
+            let deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum });
             if(!deploymentDoc){
                 console.log(`No deployment doc found for user ${userAddress} and node ${nodeNum}, skipping...`);
                 continue;
@@ -268,14 +268,37 @@ const giveRoiToNodeHolders = async () => {
 
             const totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
 
+            const {ratio} = await givePaymentRatioForDeployedNode(userAddress,nodeNum);
+            const {usdt,dsc} = ratio;
+
+            const dscAllocation = totalRoi.multipliedBy(dsc).dividedBy(100);
+            const swapAllocation = totalRoi.multipliedBy(usdt).dividedBy(100);
+
             await RoiModel.create({
                 userAddress,
                 nodeNum,
                 baseMinAss,
-                roiDscAssurance: totalRoi.toFixed(0), // still in 1e18 precision
                 time: now.unix(),
+                dscAllocation: dscAllocation.toFixed(0),
+                swapAllocation: swapAllocation.toFixed(0),
                 roiGeneratedForNumDay: daysPassed
             });
+
+            const userRegDoc = await RegistrationModel.findOne({ userAddress });
+
+            if(!userRegDoc){
+                console.log(`No registration doc found for user ${userAddress}, skipping...`);
+                continue;
+            }
+
+            userRegDoc.allTimeRoi = new BigNumber(userRegDoc.allTimeRoi || "0").plus(totalRoi).toFixed(0);
+            updatedUser.dscAllocation = new BigNumber(userRegDoc.dscAllocation || "0").plus(dscAllocation).toFixed(0);
+            updatedUser.swapAllocation = new BigNumber(userRegDoc.swapAllocation || "0").plus(swapAllocation).toFixed(0);
+            await userRegDoc.save();
+
+            deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || "0").plus(totalRoi).toFixed(0);
+            deploymentDoc.lastRoiDistributed = now.startOf('day').unix();
+            await deploymentDoc.save();
 
         }
 
