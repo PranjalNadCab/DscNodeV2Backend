@@ -108,10 +108,6 @@ const giveRoiToNodeHolders = async () => {
             targetMonth = now.format("MMMM YYYY");
         }
 
-        ct({
-            targetMonth,
-            currentDate,
-        });
 
         const targetDays = getTargetDaysFromCalendarMonth(targetMonth);
 
@@ -131,22 +127,22 @@ const giveRoiToNodeHolders = async () => {
             }
 
             const { time, baseMinValue, lastRoiDistributed, conversionMonth, currGenratedRoi, baseMinAss } = deploymentDoc;
-            ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth });
             const perDayMinAssurance = new BigNumber(baseMinAss).dividedBy(targetDays);
             // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
             if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
-                daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 120);
+                daysPassed = Math.floor((moment().unix() - (lastRoiDistributed || time)) / 120);
+                ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth,currTime:moment().unix(), lastRoiDistributed, time, daysPassed });
             } else {
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
-
+                
             }
-
+            
             if (daysPassed < 1) {
                 console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
                 continue;
             }
-
+            
             const totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
 
             const { ratio } = await givePaymentRatioForDeployedNode(userAddress, nodeNum);
