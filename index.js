@@ -115,7 +115,7 @@ const server = app.listen(PORT, async () => {
         // await createDaoAndDelegatorsAdminInBulk();
         // await updateDaoDelegatorForAdmins();
         // await refreshDaoDelegatorUsers();
-        await giveRoiToNodeHolders();
+        // await giveRoiToNodeHolders();
         // await givePaymentRatioForDeployedNode("0x63bD0d5ae4E76AB501E3bD03A03c52Db8D3429CF",3);
 
     } else {
