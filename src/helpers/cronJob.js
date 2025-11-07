@@ -1,7 +1,7 @@
 const moment = require("moment");
 const Admin = require("../models/AdminModel");
 const { BigNumber } = require("bignumber.js");
-const { ct } = require("./helper");
+const { ct, getTargetDaysFromCalendarMonth } = require("./helper");
 const { default: mongoose } = require("mongoose");
 // const NodeConverted = require("../models/NodeConvertedModel");
 const RoiModel = require("../models/RoiModel");
@@ -207,15 +207,24 @@ const updateNodeValueAssurance = async () => {
 
 const giveRoiToNodeHolders = async () => {
     try {
+        // 💡 Define current date and time (real or mock)
+        let now = moment();
 
-        const currentDate = Number(moment().format("DD"));
+        // 🧪 In development: use a simulated date for testing
+        if (process.env.NODE_ENV === "development") {
+            // Change this to simulate different days/months for testing
+            now = moment("2025-12-07", "YYYY-MM-DD"); // e.g., 4th Jan 2025
+            console.log("🧪 Using simulated date:", now.format("DD MMMM YYYY"));
+        }
+
+        const currentDate = Number(now.format("DD"));
         let targetMonth;
 
-        // If today's date is between 1 and 6 (inclusive) → use previous month
+        // ✅ If today's date is between 1 and 6 → use previous month
         if (currentDate >= 1 && currentDate <= 6) {
-            targetMonth = moment().subtract(1, "month").format("MMMM YYYY");
+            targetMonth = now.subtract(1, "month").format("MMMM YYYY");
         } else {
-            targetMonth = moment().format("MMMM YYYY");
+            targetMonth = now.format("MMMM YYYY");
         }
 
         ct({
@@ -223,15 +232,56 @@ const giveRoiToNodeHolders = async () => {
             currentDate,
         });
 
+        const targetDays = getTargetDaysFromCalendarMonth(targetMonth);
+
         // Fetch documents for the selected month
-        const paidFees = await AssuranceFeeModel.find({
+        const paidFees = AssuranceFeeModel.find({
             calendarMonth: targetMonth,
-        }).lean();
+        }).cursor();
 
 
-        console.log("giveRoiToNodeHolders function called");
+        for await (const doc of paidFees) {
+            const { userAddress, nodeNum, seqMonth, calendarMonth } = doc;
+            
+            const deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum });
+            if(!deploymentDoc){
+                console.log(`No deployment doc found for user ${userAddress} and node ${nodeNum}, skipping...`);
+                continue;
+            }
+            
+            const {time,baseMinValue,lastRoiDistributed,conversionMonth,currGenratedRoi,baseMinAss} = deploymentDoc;
+            ct({ uid:"paid fees",userAddress, baseMinAss:new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth });
+            const perDayMinAssurance = new BigNumber(baseMinAss).dividedBy(targetDays);
+            // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
+            if(process.env.NODE_ENV==="development"){
+                //treat 2mins as 1 day
+                daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 120);
+            }else{
+                daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
+
+            }
+
+            if (daysPassed < 1) {
+                console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
+                continue;
+            }
+
+            const totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
+
+            await RoiModel.create({
+                userAddress,
+                nodeNum,
+                baseMinAss,
+                roiDscAssurance: totalRoi.toFixed(0), // still in 1e18 precision
+                time: now.unix(),
+                roiGeneratedForNumDay: daysPassed
+            });
+
+        }
+
+        console.log("Fetched fee records:",);
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 };
 

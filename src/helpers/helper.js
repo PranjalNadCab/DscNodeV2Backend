@@ -1335,7 +1335,7 @@ const updateFsrValue = async (userAddress) => {
         if (oldDoc.userType === "delegator") {
             return { utilizedFsr: oldDoc.utilizedFsr, activatedFsr: oldDoc.activatedFsr, currentFsr: oldDoc.currentFsr }
         }
-        console.log("sdfsg----sdfg", oldDoc)
+        // console.log("sdfsg----sdfg", oldDoc)
 
         const { currentFsr, utilizedFsr, activatedFsr } = oldDoc;
 
@@ -1413,4 +1413,23 @@ const refreshDaoDelegatorUsers = async()=>{
     }
 }
 
-module.exports = { giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx,manageUserWalletForDsc }
+/**
+ * 📆 Get number of target days between 7th of given month and 6th of next month (inclusive)
+ * @param {string} calendarMonth - Month in format "MMMM YYYY" (e.g. "November 2025")
+ * @returns {number} Number of days between 7th of that month and 6th of next month (inclusive)
+ */
+
+function getTargetDaysFromCalendarMonth(calendarMonth) {
+
+    if(!calendarMonth || typeof calendarMonth !== "string") return 31;
+    // Parse the input month
+    const startDate = moment(calendarMonth, "MMMM YYYY").date(7); // 7th of given month
+    const endDate = moment(startDate).add(1, "month").date(6);     // 6th of next month
+  
+    // Calculate the difference in days (inclusive)
+    const diffDays = endDate.diff(startDate, "days") + 1;
+  
+    return diffDays;
+  }
+
+module.exports = {getTargetDaysFromCalendarMonth, giveUserType,refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx,manageUserWalletForDsc }

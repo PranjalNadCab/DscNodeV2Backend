@@ -3,6 +3,7 @@ const BillingBlockConfig = require("../models/billingblockConfig.js");
 const BigNumber = require("bignumber.js");
 const { ct } = require("../helpers/helper.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
+const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 
 
 
@@ -65,8 +66,32 @@ async function processEvents(events) {
                         transactionHash: transactionHash
                     });
 
-                    console.log("Assurance fee stored successfully for user:", user, "nodeNum:", nodeNum,createAssuranceHistory);
-                   
+                    let userNodeDeployedDoc = await NodeDeployedModel.findOne({ userAddress: user, nodeNum: Number(nodeNum) });
+
+                    if (!userNodeDeployedDoc) continue;
+
+                    const startDayTime = moment.unix(timestampNormal).startOf("day").unix();
+
+                    // ✅ Compare months (timestampNormal vs current system month)
+                    const timestampMonth = moment.unix(timestampNormal).format("MMMM YYYY");
+                    const currentMonth = moment().format("MMMM YYYY");
+
+                    if (timestampMonth === currentMonth) {
+                        // Only update for current month
+                        userNodeDeployedDoc.lastRoiDistributed = Number(startDayTime);
+                        await userNodeDeployedDoc.save();
+
+                        console.log(
+                            `Updated lastRoiDistributed for user ${user}, node ${nodeNum}, time ${startDayTime}`
+                        );
+                    } else {
+                        console.log(
+                            `Skipped update for user ${user}, node ${nodeNum} (month ${timestampMonth} != ${currentMonth})`
+                        );
+                    }
+
+                    console.log("Assurance fee stored successfully for user:", user, "nodeNum:", nodeNum, createAssuranceHistory);
+
 
                 } catch (error) {
                     console.log("Error while storing assurance fee", error);
