@@ -109,7 +109,7 @@ const server = app.listen(PORT, async () => {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
         // await setLatestBlock();
-        // await dscNodeListEvents();
+        await dscNodeListEvents();
         // await generateDefaultAdminDoc();
         // await createDaoAndDelegatorsAdminInBulk();
         // await updateDaoDelegatorForAdmins();
