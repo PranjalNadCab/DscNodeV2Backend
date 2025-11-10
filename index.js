@@ -16,7 +16,7 @@ const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helper
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
 const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk, updateDaoDelegatorForAdmins } = require("./src/helpers/adminHelper");
-const { giveUserTeam } = require("./src/bugFixer");
+const { giveUserTeam, updateLastRoiDistributedToPaidAssuranceFees } = require("./src/bugFixer");
 const { billingListEvents } = require("./src/indexer/billingIndexer");
 
 
@@ -109,8 +109,9 @@ const server = app.listen(PORT, async () => {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
         // await setLatestBlock();
-        await dscNodeListEvents();
-        await billingListEvents();
+        // await updateLastRoiDistributedToPaidAssuranceFees();
+        // await dscNodeListEvents();
+        // await billingListEvents();
         // await generateDefaultAdminDoc();
         // await createDaoAndDelegatorsAdminInBulk();
         // await updateDaoDelegatorForAdmins();
