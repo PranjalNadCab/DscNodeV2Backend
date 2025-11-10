@@ -78,7 +78,7 @@ async function processEvents(events) {
 
                     if (timestampMonth === currentMonth) {
                         // Only update for current month
-                        userNodeDeployedDoc.lastRoiDistributed = Number(startDayTime);
+                        userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : startDayTime;
                         await userNodeDeployedDoc.save();
 
                         console.log(
