@@ -94,7 +94,7 @@ const giveRoiToNodeHolders = async () => {
         // 🧪 In development: use a simulated date for testing
         if (process.env.NODE_ENV === "development") {
             // Change this to simulate different days/months for testing
-            now = moment("2025-12-07", "YYYY-MM-DD"); // e.g., 4th Jan 2025
+            now = moment("2025-11-07", "YYYY-MM-DD"); // e.g., 4th Jan 2025
             console.log("🧪 Using simulated date:", now.format("DD MMMM YYYY"));
         }
 
@@ -108,9 +108,11 @@ const giveRoiToNodeHolders = async () => {
             targetMonth = now.format("MMMM YYYY");
         }
 
-
+        
+        
         const targetDays = getTargetDaysFromCalendarMonth(targetMonth);
-
+        
+        console.log("------>target month:::",targetMonth,targetDays);
         // Fetch documents for the selected month
         const paidFees = AssuranceFeeModel.find({
             calendarMonth: targetMonth,
@@ -131,7 +133,7 @@ const giveRoiToNodeHolders = async () => {
             // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
             if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
-                daysPassed = Math.floor((moment().unix() - (lastRoiDistributed || time)) / 120);
+                daysPassed = Math.floor((moment().unix() - (lastRoiDistributed || time)) / 10);
                 ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth,currTime:moment().unix(), lastRoiDistributed, time, daysPassed });
             } else {
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
@@ -143,7 +145,44 @@ const giveRoiToNodeHolders = async () => {
                 continue;
             }
             
-            const totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
+            let totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
+
+            // -----checking user total assurance for this month----
+
+            const totalAssuranceGotForUser = await RoiModel.aggregate([
+                {
+                    $match: {
+                        userAddress: userAddress,
+                        nodeNum: nodeNum,
+                        time: {
+                            $gte: moment(targetMonth, "MMMM YYYY").startOf("month").unix(),
+                            $lte: moment(targetMonth, "MMMM YYYY").endOf("month").unix()
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalDscAllocation: { $sum: { $toDouble: "$dscAllocation" } },
+                        totalSwapAllocation: { $sum: { $toDouble: "$swapAllocation" } }
+                    }
+                }
+            ]);
+
+            const alreadyPaidRoi = totalAssuranceGotForUser.length > 0 ? new BigNumber(totalAssuranceGotForUser[0].totalDscAllocation || "0").plus(new BigNumber(totalAssuranceGotForUser[0].totalSwapAllocation || "0")) : new BigNumber(0);
+            ct({ uid: "already paid roi check", userAddress, nodeNum, alreadyPaidRoi: alreadyPaidRoi.toFixed(0), totalRoi: totalRoi.toFixed(0) });
+
+            if (alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(new BigNumber(baseMinAss))) {
+               
+                totalRoi = new BigNumber(baseMinAss).minus(alreadyPaidRoi);
+            }
+
+            if(totalRoi.isLessThanOrEqualTo(0)){
+                console.log(`Total ROI calculated is zero or negative for user ${userAddress} node ${nodeNum}, skipping...`);
+                continue;
+            }
+
+            // -------------------END-------------------------------
 
             const { ratio } = await givePaymentRatioForDeployedNode(userAddress, nodeNum);
             const { usdt, dsc } = ratio;
