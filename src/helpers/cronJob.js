@@ -178,7 +178,7 @@ const giveRoiToNodeHolders = async () => {
                 await userRegDoc.save();
 
                 deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || "0").plus(totalRoi).toFixed(0);
-                deploymentDoc.lastRoiDistributed = now.startOf('day').unix();
+                deploymentDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix();
                 await deploymentDoc.save();
             }
 

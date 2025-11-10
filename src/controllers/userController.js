@@ -1682,6 +1682,44 @@ const assuranceFeeHistory = async(req,res,next)=> {
     }
 }
 
+const assuranceRoiHistory = async(req,res,next)=> {
+    try{
+        let {userAddress, page=1, limit=10} = req.body; 
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Convert pagination to numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+        // Count total documents for pagination
+
+        const totalCount = await RoiModel.countDocuments({ userAddress });
+        // Fetch paginated data
+        const history = await RoiModel.find({ userAddress })
+            .select("-__v  -createdAt -updatedAt") // exclude unwanted fields
+            .sort({ time: -1 }) // newest first
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Assurance roi history fetched successfully!",
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalRecords: totalCount
+            },
+            assuranceRoiHistory: history
+        });
+
+    }catch(error){
+        next(error);
+    }
+}
+
 const getUserAssuranceFeeInfo = async(req,res,next)=>{
     try{
 
@@ -1741,6 +1779,7 @@ module.exports = {
     getUserPendingStake,
     getUserPendingNodeUpgrades,
     nbdPaidHistory,
-    pendingTxsToSponsor
+    pendingTxsToSponsor,
+    assuranceRoiHistory
 };
 
