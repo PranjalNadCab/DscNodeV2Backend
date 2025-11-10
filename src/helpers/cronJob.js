@@ -194,6 +194,7 @@ const giveRoiToNodeHolders = async () => {
                 userAddress,
                 nodeNum,
                 baseMinAss,
+                baseMinValue,
                 time: process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix(),
                 dscAllocation: dscAllocation.toFixed(0),
                 swapAllocation: swapAllocation.toFixed(0),

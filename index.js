@@ -38,18 +38,18 @@ app.use("/api/admin", adminRoutes);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "development") {
-    // cron.schedule('1 0 * * *', async () => {
-    //     try {
-    //         console.log(`Cron job started at ${new Date().toLocaleString()}`);
-    //         await giveRoiToNodeHolders();
+    cron.schedule('1 0 * * *', async () => {
+        try {
+            console.log(`Cron job started at ${new Date().toLocaleString()}`);
+            await giveRoiToNodeHolders();
 
-    //     } catch (err) {
-    //         console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
-    //     }
+        } catch (err) {
+            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+        }
 
-    // }, {
-    //     timezone: 'Asia/Kolkata'
-    // });
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
 
     // cron.schedule('1 0 1 * *', async () => {
     //     try {
@@ -115,7 +115,7 @@ const server = app.listen(PORT, async () => {
         // await createDaoAndDelegatorsAdminInBulk();
         // await updateDaoDelegatorForAdmins();
         // await refreshDaoDelegatorUsers();
-        await giveRoiToNodeHolders();
+        // await giveRoiToNodeHolders();
         // await givePaymentRatioForDeployedNode("0x63bD0d5ae4E76AB501E3bD03A03c52Db8D3429CF",3);
 
     } else {

@@ -27,6 +27,10 @@ const roiModelSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    baseMinValue: {
+        type: String,
+        default: null
+    },
     roiGeneratedForNumDay: {
         type: Number,
         default: 1
