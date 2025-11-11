@@ -1,7 +1,7 @@
 const { dscNodeContract, web3 } = require("../web3/web3.js");
 const DscNodeBlockConfig = require("../models/DscNodeBlockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId, giveUserType, manageUserWalletForDsc } = require("../helpers/helper.js");
+const { ct, registerUser, updateUserTotalSelfStakeUsdt, manageRank, giveGapIncome, updateDirectBusiness, updateUserNodeInfo, manageUserWallet, giveAdminSettings, sendNodeRegIncomeToUpline, updateTeamCount, updateDirectCount, generateRandomId, giveUserType, manageUserWalletForDsc, manageAssuranceIncome } = require("../helpers/helper.js");
 const StakingModel = require("../models/StakingModel.js");
 const RegistrationModel = require("../models/RegistrationModel.js");
 const WithdrawIncomeModel = require("../models/WithdrawIncomeModel.js");
@@ -16,6 +16,7 @@ const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const SwappingModel = require("../models/SwappingModel.js");
 const LiquidityModel = require("../models/LiquidityModel.js");
 const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
+const { default: mongoose } = require("mongoose");
 
 
 async function dscNodeSyncBlock() {
@@ -506,39 +507,54 @@ async function processEvents(events) {
                 }
 
             }
-            else if(event == "SwappedAssurance"){
-                
-                try{
-                    const {user,amountDsc,amountUsdt,lastUsedNonce} = returnValues;
+            else if (event == "SwappedAssurance") {
 
-                    const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create({
-                        userAddress: user,
-                        amountDsc: new BigNumber(amountDsc).toFixed(0),
-                        amountUsdt: new BigNumber(amountUsdt).toFixed(0),
-                        actionType: 'SWAPPED',
-                        lastUsedNonce: Number(lastUsedNonce),
-                        block: Number(block),
-                        transactionHash,
-                        time: Number(timestampNormal)
-                    });
+                const session = await mongoose.startSession();
+                try {
+                    await session.startTransaction();
+                    let { user, amountDsc, amountUsdt, lastUsedNonce } = returnValues;
+
+                    amountDsc = new BigNumber(amountDsc).toFixed(0);
+
+                    const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create(
+                        [
+                            {
+                                userAddress: user,
+                                amountDsc,
+                                amountUsdt,
+                                actionType: "SWAPPED",
+                                lastUsedNonce: Number(lastUsedNonce),
+                                block: Number(block),
+                                transactionHash,
+                                time: Number(timestampNormal),
+                            },
+                        ],
+                        { session } // ✅ pass session
+                    );
 
                     console.log("Created swap assurance--->>", createdSwapAssurance);
 
+                    await manageAssuranceIncome(user, amountDsc, createdSwapAssurance.actionType, "minus", session);
 
-                }catch(error){
+
+                } catch (error) {
                     console.log(error);
                     continue;
                 }
 
             }
-            else if(event == "TransferAllocationAssurance"){
-                
-                try{
-                    const {user,amountDscTransferred,lastUsedNonce} = returnValues;
+            else if (event == "TransferAllocationAssurance") {
+
+                try {
+                    const session = mongoose.startSession();
+                    await session.startTransaction();
+                    let { user, amountDscTransferred, lastUsedNonce } = returnValues;
+
+                    amountDscTransferred = new BigNumber(amountDscTransferred).toFixed(0);
 
                     const createdTransferAssurance = await ManageAssuranceWithdrawalModel.create({
                         userAddress: user,
-                        amountDsc: new BigNumber(amountDscTransferred).toFixed(0),
+                        amountDsc: amountDscTransferred,
                         amountUsdt: "0",
                         actionType: 'TRANSFER',
                         lastUsedNonce: Number(lastUsedNonce),
@@ -549,19 +565,26 @@ async function processEvents(events) {
 
                     console.log("Created transfer assurance--->>", createdTransferAssurance);
 
-                }catch(error){
+                    await manageAssuranceIncome(user, amountDscTransferred, createdTransferAssurance.actionType, "minus", session);
+
+                } catch (error) {
                     console.log(error);
                     continue;
                 }
             }
-            else if(event == "WithdrawAssurance"){
-                
-                try{
-                    const {user,amountDsc,lastUsedNonce} = returnValues;
+            else if (event == "WithdrawAssurance") {
+
+                try {
+
+                    const session = mongoose.startSession();
+                    await session.startTransaction();
+                    let { user, amountDsc, lastUsedNonce } = returnValues;
+
+                    amountDsc = new BigNumber(amountDsc).toFixed(0);
 
                     const createdWithdrawAssurance = await ManageAssuranceWithdrawalModel.create({
                         userAddress: user,
-                        amountDsc: new BigNumber(amountDsc).toFixed(0),
+                        amountDsc: amountDsc,
                         amountUsdt: "0",
                         actionType: 'WITHDRAW',
                         lastUsedNonce: Number(lastUsedNonce),
@@ -572,7 +595,10 @@ async function processEvents(events) {
 
                     console.log("Created withdraw assurance--->>", createdWithdrawAssurance);
 
-                }catch(error){
+                    await manageAssuranceIncome(user, amountDsc, createdTransferAssurance.actionType, "minus", session);
+
+
+                } catch (error) {
                     console.log(error);
                     continue;
                 }

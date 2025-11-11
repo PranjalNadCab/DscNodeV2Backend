@@ -1487,7 +1487,7 @@ const givePaymentRatioForDeployedNode = async (userAddress, nodeNum) => {
             .multipliedBy(100)
             .toFixed(2);
 
-            console.log("----->>>>>",Number(ratioUSDT),Number(ratioDSC))
+        console.log("----->>>>>", Number(ratioUSDT), Number(ratioDSC))
 
         return {
             status: true,
@@ -1509,4 +1509,88 @@ const givePaymentRatioForDeployedNode = async (userAddress, nodeNum) => {
     }
 }
 
-module.exports = { getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+const manageAssuranceIncome = async (userAddress, amountDsc, action, operation = 'minus', session) => {
+    try {
+        if (!userAddress || !amountDsc)
+            return { status: false, message: "Invalid parameters" };
+
+        const fUserAddress = giveCheckSummedAddress(userAddress);
+
+        const userDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }).session(session);
+        if (!userDoc)
+            return { status: false, message: "User not found!" };
+
+        if (operation !== "minus")
+            return { status: false, message: "Only minus operation can be done" };
+
+        const { swapAllocation = "0", dscAllocation = "0" } = userDoc;
+
+        if (action === "SWAPPED") {
+            const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
+            if (new BigNumber(newSwapAllocation).isNegative())
+                return { status: false, message: "Insufficient swapped assurance allocation" };
+
+            const updatedUser = await RegistrationModel.findOneAndUpdate(
+                { userAddress: fUserAddress },
+                { $set: { swapAllocation: newSwapAllocation } },
+                { new: true, session }
+            );
+
+            if (!updatedUser)
+                return { status: false, message: "Failed to update user assurance allocation" };
+
+            return { status: true, message: "Swapped assurance allocation deducted successfully" };
+        }
+
+        else if (action === "WITHDRAW") {
+            const newDscAllocation = new BigNumber(dscAllocation).minus(amountDsc).toFixed(0);
+            if (new BigNumber(newDscAllocation).isNegative())
+                return { status: false, message: "Insufficient DSC assurance allocation" };
+
+            const updatedUser = await RegistrationModel.findOneAndUpdate(
+                { userAddress: fUserAddress },
+                { $set: { dscAllocation: newDscAllocation } },
+                { new: true, session }
+            );
+
+            if (!updatedUser)
+                return { status: false, message: "Failed to update user assurance allocation" };
+
+            return { status: true, message: "DSC assurance allocation deducted successfully" };
+        }
+
+        else if (action === "TRANSFER") {
+            const newDscAllocation = new BigNumber(dscAllocation).plus(amountDsc).toFixed(0);
+            const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
+
+            if (new BigNumber(newDscAllocation).isNegative() || new BigNumber(newSwapAllocation).isNegative())
+                return { status: false, message: "Insufficient DSC or Swap assurance allocation" };
+
+            const updatedUser = await RegistrationModel.findOneAndUpdate(
+                { userAddress: fUserAddress },
+                {
+                    $set: {
+                        dscAllocation: newDscAllocation,
+                        swapAllocation: newSwapAllocation
+                    }
+                },
+                { new: true, session }
+            );
+
+            if (!updatedUser)
+                return { status: false, message: "Failed to update user assurance allocation" };
+
+            return { status: true, message: "DSC assurance allocation deducted successfully for transfer" };
+        }
+
+        else {
+            return { status: false, message: "Invalid action type" };
+        }
+
+    } catch (error) {
+        console.error("manageAssuranceIncome error:", error);
+        return { status: false, message: "Error deducting assurance income" };
+    }
+};
+
+module.exports = { manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
