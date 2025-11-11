@@ -15,6 +15,7 @@ const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const SwappingModel = require("../models/SwappingModel.js");
 const LiquidityModel = require("../models/LiquidityModel.js");
+const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
 
 
 async function dscNodeSyncBlock() {
@@ -504,6 +505,77 @@ async function processEvents(events) {
                     continue;
                 }
 
+            }
+            else if(event == "SwappedAssurance"){
+                
+                try{
+                    const {user,amountDsc,amountUsdt,lastUsedNonce} = returnValues;
+
+                    const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create({
+                        userAddress: user,
+                        amountDsc: new BigNumber(amountDsc).toFixed(0),
+                        amountUsdt: new BigNumber(amountUsdt).toFixed(0),
+                        actionType: 'SWAPPED',
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash,
+                        time: Number(timestampNormal)
+                    });
+
+                    console.log("Created swap assurance--->>", createdSwapAssurance);
+
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
+
+            }
+            else if(event == "TransferAllocationAssurance"){
+                
+                try{
+                    const {user,amountDscTransferred,lastUsedNonce} = returnValues;
+
+                    const createdTransferAssurance = await ManageAssuranceWithdrawalModel.create({
+                        userAddress: user,
+                        amountDsc: new BigNumber(amountDscTransferred).toFixed(0),
+                        amountUsdt: "0",
+                        actionType: 'TRANSFER',
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash,
+                        time: Number(timestampNormal)
+                    });
+
+                    console.log("Created transfer assurance--->>", createdTransferAssurance);
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
+            }
+            else if(event == "WithdrawAssurance"){
+                
+                try{
+                    const {user,amountDsc,lastUsedNonce} = returnValues;
+
+                    const createdWithdrawAssurance = await ManageAssuranceWithdrawalModel.create({
+                        userAddress: user,
+                        amountDsc: new BigNumber(amountDsc).toFixed(0),
+                        amountUsdt: "0",
+                        actionType: 'WITHDRAW',
+                        lastUsedNonce: Number(lastUsedNonce),
+                        block: Number(block),
+                        transactionHash,
+                        time: Number(timestampNormal)
+                    });
+
+                    console.log("Created withdraw assurance--->>", createdWithdrawAssurance);
+
+                }catch(error){
+                    console.log(error);
+                    continue;
+                }
             }
             else {
                 console.log("Got no events!");
