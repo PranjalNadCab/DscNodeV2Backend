@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -19,6 +19,7 @@ const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
+const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
 
 
 
@@ -1627,26 +1628,26 @@ const fsrActivationHistory = async (req, res, next) => {
 };
 
 const userDeployedNode = async (req, res, next) => {
-    try{
+    try {
 
-        let {userAddress} = req.body;
+        let { userAddress } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
 
         userAddress = giveCheckSummedAddress(userAddress);
 
-        const depoyedNode = await NodeDeployedModel.findOne({userAddress}).sort({time:-1});
+        const depoyedNode = await NodeDeployedModel.findOne({ userAddress }).sort({ time: -1 });
 
 
-    return res.status(200).json({ success: true, message: "User deployed node fetched successfully!", depoyedNode:depoyedNode  });
-    }catch(error){
+        return res.status(200).json({ success: true, message: "User deployed node fetched successfully!", depoyedNode: depoyedNode });
+    } catch (error) {
         next(error);
     }
 }
 
-const assuranceFeeHistory = async(req,res,next)=> {
-    try{
-        let {userAddress, page=1, limit=10} = req.body; 
+const assuranceFeeHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
         userAddress = giveCheckSummedAddress(userAddress);
@@ -1677,14 +1678,14 @@ const assuranceFeeHistory = async(req,res,next)=> {
             assuranceHistory: history
         });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
-const assuranceRoiHistory = async(req,res,next)=> {
-    try{
-        let {userAddress, page=1, limit=10} = req.body; 
+const assuranceRoiHistory = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
         userAddress = giveCheckSummedAddress(userAddress);
@@ -1715,21 +1716,21 @@ const assuranceRoiHistory = async(req,res,next)=> {
             assuranceRoiHistory: history
         });
 
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
-const getUserAssuranceFeeInfo = async(req,res,next)=>{
-    try{
+const getUserAssuranceFeeInfo = async (req, res, next) => {
+    try {
 
-        let {userAddress} = req.body;
+        let { userAddress } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
 
         userAddress = giveCheckSummedAddress(userAddress);
 
-        const userDeployedNode = await NodeDeployedModel.findOne({userAddress},{nodeNum:1}).sort({time:-1});
+        const userDeployedNode = await NodeDeployedModel.findOne({ userAddress }, { nodeNum: 1 }).sort({ time: -1 });
 
         const totalAssuranceFeeDoc = await AssuranceFeeModel.aggregate([
             { $match: { userAddress } },
@@ -1742,12 +1743,70 @@ const getUserAssuranceFeeInfo = async(req,res,next)=>{
         ]);
 
         const totalAssuranceFeePaid = totalAssuranceFeeDoc.length > 0 ? totalAssuranceFeeDoc[0].totalAssuranceFeePaid : 0;
-        const lastPayment = await AssuranceFeeModel.findOne({userAddress}).sort({time:-1});
-        console.log({totalAssuranceFeePaid,lastPayment,userDeployedNode});
-        return res.status(200).json({ success: true, message: "User assurance fee info fetched successfully!", feeInfo:{ totalAssuranceFeePaid, lastPayment,userDeployedNode} });
+        const lastPayment = await AssuranceFeeModel.findOne({ userAddress }).sort({ time: -1 });
+        console.log({ totalAssuranceFeePaid, lastPayment, userDeployedNode });
+        return res.status(200).json({ success: true, message: "User assurance fee info fetched successfully!", feeInfo: { totalAssuranceFeePaid, lastPayment, userDeployedNode } });
 
 
-    }catch(error){
+    } catch (error) {
+        next(error);
+    }
+}
+
+const useAssuranceIncome = async (req, res, next) => {
+    try {
+
+        let { userAddress, amountDsc, action } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        if (!["withdraw", "swap", "transfer"]) throw new Error("Please provide valid action to use assurance income.");
+
+
+        userAddress = giveCheckSummedAddress(userAddress);
+        if (!amountDsc || isNaN(amountDsc) || Number(amountDsc) <= 0) throw new Error("Please provide valid amount dsc to use assurance income");
+
+        const userDoc = await RegistrationModel.find({ userAddress });
+        if (!userDoc) throw new Error("User not found!");
+
+        const { swapAllocation, dscAllocation } = userDoc;
+
+        const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18).toFixed(0);
+
+        const isSwapOrTransfer = action === "swap" || action === "transfer";
+        const allocation = isSwapOrTransfer ? swapAllocation : dscAllocation;
+        const allocType = isSwapOrTransfer ? "swap" : "dsc";
+
+        if (new BigNumber(allocation).isLessThan(amountDscIn1e18)) {
+            throw new Error(
+                `Insufficient ${allocType} allocation: have ${allocation}, need ${amountDscIn1e18} DSC for ${action}`
+            );
+        }
+
+        const lastAction = await ManageAssuranceWithdrawalModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
+
+        let prevNonce = 0;
+        if (!lastAction) {
+            prevNonce = -1;
+        } else {
+            prevNonce = Number(lastAction.lastUsedNonce);
+        }
+
+        const currNonce = await dscNodeContract.methods.userNoncesForAssurance(userAddress).call();
+
+        if (Number(currNonce) !== (prevNonce + 1)) {
+            throw new Error("Your previous assurance income action is not stored yet! Please try again later.");
+        }
+
+        const hash = await dscNodeContract.methods.getHashForAssuranceManager(userAddress, amountDscIn1e18, action).call();
+
+        const vrs = await generateVrsForAssuranceIncome(userAddress, amountDscIn1e18, action, Number(currNonce), hash);
+
+
+        return res.status(200).json({ success: true, message: `User assurance income ${action} request processed successfully!`, vrs });
+
+
+    } catch (error) {
         next(error);
     }
 }
@@ -1755,6 +1814,7 @@ const getUserAssuranceFeeInfo = async(req,res,next)=>{
 module.exports = {
     stakeVrs,
     getUserAssuranceFeeInfo,
+    useAssuranceIncome,
     assuranceFeeHistory,
     fsrActivationHistory,
     completeSponsoredTx,

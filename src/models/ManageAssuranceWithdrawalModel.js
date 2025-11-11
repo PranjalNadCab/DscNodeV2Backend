@@ -37,6 +37,8 @@ const ManageAssuranceWithdrawalSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
+ManageAssuranceWithdrawalSchema.index({ userAddress: 1,time:1,amountDsc:1, actionType:1 },{ unique: true });
+
 const ManageAssuranceWithdrawalModel = mongoose.model('ManageAssuranceWithdrawal', ManageAssuranceWithdrawalSchema);
 
 module.exports = ManageAssuranceWithdrawalModel;
