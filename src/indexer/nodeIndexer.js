@@ -16,7 +16,7 @@ const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const SwappingModel = require("../models/SwappingModel.js");
 const LiquidityModel = require("../models/LiquidityModel.js");
 const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 
 async function dscNodeSyncBlock() {
@@ -509,15 +509,14 @@ async function processEvents(events) {
             }
             else if (event == "SwappedAssurance") {
 
-                const session = await mongoose.startSession();
                 try {
-                    await session.startTransaction();
+              
                     let { user, amountDsc, amountUsdt, lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed(0);
 
                     const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create(
-                        [
+                        
                             {
                                 userAddress: user,
                                 amountDsc,
@@ -527,14 +526,13 @@ async function processEvents(events) {
                                 block: Number(block),
                                 transactionHash,
                                 time: Number(timestampNormal),
-                            },
-                        ],
-                        { session } // ✅ pass session
+                            }
+                    
                     );
 
                     console.log("Created swap assurance--->>", createdSwapAssurance);
 
-                    await manageAssuranceIncome(user, amountDsc, createdSwapAssurance.actionType, "minus", session);
+                    await manageAssuranceIncome(user, amountDsc, createdSwapAssurance.actionType, "minus");
 
 
                 } catch (error) {
@@ -546,8 +544,7 @@ async function processEvents(events) {
             else if (event == "TransferAllocationAssurance") {
 
                 try {
-                    const session = mongoose.startSession();
-                    await session.startTransaction();
+                    
                     let { user, amountDscTransferred, lastUsedNonce } = returnValues;
 
                     amountDscTransferred = new BigNumber(amountDscTransferred).toFixed(0);
@@ -565,7 +562,7 @@ async function processEvents(events) {
 
                     console.log("Created transfer assurance--->>", createdTransferAssurance);
 
-                    await manageAssuranceIncome(user, amountDscTransferred, createdTransferAssurance.actionType, "minus", session);
+                    await manageAssuranceIncome(user, amountDscTransferred, createdTransferAssurance.actionType, "minus");
 
                 } catch (error) {
                     console.log(error);
@@ -576,8 +573,6 @@ async function processEvents(events) {
 
                 try {
 
-                    const session = mongoose.startSession();
-                    await session.startTransaction();
                     let { user, amountDsc, lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed(0);
@@ -595,7 +590,7 @@ async function processEvents(events) {
 
                     console.log("Created withdraw assurance--->>", createdWithdrawAssurance);
 
-                    await manageAssuranceIncome(user, amountDsc, createdTransferAssurance.actionType, "minus", session);
+                    await manageAssuranceIncome(user, amountDsc, createdWithdrawAssurance.actionType, "minus");
 
 
                 } catch (error) {
@@ -643,8 +638,8 @@ const dscNodeListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "70499894"; 
-        // toBlock = "70499894"
+        // lastSyncBlock = "714368"; 
+        // toBlock = "714368"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);

@@ -1542,14 +1542,14 @@ const givePaymentRatioForDeployedNode = async (userAddress, nodeNum) => {
     }
 }
 
-const manageAssuranceIncome = async (userAddress, amountDsc, action, operation = 'minus', session) => {
+const manageAssuranceIncome = async (userAddress, amountDsc, action, operation = 'minus') => {
     try {
         if (!userAddress || !amountDsc)
             return { status: false, message: "Invalid parameters" };
 
         const fUserAddress = giveCheckSummedAddress(userAddress);
 
-        const userDoc = await RegistrationModel.findOne({ userAddress: fUserAddress }).session(session);
+        const userDoc = await RegistrationModel.findOne({ userAddress: fUserAddress });
         if (!userDoc)
             return { status: false, message: "User not found!" };
 
@@ -1566,7 +1566,7 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
             const updatedUser = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { swapAllocation: newSwapAllocation } },
-                { new: true, session }
+                { new: true }
             );
 
             if (!updatedUser)
@@ -1583,7 +1583,7 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
             const updatedUser = await RegistrationModel.findOneAndUpdate(
                 { userAddress: fUserAddress },
                 { $set: { dscAllocation: newDscAllocation } },
-                { new: true, session }
+                { new: true }
             );
 
             if (!updatedUser)
@@ -1607,7 +1607,7 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
                         swapAllocation: newSwapAllocation
                     }
                 },
-                { new: true, session }
+                { new: true }
             );
 
             if (!updatedUser)
