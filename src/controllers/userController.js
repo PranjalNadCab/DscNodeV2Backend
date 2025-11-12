@@ -1760,7 +1760,7 @@ const useAssuranceIncome = async (req, res, next) => {
 
         if (!userAddress) throw new Error("Please provide user address.");
 
-        if (!["withdraw", "swap", "transfer"]) throw new Error("Please provide valid action to use assurance income.");
+        if (!["withdraw", "swap", "transfer"].includes(action)) throw new Error("Please provide valid action to use assurance income.");
 
 
         userAddress = giveCheckSummedAddress(userAddress);
@@ -1769,7 +1769,11 @@ const useAssuranceIncome = async (req, res, next) => {
         const userDoc = await RegistrationModel.find({ userAddress });
         if (!userDoc) throw new Error("User not found!");
 
-        const { swapAllocation, dscAllocation } = userDoc;
+        const { swapAllocation, dscAllocation,myNode } = userDoc;
+
+        // if(!myNode || myNode == null){
+        //     throw new Error("You have not deployed any node yet!");
+        // }
 
         const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18).toFixed(0);
 
@@ -1783,7 +1787,7 @@ const useAssuranceIncome = async (req, res, next) => {
             );
         }
 
-        const lastAction = await ManageAssuranceWithdrawalModel.findOne({ userAddress: user }).sort({ lastUsedNonce: -1 });
+        const lastAction = await ManageAssuranceWithdrawalModel.findOne({ userAddress: userAddress }).sort({ lastUsedNonce: -1 });
 
         let prevNonce = 0;
         if (!lastAction) {
