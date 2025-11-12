@@ -1817,12 +1817,14 @@ const useAssuranceIncome = async (req, res, next) => {
 
 const assuranceIncomeOutHistory = async(req,res,next)=>{
     try {
-        let { page = 1, limit = 10, userAddress } = req.body;
+        let { page = 1, limit = 10, userAddress,action } = req.body;
     
         if (!userAddress) throw new Error("Please provide user address.");
     
         // Normalize address
         userAddress = giveCheckSummedAddress(userAddress);
+
+        if(!["TRANSFER","WITHDRAW","SWAPPED"].includes(action)) throw new Error("Please provide valid action type.");
     
         // Convert pagination values to integers
         page = parseInt(page);
@@ -1834,10 +1836,11 @@ const assuranceIncomeOutHistory = async(req,res,next)=>{
         // Get total documents count
         const totalCount = await ManageAssuranceWithdrawalModel.countDocuments({
           userAddress,
+          actionType:action
         });
     
         // Fetch paginated data, latest first
-        const data = await ManageAssuranceWithdrawalModel.find({ userAddress })
+        const data = await ManageAssuranceWithdrawalModel.find({ userAddress,actionType:action })
           .sort({ time: -1 }) // newest first
           .skip(skip)
           .limit(limit)
