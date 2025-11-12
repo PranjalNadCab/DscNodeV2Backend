@@ -1832,15 +1832,15 @@ const assuranceIncomeOutHistory = async(req,res,next)=>{
     
         // Skip count for pagination
         const skip = (page - 1) * limit;
-    
+
+        const query = action === "SWAPPED"
+        ? { userAddress, actionType: "SWAPPED" }
+        : { userAddress, actionType: { $ne: "SWAPPED" } };    
         // Get total documents count
-        const totalCount = await ManageAssuranceWithdrawalModel.countDocuments({
-          userAddress,
-          actionType:action
-        });
+        const totalCount = await ManageAssuranceWithdrawalModel.countDocuments(query);
     
         // Fetch paginated data, latest first
-        const data = await ManageAssuranceWithdrawalModel.find({ userAddress,actionType:action })
+        const data = await ManageAssuranceWithdrawalModel.find(query)
           .sort({ time: -1 }) // newest first
           .skip(skip)
           .limit(limit)
