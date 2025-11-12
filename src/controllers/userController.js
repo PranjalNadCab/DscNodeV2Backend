@@ -1815,9 +1815,59 @@ const useAssuranceIncome = async (req, res, next) => {
     }
 }
 
+const assuranceIncomeOutHistory = async(req,res,next)=>{
+    try {
+        let { page = 1, limit = 10, userAddress } = req.body;
+    
+        if (!userAddress) throw new Error("Please provide user address.");
+    
+        // Normalize address
+        userAddress = giveCheckSummedAddress(userAddress);
+    
+        // Convert pagination values to integers
+        page = parseInt(page);
+        limit = parseInt(limit);
+    
+        // Skip count for pagination
+        const skip = (page - 1) * limit;
+    
+        // Get total documents count
+        const totalCount = await ManageAssuranceWithdrawalModel.countDocuments({
+          userAddress,
+        });
+    
+        // Fetch paginated data, latest first
+        const data = await ManageAssuranceWithdrawalModel.find({ userAddress })
+          .sort({ time: -1 }) // newest first
+          .skip(skip)
+          .limit(limit)
+          .lean();
+    
+        // Prepare pagination metadata
+        const totalPages = Math.ceil(totalCount / limit);
+    
+        return res.status(200).json({
+          success: true,
+          message: "Assurance withdrawal history fetched successfully.",
+          pagination: {
+            totalCount,
+            totalPages,
+            currentPage: page,
+            limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+         history: data,
+        });
+      } catch (error) {
+        next(error);
+      }
+}
+
 module.exports = {
     stakeVrs,
     getUserAssuranceFeeInfo,
+    assuranceIncomeOutHistory,
     useAssuranceIncome,
     assuranceFeeHistory,
     fsrActivationHistory,
