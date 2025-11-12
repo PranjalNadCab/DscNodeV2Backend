@@ -24,8 +24,8 @@ const ManageAssuranceWithdrawalSchema = new mongoose.Schema({
         required:true
     },
     time: {
-        type: Date,
-        default: Date.now
+        type: Number,
+        default: () => Math.floor(Date.now() / 1000)
     },
     block:{
         type: Number,
