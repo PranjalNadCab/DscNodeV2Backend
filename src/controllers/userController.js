@@ -1771,9 +1771,8 @@ const useAssuranceIncome = async (req, res, next) => {
 
         const { swapAllocation, dscAllocation,myNode } = userDoc;
 
-        // if(!myNode || myNode == null){
-        //     throw new Error("You have not deployed any node yet!");
-        // }
+        const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
+        if (!isUserNodeDeployed) throw new Error("You do not have any deployed node!");
 
         const amountDscIn1e18 = new BigNumber(amountDsc).multipliedBy(1e18).toFixed(0);
 
