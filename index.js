@@ -11,13 +11,14 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
 const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk, updateDaoDelegatorForAdmins } = require("./src/helpers/adminHelper");
 const { giveUserTeam, updateLastRoiDistributedToPaidAssuranceFees } = require("./src/bugFixer");
 const { billingListEvents } = require("./src/indexer/billingIndexer");
+const { BigNumber } = require("bignumber.js");
 
 
 
@@ -118,6 +119,8 @@ const server = app.listen(PORT, async () => {
         // await refreshDaoDelegatorUsers();
         // await giveRoiToNodeHolders();
         // await givePaymentRatioForDeployedNode("0x63bD0d5ae4E76AB501E3bD03A03c52Db8D3429CF",3);
+       const { status,message:errorMessage, finalBaseMinAss, isIncomeExpired,monthIndex } = await calculateUserRoiAssurance(1731024000,"12000000000000000000000"); 
+       ct({ status,message:errorMessage, finalBaseMinAss:new BigNumber(finalBaseMinAss).dividedBy(1e18).toNumber(), isIncomeExpired,monthIndex});
 
     } else {
 

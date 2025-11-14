@@ -1626,4 +1626,68 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
     }
 };
 
-module.exports = {generateVrsForAssuranceIncome, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) => {
+    let finalBaseMinAss = "0";
+    let status = false;
+    let isIncomeExpired = false;
+    let monthIndex = null;
+
+    
+    try {
+
+        if (!timeUnixSeconds || !orgBaseMinAssIn1e18) {
+            return { status, finalBaseMinAss, isIncomeExpired,message:"Please send required fields" };
+        }
+
+        // Activation start month (month 0)
+        const activation = moment.unix(timeUnixSeconds).startOf('month');
+
+        // Current month
+        const now = moment().startOf('month');
+
+        // Month difference
+        let diffMonths = now.diff(activation, "months");
+
+        // First month is month-0 and must be ignored
+        // So our counting starts from month 1
+         monthIndex = diffMonths; // Month 0 means same month
+
+        const base = new BigNumber(orgBaseMinAssIn1e18);
+
+        // ----------------------------
+        // CONDITIONS
+        // ----------------------------
+        if (monthIndex === 0) {
+            // still in same month → return 0
+            finalBaseMinAss = "0";
+        }
+        else if (monthIndex >= 1 && monthIndex <= 6) {
+            // First 6 months → original value
+            finalBaseMinAss = base.toFixed();
+        }
+        else if (monthIndex >= 7 && monthIndex <= 12) {
+            // 7th to 12th month → halved
+            finalBaseMinAss = base.dividedBy(2).toFixed(0);
+        }
+        else if (monthIndex >= 13 && monthIndex <= 18) {
+            // 13th to 18th month → 1/4
+            finalBaseMinAss = base.dividedBy(4).toFixed(0);
+        }
+        else {
+            // After 18 months → expired
+            finalBaseMinAss = "0";
+            isIncomeExpired = true;
+        }
+
+        status = true;
+        return { status, finalBaseMinAss, isIncomeExpired,message:"assurance calculated!",monthIndex };
+
+
+
+    } catch (error) {
+        const errorMessage = error?.response?.message || error?.message || "Error occured while calculating base min assurance"
+        return { status,message:errorMessage, finalBaseMinAss, isIncomeExpired,monthIndex };
+    }
+}
+
+module.exports = { generateVrsForAssuranceIncome, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }

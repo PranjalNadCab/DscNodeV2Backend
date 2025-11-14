@@ -54,6 +54,10 @@ const nodeDeployedSchema = new mongoose.Schema({
     mobile: {
         type: String,
         default: null
+    },
+    isIncomeExpired:{
+        type:Boolean,
+        default:false
     }
 }, { timestamps: true });
 
