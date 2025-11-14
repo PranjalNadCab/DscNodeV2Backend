@@ -119,8 +119,7 @@ const server = app.listen(PORT, async () => {
         // await refreshDaoDelegatorUsers();
         // await giveRoiToNodeHolders();
         // await givePaymentRatioForDeployedNode("0x63bD0d5ae4E76AB501E3bD03A03c52Db8D3429CF",3);
-       const { status,message:errorMessage, finalBaseMinAss, isIncomeExpired,monthIndex } = await calculateUserRoiAssurance(1731024000,"12000000000000000000000"); 
-       ct({ status,message:errorMessage, finalBaseMinAss:new BigNumber(finalBaseMinAss).dividedBy(1e18).toNumber(), isIncomeExpired,monthIndex});
+    //    await calculateUserRoiAssurance(1722470400,"270000000000000000000"); 
 
     } else {
 

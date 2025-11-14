@@ -1631,26 +1631,38 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
     let status = false;
     let isIncomeExpired = false;
     let monthIndex = null;
+    let activationMonth = null;
+    let monthsPassed = null;
+    let whichMonth = null;
 
-    
     try {
 
         if (!timeUnixSeconds || !orgBaseMinAssIn1e18) {
-            return { status, finalBaseMinAss, isIncomeExpired,message:"Please send required fields" };
+            return { 
+                status, 
+                finalBaseMinAss, 
+                isIncomeExpired,
+                message: "Please send required fields" 
+            };
         }
 
         // Activation start month (month 0)
-        const activation = moment.unix(timeUnixSeconds).startOf('month');
+        const activation = moment.unix(timeUnixSeconds).startOf("month");
+        activationMonth = activation.format("MMMM YYYY");   // e.g. "October 2025"
 
         // Current month
-        const now = moment().startOf('month');
+        const now = moment().startOf("month");
 
         // Month difference
         let diffMonths = now.diff(activation, "months");
 
-        // First month is month-0 and must be ignored
-        // So our counting starts from month 1
-         monthIndex = diffMonths; // Month 0 means same month
+        monthIndex = diffMonths;            // 0 → same month
+        monthsPassed = diffMonths;          // readable number
+
+        // Human readable month (1st, 2nd, 3rd...)
+        whichMonth = diffMonths === 0 
+            ? "Same month"
+            : `${diffMonths} month${diffMonths > 1 ? "s" : ""} passed`;
 
         const base = new BigNumber(orgBaseMinAssIn1e18);
 
@@ -1660,34 +1672,66 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
         if (monthIndex === 0) {
             // still in same month → return 0
             finalBaseMinAss = "0";
-        }
-        else if (monthIndex >= 1 && monthIndex <= 6) {
+
+        } else if (monthIndex >= 1 && monthIndex <= 6) {
             // First 6 months → original value
             finalBaseMinAss = base.toFixed();
-        }
-        else if (monthIndex >= 7 && monthIndex <= 12) {
+
+        } else if (monthIndex >= 7 && monthIndex <= 12) {
             // 7th to 12th month → halved
             finalBaseMinAss = base.dividedBy(2).toFixed(0);
-        }
-        else if (monthIndex >= 13 && monthIndex <= 18) {
+
+        } else if (monthIndex >= 13 && monthIndex <= 18) {
             // 13th to 18th month → 1/4
             finalBaseMinAss = base.dividedBy(4).toFixed(0);
-        }
-        else {
+
+        } else {
             // After 18 months → expired
             finalBaseMinAss = "0";
             isIncomeExpired = true;
         }
 
         status = true;
-        return { status, finalBaseMinAss, isIncomeExpired,message:"assurance calculated!",monthIndex };
 
+        ct({ 
+            status, 
+            finalBaseMinAss, 
+            isIncomeExpired,
+            monthIndex,
+            activationMonth,   // <── ADDED
+            monthsPassed,      // <── ADDED
+            whichMonth,        // <── ADDED
+            message: "Assurance calculated!"
+        });
 
+        return { 
+            status, 
+            finalBaseMinAss, 
+            isIncomeExpired,
+            monthIndex,
+            activationMonth,   // <── ADDED
+            monthsPassed,      // <── ADDED
+            whichMonth,        // <── ADDED
+            message: "Assurance calculated!"
+        };
 
     } catch (error) {
-        const errorMessage = error?.response?.message || error?.message || "Error occured while calculating base min assurance"
-        return { status,message:errorMessage, finalBaseMinAss, isIncomeExpired,monthIndex };
+        const errorMessage =
+            error?.response?.message ||
+            error?.message ||
+            "Error occurred while calculating base min assurance";
+
+        return { 
+            status, 
+            message: errorMessage, 
+            finalBaseMinAss, 
+            isIncomeExpired,
+            monthIndex,
+            activationMonth,
+            monthsPassed,
+            whichMonth
+        };
     }
-}
+};
 
 module.exports = { generateVrsForAssuranceIncome, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }

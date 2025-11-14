@@ -1,7 +1,7 @@
 const moment = require("moment");
 const Admin = require("../models/AdminModel");
 const { BigNumber } = require("bignumber.js");
-const { ct, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode } = require("./helper");
+const { ct, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, calculateUserRoiAssurance } = require("./helper");
 const { default: mongoose } = require("mongoose");
 // const NodeConverted = require("../models/NodeConvertedModel");
 const RoiModel = require("../models/RoiModel");
@@ -122,19 +122,25 @@ const giveRoiToNodeHolders = async () => {
         for await (const doc of paidFees) {
             const { userAddress, nodeNum, seqMonth, calendarMonth } = doc;
 
-            let deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum });
+            let deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum,isIncomeExpired:false });
             if (!deploymentDoc) {
                 console.log(`No deployment doc found for user ${userAddress} and node ${nodeNum}, skipping...`);
                 continue;
             }
 
             const { time, baseMinValue, lastRoiDistributed, conversionMonth, currGenratedRoi, baseMinAss } = deploymentDoc;
-            const perDayMinAssurance = new BigNumber(baseMinAss).dividedBy(targetDays);
+            const {status,finalBaseMinAss,isIncomeExpired,message} = await calculateUserRoiAssurance(time, baseMinAss);
+
+            if(!status){
+                console.log(`Skipping user ${userAddress} for node ${nodeNum}: ${message}`);
+                continue;
+            }
+            const perDayMinAssurance = new BigNumber(finalBaseMinAss).dividedBy(targetDays);
             // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
             if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
                 daysPassed = Math.floor((moment().unix() - (lastRoiDistributed || time)) / 10);
-                ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth,currTime:moment().unix(), lastRoiDistributed, time, daysPassed });
+                // ct({ uid: "paid fees", userAddress, baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber(), seqMonth, calendarMonth,currTime:moment().unix(), lastRoiDistributed, time, daysPassed });
             } else {
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
                 
@@ -172,9 +178,9 @@ const giveRoiToNodeHolders = async () => {
             const alreadyPaidRoi = totalAssuranceGotForUser.length > 0 ? new BigNumber(totalAssuranceGotForUser[0].totalDscAllocation || "0").plus(new BigNumber(totalAssuranceGotForUser[0].totalSwapAllocation || "0")) : new BigNumber(0);
             ct({ uid: "already paid roi check", userAddress, nodeNum, alreadyPaidRoi: alreadyPaidRoi.toFixed(0), totalRoi: totalRoi.toFixed(0) });
 
-            if (alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(new BigNumber(baseMinAss))) {
+            if (alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(new BigNumber(finalBaseMinAss))) {
                
-                totalRoi = new BigNumber(baseMinAss).minus(alreadyPaidRoi);
+                totalRoi = new BigNumber(finalBaseMinAss).minus(alreadyPaidRoi);
             }
 
             if(totalRoi.isLessThanOrEqualTo(0)){
@@ -219,6 +225,7 @@ const giveRoiToNodeHolders = async () => {
 
                 deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || "0").plus(totalRoi).toFixed(0);
                 deploymentDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? moment().unix() : moment().startOf('day').unix();
+                deploymentDoc.isIncomeExpired = isIncomeExpired;
                 await deploymentDoc.save();
             }
 
