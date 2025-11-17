@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -34,6 +34,7 @@ router.post("/assurance-roi-history",assuranceRoiHistory);
 router.post("/get-assurance-fee-info",getUserAssuranceFeeInfo)
 router.post("/use-assurance-income",useAssuranceIncome);
 router.post("/assurance-withdrawal-history",assuranceIncomeOutHistory);
+router.post("/sponsored-tx-history",sponsoredTxHistory);
 
 
 

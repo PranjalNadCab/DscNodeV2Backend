@@ -1769,7 +1769,7 @@ const useAssuranceIncome = async (req, res, next) => {
         const userDoc = await RegistrationModel.find({ userAddress });
         if (!userDoc) throw new Error("User not found!");
 
-        const { swapAllocation, dscAllocation,myNode } = userDoc;
+        const { swapAllocation, dscAllocation, myNode } = userDoc;
 
         const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
         if (!isUserNodeDeployed) throw new Error("You do not have any deployed node!");
@@ -1814,60 +1814,101 @@ const useAssuranceIncome = async (req, res, next) => {
     }
 }
 
-const assuranceIncomeOutHistory = async(req,res,next)=>{
+const assuranceIncomeOutHistory = async (req, res, next) => {
     try {
-        let { page = 1, limit = 10, userAddress,action } = req.body;
-    
+        let { page = 1, limit = 10, userAddress, action } = req.body;
+
         if (!userAddress) throw new Error("Please provide user address.");
-    
+
         // Normalize address
         userAddress = giveCheckSummedAddress(userAddress);
 
-        if(!["TRANSFER","WITHDRAW","SWAPPED"].includes(action)) throw new Error("Please provide valid action type.");
-    
+        if (!["TRANSFER", "WITHDRAW", "SWAPPED"].includes(action)) throw new Error("Please provide valid action type.");
+
         // Convert pagination values to integers
         page = parseInt(page);
         limit = parseInt(limit);
-    
+
         // Skip count for pagination
         const skip = (page - 1) * limit;
 
         const query = action === "SWAPPED"
-        ? { userAddress, actionType: "SWAPPED" }
-        : { userAddress, actionType: { $ne: "SWAPPED" } };    
+            ? { userAddress, actionType: "SWAPPED" }
+            : { userAddress, actionType: { $ne: "SWAPPED" } };
         // Get total documents count
         const totalCount = await ManageAssuranceWithdrawalModel.countDocuments(query);
-    
+
         // Fetch paginated data, latest first
         const data = await ManageAssuranceWithdrawalModel.find(query)
-          .sort({ time: -1 }) // newest first
-          .skip(skip)
-          .limit(limit)
-          .lean();
-    
+            .sort({ time: -1 }) // newest first
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
         // Prepare pagination metadata
         const totalPages = Math.ceil(totalCount / limit);
-    
+
         return res.status(200).json({
-          success: true,
-          message: "Assurance withdrawal history fetched successfully.",
-          pagination: {
-            totalCount,
-            totalPages,
-            currentPage: page,
-            limit,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-          },
-         history: data,
+            success: true,
+            message: "Assurance withdrawal history fetched successfully.",
+            pagination: {
+                totalCount,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+            history: data,
         });
-      } catch (error) {
+    } catch (error) {
         next(error);
-      }
+    }
 }
+
+const sponsoredTxHistory = async (req, res, next) => {
+    try {
+        let { userAddress,page = 1, limit = 1000 } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        page = Number(page);
+        limit = Number(limit);
+
+        const skip = (page - 1) * limit;
+
+        const [history, totalCount] = await Promise.all([ 
+            UpgradedNodes.find({ "paidBy.userAddress": userAddress,"paidBy.userType":{$ne:"self"} })
+                .sort({ time: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            UpgradedNodes.countDocuments({ "paidBy.userAddress": userAddress,"paidBy.userType":{$ne:"self"} })
+        ]);
+
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.status(200).json({
+            success: true,
+            message: "Sponsored transaction history fetched successfully!",
+            history,
+            pagination:{
+                totalRecords:totalCount,
+                totalPages:totalPages
+            }
+
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     stakeVrs,
+    sponsoredTxHistory,
     getUserAssuranceFeeInfo,
     assuranceIncomeOutHistory,
     useAssuranceIncome,
