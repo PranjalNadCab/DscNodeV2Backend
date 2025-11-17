@@ -457,6 +457,22 @@ async function processEvents(events) {
                     userDoc.utilizedFsr = utilizedFsr + dscInUsdPaid.dividedBy(1e18).toNumber();
                     await userDoc.save();
 
+                    //----- calculate and give gap income----
+
+                    const sponsoredUserDoc = await RegistrationModel.findOne({ userAddress: sponsoredUser});
+
+
+                    const rateDollarPerDscInNum = Number(new BigNumber(rateDollarPerDsc).dividedBy(1e18).toFixed(2));
+
+                    const userPrevNode = await UpgradedNodes.findOne({
+                        userAddress: sponsoredUser,
+                        nodeNum: { $lt: Number(nodeNum) }}).sort({ nodeNum: -1 });
+                    let rankDuringStaking = sponsoredUserDoc.currentRank || "Beginner";
+                    const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+
+                    await giveGapIncome(sponsoredUser, netAmountPaidInUsd, rankDuringStaking, "0", dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
+
+
 
 
                     console.log("Sponsored transaction history created:", history);

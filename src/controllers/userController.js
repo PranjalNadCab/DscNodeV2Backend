@@ -510,6 +510,7 @@ const withdrawIncomeDsc = async (req, res, next) => {
 
 const getGapIncomeHistory = async (req, res, next) => {
     try {
+
         let { userAddress, page = 1, limit = 10 } = req.body;
         // page starts from 1, limit defaults to 10
 
@@ -525,6 +526,7 @@ const getGapIncomeHistory = async (req, res, next) => {
 
         // Get total count for pagination metadata
         const total = await GapIncomeModel.countDocuments({ receiverAddress: userAddress });
+        console.log("Total gap income records:",userAddress,total);
 
         // Fetch paginated data
         const gapIncomes = await GapIncomeModel.find({ receiverAddress: userAddress })

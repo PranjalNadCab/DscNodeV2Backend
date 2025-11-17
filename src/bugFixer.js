@@ -1,8 +1,10 @@
-const { ct } = require("./helpers/helper");
+const { ct, giveGapIncome } = require("./helpers/helper");
 const AssuranceFeeModel = require("./models/AssuranceFeeModel");
 const NodeDeployedModel = require("./models/NodeDeployedModel");
 const RegistrationModel = require("./models/RegistrationModel");
 const moment = require("moment");
+const UpgradedNodes = require("./models/UpgradeNodeModel");
+const { BigNumber } = require("bignumber.js");
 
 
 const giveUserTeam = async (userAddress=null) => {
@@ -83,7 +85,52 @@ const updateLastRoiDistributedToPaidAssuranceFees = async()=>{
     }
 }
 
+const distributeGapIncome = async()=>{
+    try{
+
+        const sponsoredTxs = await UpgradedNodes.find({"paidBy.userType":{$ne:"self"},userAddress:{$ne:"0x2E7D16145771e74463a9Cac152dF311372166C82"}});
+
+        console.log(`sponsored transactions found: ${sponsoredTxs.length}`);
+
+        let count=0;
+
+        for(const tx of sponsoredTxs){
+            // ct({userAddress:tx.paidBy.userAddress,txHash:tx.transactionHash,amountUsdPaid:tx.amountUsdPaid,time:tx.time});
+            count++;
+            const {userAddress,nodeNum,totalAmountInUsd,amountUsdPaid,time,isPaymentCompleted,rateDollarPerDsc,transactionHash,paidBy,currency}   = tx;
+
+            const userDoc = await RegistrationModel.findOne({ userAddress: userAddress});
+
+
+                    const rateDollarPerDscInNum = Number(new BigNumber(rateDollarPerDsc).dividedBy(1e18).toFixed(2));
+
+                    const userPrevNode = await UpgradedNodes.findOne({
+                        userAddress: userAddress,
+                        nodeNum: { $lt: Number(nodeNum) }}).sort({ nodeNum: -1 });
+                    let rankDuringStaking = userDoc.currentRank || "Beginner";
+                    const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
+
+                    let dscInUsdPaid = new BigNumber(0);
+                    if(currency === "DSC"){
+                         dscInUsdPaid = new BigNumber(amountUsdPaid);
+                    }
+
+                    ct({count,userAddress, netAmountPaidInUsd, rankDuringStaking,amountUsdtPaid: "0",dscInUsdPaid: dscInUsdPaid.toFixed(0),type: "node", rateDollarPerDscInNum,nodeNum: Number(nodeNum)})
+                    if(count === 1){
+                        // await giveGapIncome(userAddress, netAmountPaidInUsd, rankDuringStaking, "0", dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
+                    }else{
+                       continue;
+                    }
+        }
+
+
+    }catch(error){
+        console.log(error);
+    }
+}
+
 module.exports = {
     giveUserTeam,
-    updateLastRoiDistributedToPaidAssuranceFees
+    updateLastRoiDistributedToPaidAssuranceFees,
+    distributeGapIncome
 }
