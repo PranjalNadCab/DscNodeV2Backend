@@ -90,12 +90,13 @@ const distributeGapIncome = async () => {
     try {
 
         const sponsoredTxs = await UpgradedNodes.find({
-            "paidBy.userType": { $ne: "self" }, userAddress: {
-                $nin: [
-                    "0x2E7D16145771e74463a9Cac152dF311372166C82",
-                    "0x1a7fb9856a0da56c780304990BA99cf2EFb7CceE"
-                ]
-            }
+            "paidBy.userType": { $ne: "self" }, 
+            // userAddress: {
+            //     $nin: [
+            //         "0x2E7D16145771e74463a9Cac152dF311372166C82",
+            //         "0x1a7fb9856a0da56c780304990BA99cf2EFb7CceE"
+            //     ]
+            // }
         });
 
         console.log(`sponsored transactions found: ${sponsoredTxs.length}`);
@@ -105,7 +106,7 @@ const distributeGapIncome = async () => {
         for (const tx of sponsoredTxs) {
             // ct({userAddress:tx.paidBy.userAddress,txHash:tx.transactionHash,amountUsdPaid:tx.amountUsdPaid,time:tx.time});
             count++;
-            const { userAddress, nodeNum, totalAmountInUsd, amountUsdPaid, time, isPaymentCompleted, rateDollarPerDsc, transactionHash, paidBy, currency } = tx;
+            const { userAddress, nodeNum, totalAmountInUsd, amountUsdPaid, time, isPaymentCompleted, rateDollarPerDsc, transactionHash, paidBy, currency,mixTransactionHash } = tx;
 
             const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
 
@@ -124,9 +125,19 @@ const distributeGapIncome = async () => {
                 dscInUsdPaid = new BigNumber(amountUsdPaid);
             }
 
-            ct({ count, userAddress, netAmountPaidInUsd, rankDuringStaking, amountUsdtPaid: "0", dscInUsdPaid: dscInUsdPaid.toFixed(0), type: "node", rateDollarPerDscInNum, nodeNum: Number(nodeNum) })
+            const userOldDataForThisTx = await UpgradedNodes.findOne({
+                userAddress: userAddress,
+                nodeNum: nodeNum,
+                mixTransactionHash: mixTransactionHash,
+                currency: "USDT"
+            });
+            if(!userOldDataForThisTx)continue;
+
+            const usdtStakedIn1e18 = userOldDataForThisTx?.amountUsdPaid;
+
+            ct({ count, userAddress, netAmountPaidInUsd, rankDuringStaking, amountUsdtPaid: usdtStakedIn1e18, dscInUsdPaid: dscInUsdPaid.toFixed(0), type: "node", rateDollarPerDscInNum, nodeNum: Number(nodeNum) })
             // if(count === 1){
-            // await giveGapIncome(userAddress, netAmountPaidInUsd, rankDuringStaking, "0", dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
+            // await giveGapIncome(userAddress, netAmountPaidInUsd, rankDuringStaking, usdtStakedIn1e18, dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
             // }else{
             //    continue;
             // }
@@ -137,82 +148,6 @@ const distributeGapIncome = async () => {
         console.log(error);
     }
 }
-
-// const fixGapIncome = async () => {
-//     try {
-//         const start = Math.floor(new Date("2025-11-17T00:00:00Z").getTime() / 1000);
-//         const end = Math.floor(new Date("2025-11-17T23:59:59Z").getTime() / 1000);
-
-
-
-//         const aggregated = await GapIncomeModel.aggregate([
-//             {
-//                 $match: {
-//                     time: { $gte: start, $lte: end }
-//                 }
-//             },
-//             {
-//                 $group: {
-//                     _id: "$receiverAddress",
-
-//                     totalGapIncomeInUsd_1e18: {
-//                         $sum: { $toDecimal: "$gapIncomeInUsd" }
-//                     },
-
-//                     totalGapIncomeInDscInUsd_1e18: {
-//                         $sum: { $toDecimal: "$gapIncomeInDscInUsd" }
-//                     },
-
-//                     count: { $sum: 1 }
-//                 }
-//             },
-//             {
-//                 // Convert Decimal128 back to string
-//                 $project: {
-//                     receiverAddress: "$_id",
-//                     _id: 0,
-//                     totalGapIncomeInUsd_1e18: { $toString: "$totalGapIncomeInUsd_1e18" },
-//                     totalGapIncomeInDscInUsd_1e18: { $toString: "$totalGapIncomeInDscInUsd_1e18" },
-//                     count: 1
-//                 }
-//             }
-//         ]);
-
-//         let userCount=0;
-
-//         for (const doc of aggregated){
-//             userCount++;
-//             const { receiverAddress, totalGapIncomeInUsd_1e18, totalGapIncomeInDscInUsd_1e18, count } = doc;
-
-
-            
-//             const userRegDoc = await RegistrationModel.findOne({userAddress:receiverAddress});
-//             const {usdtIncomeWallet,totalIncomeUsdtReceived,dscIncomeInUsdWallet,totalIncomeDscInUsdReceived} = userRegDoc;
-            
-//             ct({userCount, receiverAddress, totalGapIncomeInUsd_1e18:giveNumFrom1e18(totalGapIncomeInUsd_1e18), totalGapIncomeInDscInUsd_1e18:giveNumFrom1e18(totalGapIncomeInDscInUsd_1e18), count,usdtIncomeWallet:giveNumFrom1e18(usdtIncomeWallet),totalIncomeUsdtReceived:giveNumFrom1e18(totalIncomeUsdtReceived),dscIncomeInUsdWallet:giveNumFrom1e18(dscIncomeInUsdWallet),totalIncomeDscInUsdReceived:giveNumFrom1e18(totalIncomeDscInUsdReceived) });
-//             // userRegDoc.usdtIncomeWallet = new BigNumber(usdtIncomeWallet).minus(totalGapIncomeInUsd_1e18).toFixed(0);
-//             // userRegDoc.totalIncomeUsdtReceived = new BigNumber(totalIncomeUsdtReceived).minus(totalGapIncomeInUsd_1e18).toFixed(0);
-//             userRegDoc.dscIncomeInUsdWallet = new BigNumber(dscIncomeInUsdWallet).minus(totalGapIncomeInDscInUsd_1e18).toFixed(0);
-//             userRegDoc.totalIncomeDscInUsdReceived = new BigNumber(totalIncomeDscInUsdReceived).minus(totalGapIncomeInDscInUsd_1e18).toFixed(0);
-
-//             console.log({
-//                 dscIncomeInUsdWallet,
-//                 totalIncomeDscInUsdReceived,
-//                 totalGapIncomeInDscInUsd_1e18
-//             })
-
-
-//             await userRegDoc.save();
-
-
-//         }
-
-
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
-
 
 
 const fixGapIncome = async () => {
