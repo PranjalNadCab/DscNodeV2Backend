@@ -470,7 +470,11 @@ async function processEvents(events) {
                     let rankDuringStaking = sponsoredUserDoc.currentRank || "Beginner";
                     const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
 
-                    // await giveGapIncome(sponsoredUser, netAmountPaidInUsd, rankDuringStaking, "0", dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
+
+        
+                    const usdtStakedIn1e18 = amountUsdPaid;
+
+                    await giveGapIncome(sponsoredUser, netAmountPaidInUsd, rankDuringStaking, usdtStakedIn1e18, dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
 
 
 

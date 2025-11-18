@@ -135,12 +135,9 @@ const distributeGapIncome = async () => {
 
             const usdtStakedIn1e18 = userOldDataForThisTx?.amountUsdPaid;
 
-            ct({ count, userAddress, netAmountPaidInUsd, rankDuringStaking, amountUsdtPaid: usdtStakedIn1e18, dscInUsdPaid: dscInUsdPaid.toFixed(0), type: "node", rateDollarPerDscInNum, nodeNum: Number(nodeNum) })
-            // if(count === 1){
+            // ct({ count, userAddress, netAmountPaidInUsd, rankDuringStaking, amountUsdtPaid: usdtStakedIn1e18, dscInUsdPaid: dscInUsdPaid.toFixed(0), type: "node", rateDollarPerDscInNum, nodeNum: Number(nodeNum) })
             // await giveGapIncome(userAddress, netAmountPaidInUsd, rankDuringStaking, usdtStakedIn1e18, dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
-            // }else{
-            //    continue;
-            // }
+          
         }
 
 
