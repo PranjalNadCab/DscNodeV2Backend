@@ -1908,8 +1908,24 @@ const sponsoredTxHistory = async (req, res, next) => {
     }
 };
 
+const getUserNodeLists = async(req,res,next)=>{
+    try{
+        let {userAddress} = req.body
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+
+
+    }catch(error){
+        next(error);
+    }
+}
+
 module.exports = {
     stakeVrs,
+    getUserNodeLists,
     sponsoredTxHistory,
     getUserAssuranceFeeInfo,
     assuranceIncomeOutHistory,

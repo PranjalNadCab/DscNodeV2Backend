@@ -1,10 +1,11 @@
-const { ct, giveGapIncome } = require("./helpers/helper");
+const { ct, giveGapIncome, giveNumFrom1e18 } = require("./helpers/helper");
 const AssuranceFeeModel = require("./models/AssuranceFeeModel");
 const NodeDeployedModel = require("./models/NodeDeployedModel");
 const RegistrationModel = require("./models/RegistrationModel");
 const moment = require("moment");
 const UpgradedNodes = require("./models/UpgradeNodeModel");
 const { BigNumber } = require("bignumber.js");
+const GapIncomeModel = require("./models/GapIncomeModel");
 
 
 const giveUserTeam = async (userAddress = null) => {
@@ -137,8 +138,181 @@ const distributeGapIncome = async () => {
     }
 }
 
+// const fixGapIncome = async () => {
+//     try {
+//         const start = Math.floor(new Date("2025-11-17T00:00:00Z").getTime() / 1000);
+//         const end = Math.floor(new Date("2025-11-17T23:59:59Z").getTime() / 1000);
+
+
+
+//         const aggregated = await GapIncomeModel.aggregate([
+//             {
+//                 $match: {
+//                     time: { $gte: start, $lte: end }
+//                 }
+//             },
+//             {
+//                 $group: {
+//                     _id: "$receiverAddress",
+
+//                     totalGapIncomeInUsd_1e18: {
+//                         $sum: { $toDecimal: "$gapIncomeInUsd" }
+//                     },
+
+//                     totalGapIncomeInDscInUsd_1e18: {
+//                         $sum: { $toDecimal: "$gapIncomeInDscInUsd" }
+//                     },
+
+//                     count: { $sum: 1 }
+//                 }
+//             },
+//             {
+//                 // Convert Decimal128 back to string
+//                 $project: {
+//                     receiverAddress: "$_id",
+//                     _id: 0,
+//                     totalGapIncomeInUsd_1e18: { $toString: "$totalGapIncomeInUsd_1e18" },
+//                     totalGapIncomeInDscInUsd_1e18: { $toString: "$totalGapIncomeInDscInUsd_1e18" },
+//                     count: 1
+//                 }
+//             }
+//         ]);
+
+//         let userCount=0;
+
+//         for (const doc of aggregated){
+//             userCount++;
+//             const { receiverAddress, totalGapIncomeInUsd_1e18, totalGapIncomeInDscInUsd_1e18, count } = doc;
+
+
+            
+//             const userRegDoc = await RegistrationModel.findOne({userAddress:receiverAddress});
+//             const {usdtIncomeWallet,totalIncomeUsdtReceived,dscIncomeInUsdWallet,totalIncomeDscInUsdReceived} = userRegDoc;
+            
+//             ct({userCount, receiverAddress, totalGapIncomeInUsd_1e18:giveNumFrom1e18(totalGapIncomeInUsd_1e18), totalGapIncomeInDscInUsd_1e18:giveNumFrom1e18(totalGapIncomeInDscInUsd_1e18), count,usdtIncomeWallet:giveNumFrom1e18(usdtIncomeWallet),totalIncomeUsdtReceived:giveNumFrom1e18(totalIncomeUsdtReceived),dscIncomeInUsdWallet:giveNumFrom1e18(dscIncomeInUsdWallet),totalIncomeDscInUsdReceived:giveNumFrom1e18(totalIncomeDscInUsdReceived) });
+//             // userRegDoc.usdtIncomeWallet = new BigNumber(usdtIncomeWallet).minus(totalGapIncomeInUsd_1e18).toFixed(0);
+//             // userRegDoc.totalIncomeUsdtReceived = new BigNumber(totalIncomeUsdtReceived).minus(totalGapIncomeInUsd_1e18).toFixed(0);
+//             userRegDoc.dscIncomeInUsdWallet = new BigNumber(dscIncomeInUsdWallet).minus(totalGapIncomeInDscInUsd_1e18).toFixed(0);
+//             userRegDoc.totalIncomeDscInUsdReceived = new BigNumber(totalIncomeDscInUsdReceived).minus(totalGapIncomeInDscInUsd_1e18).toFixed(0);
+
+//             console.log({
+//                 dscIncomeInUsdWallet,
+//                 totalIncomeDscInUsdReceived,
+//                 totalGapIncomeInDscInUsd_1e18
+//             })
+
+
+//             await userRegDoc.save();
+
+
+//         }
+
+
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
+
+
+const fixGapIncome = async () => {
+    try {
+        const start = Math.floor(new Date("2025-11-17T00:00:00Z").getTime() / 1000);
+        const end = Math.floor(new Date("2025-11-17T23:59:59Z").getTime() / 1000);
+
+        const aggregated = await GapIncomeModel.aggregate([
+            {
+                $match: {
+                    time: { $gte: start, $lte: end }
+                }
+            },
+            {
+                $group: {
+                    _id: "$receiverAddress",
+
+                    totalGapIncomeInUsd_1e18: {
+                        $sum: { $toDecimal: "$gapIncomeInUsd" }
+                    },
+
+                    totalGapIncomeInDscInUsd_1e18: {
+                        $sum: { $toDecimal: "$gapIncomeInDscInUsd" }
+                    },
+
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    receiverAddress: "$_id",
+                    _id: 0,
+                    totalGapIncomeInUsd_1e18: { $toString: "$totalGapIncomeInUsd_1e18" },
+                    totalGapIncomeInDscInUsd_1e18: { $toString: "$totalGapIncomeInDscInUsd_1e18" },
+                    count: 1
+                }
+            }
+        ]);
+
+        let userCount = 0;
+
+        for (const doc of aggregated) {
+            userCount++;
+
+            const { receiverAddress, totalGapIncomeInUsd_1e18, totalGapIncomeInDscInUsd_1e18, count } = doc;
+
+            if(receiverAddress === "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68"){
+                continue;
+            }
+
+            // if(receiverAddress !== "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed"){
+            //     continue;
+            // }
+
+            const userRegDoc = await RegistrationModel.findOne({ userAddress: receiverAddress });
+
+            const {
+                usdtIncomeWallet,
+                totalIncomeUsdtReceived,
+                dscIncomeInUsdWallet,
+                totalIncomeDscInUsdReceived
+            } = userRegDoc;
+
+            // Convert 1e18 strings to BigNumbers
+            const d_before = new BigNumber(dscIncomeInUsdWallet);
+            const td_before = new BigNumber(totalIncomeDscInUsdReceived);
+            const deduct = new BigNumber(totalGapIncomeInDscInUsd_1e18);
+
+            const d_after = d_before.minus(deduct);
+            const td_after = td_before.minus(deduct);
+
+            // 🔥 DEBUG: show OLD, DEDUCT, NEW (all safe before save)
+            console.log("==============================================");
+            console.log(`USER #${userCount}: ${receiverAddress}`);
+            console.log("Dsc Income in USD Wallet:");
+            console.log("  OLD :", giveNumFrom1e18(d_before.toFixed(0)));
+            console.log("  MINUS:", giveNumFrom1e18(deduct.toFixed(0)));
+            console.log("  NEW :", giveNumFrom1e18(d_after.toFixed(0)));
+            console.log("----------------------------------------------");
+            console.log("Total Income Dsc In USD Received:");
+            console.log("  OLD :", giveNumFrom1e18(td_before.toFixed(0)));
+            console.log("  MINUS:", giveNumFrom1e18(deduct.toFixed(0)));
+            console.log("  NEW :", giveNumFrom1e18(td_after.toFixed(0)));
+            console.log("==============================================\n");
+
+            // Apply new values
+            // userRegDoc.dscIncomeInUsdWallet = d_after.toFixed(0);
+            // userRegDoc.totalIncomeDscInUsdReceived = td_after.toFixed(0);
+
+            // await userRegDoc.save();
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 module.exports = {
     giveUserTeam,
     updateLastRoiDistributedToPaidAssuranceFees,
-    distributeGapIncome
+    distributeGapIncome,
+    fixGapIncome
 }
