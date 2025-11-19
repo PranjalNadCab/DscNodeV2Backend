@@ -1916,8 +1916,26 @@ const getUserNodeLists = async(req,res,next)=>{
 
         userAddress = giveCheckSummedAddress(userAddress);
 
+        const { nodeValidators } = await giveAdminSettings();
+
+        console.log({nodeValidators});
+        const nodeData = nodeValidators.map((node)=>{
+
+            const {name,selfStaking,baseMinAss,nodeNum} = node;
+            return {
+                group:name,
+                nodeNum:nodeNum,
+                target: new BigNumber(selfStaking).dividedBy(1e18).toNumber(),
+                baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber()
+            }
+        });
+
+        const userLastCompletedNode = await UpgradedNodes.findOne({userAddress,isPaymentCompleted:true},{lastUsedNonce:0,rateDollarPerDsc:0,transactionHash:0,mixTransactionHash:0,createdAt:0,updatedAt:0,__v:0}).sort({nodeNum:-1});
+
+        
 
 
+        return res.status(200).json({ success: true, nodes:nodeData, message: "Node validators fetched successfully!",userLastCompletedNode });
     }catch(error){
         next(error);
     }

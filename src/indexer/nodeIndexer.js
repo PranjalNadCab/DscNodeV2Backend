@@ -134,7 +134,7 @@ async function processEvents(events) {
                     await regDoc.save();
 
                     await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid, Number(nodeNum));
-
+                    await manageRank(userAddress);
                     await getLivePrice()
                 } catch (error) {
                     console.log(error);
@@ -474,7 +474,12 @@ async function processEvents(events) {
         
                     const usdtStakedIn1e18 = amountUsdPaid;
 
+                    await updateUserTotalSelfStakeUsdt(sponsoredUser, dscInUsdPaid.toFixed(0));
+                    await updateDirectBusiness(dscInUsdPaid.toFixed(0), sponsoredUser);
+
                     await giveGapIncome(sponsoredUser, netAmountPaidInUsd, rankDuringStaking, usdtStakedIn1e18, dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
+                    await manageRank(sponsoredUser);
+                    await manageRank(sponsoredUserDoc.sponsorAddress);
 
 
 
