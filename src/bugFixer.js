@@ -1,4 +1,4 @@
-const { ct, giveGapIncome, giveNumFrom1e18 } = require("./helpers/helper");
+const { ct, giveGapIncome, giveNumFrom1e18, giveCheckSummedAddress } = require("./helpers/helper");
 const AssuranceFeeModel = require("./models/AssuranceFeeModel");
 const NodeDeployedModel = require("./models/NodeDeployedModel");
 const RegistrationModel = require("./models/RegistrationModel");
@@ -6,6 +6,8 @@ const moment = require("moment");
 const UpgradedNodes = require("./models/UpgradeNodeModel");
 const { BigNumber } = require("bignumber.js");
 const GapIncomeModel = require("./models/GapIncomeModel");
+const NbdFundModel = require("./models/NbdFundsModel");
+const { ranks } = require("./helpers/constant");
 
 
 const giveUserTeam = async (userAddress = null) => {
@@ -90,7 +92,7 @@ const distributeGapIncome = async () => {
     try {
 
         const sponsoredTxs = await UpgradedNodes.find({
-            "paidBy.userType": { $ne: "self" }, 
+            "paidBy.userType": { $ne: "self" },
             // userAddress: {
             //     $nin: [
             //         "0x2E7D16145771e74463a9Cac152dF311372166C82",
@@ -106,7 +108,7 @@ const distributeGapIncome = async () => {
         for (const tx of sponsoredTxs) {
             // ct({userAddress:tx.paidBy.userAddress,txHash:tx.transactionHash,amountUsdPaid:tx.amountUsdPaid,time:tx.time});
             count++;
-            const { userAddress, nodeNum, totalAmountInUsd, amountUsdPaid, time, isPaymentCompleted, rateDollarPerDsc, transactionHash, paidBy, currency,mixTransactionHash } = tx;
+            const { userAddress, nodeNum, totalAmountInUsd, amountUsdPaid, time, isPaymentCompleted, rateDollarPerDsc, transactionHash, paidBy, currency, mixTransactionHash } = tx;
 
             const userDoc = await RegistrationModel.findOne({ userAddress: userAddress });
 
@@ -131,13 +133,13 @@ const distributeGapIncome = async () => {
                 mixTransactionHash: mixTransactionHash,
                 currency: "USDT"
             });
-            if(!userOldDataForThisTx)continue;
+            if (!userOldDataForThisTx) continue;
 
             const usdtStakedIn1e18 = userOldDataForThisTx?.amountUsdPaid;
 
             // ct({ count, userAddress, netAmountPaidInUsd, rankDuringStaking, amountUsdtPaid: usdtStakedIn1e18, dscInUsdPaid: dscInUsdPaid.toFixed(0), type: "node", rateDollarPerDscInNum, nodeNum: Number(nodeNum) })
             // await giveGapIncome(userAddress, netAmountPaidInUsd, rankDuringStaking, usdtStakedIn1e18, dscInUsdPaid.toFixed(0), "node", rateDollarPerDscInNum, Number(nodeNum));
-          
+
         }
 
 
@@ -191,7 +193,7 @@ const fixGapIncome = async () => {
 
             const { receiverAddress, totalGapIncomeInUsd_1e18, totalGapIncomeInDscInUsd_1e18, count } = doc;
 
-            if(receiverAddress === "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68"){
+            if (receiverAddress === "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68") {
                 continue;
             }
 
@@ -242,9 +244,326 @@ const fixGapIncome = async () => {
     }
 };
 
+const updateDirectBusinessForAll = async () => {
+    try {
+        let count = 0;
+        const allUsers = await RegistrationModel.find({});
+
+        for await (const user of allUsers) {
+            count++;
+            const { userAddress } = user;
+
+            // Fetch old directStaking before updating
+            const oldDirectStaking = user.directStaking || 0;
+
+            // 1. Find direct referred users
+            const directUsers = await RegistrationModel.find(
+                { sponsorAddress: userAddress },
+                { userAddress: 1 }
+            ).lean();
+
+            let totalDirectBusiness = new BigNumber(0);
+            let amountNbdPayments = new BigNumber(0);
+            let amountNodeUpgrades = new BigNumber(0);
+
+            // 2. Sum all business from direct users
+            for await (const directUser of directUsers) {
+                const directUserAddress = directUser.userAddress;
+
+                const nodeUpgrades = await UpgradedNodes.find(
+                    { userAddress: directUserAddress },
+                    { amountUsdPaid: 1 }
+                ).lean();
+
+                const nbdPayments = await NbdFundModel.find(
+                    { userAddress: directUserAddress },
+                    { amountNbdPaid: 1 }
+                ).lean();
+
+                // Add UpgradedNode amounts
+
+                for (const n of nodeUpgrades) {
+                    // if (n.amountUsdPaid) {
+                    //     totalDirectBusiness = totalDirectBusiness.plus(
+                    //         new BigNumber(n.amountUsdPaid).dividedBy(1e18)
+                    //     );
+                    //     amountNodeUpgrades = amountNodeUpgrades.plus(
+                    //         new BigNumber(n.amountUsdPaid).dividedBy(1e18)
+                    //     );
+                    // }
+                    if (n.amountUsdPaid) {
+                        totalDirectBusiness = totalDirectBusiness.plus(
+                            new BigNumber(n.amountUsdPaid)
+                        );
+                        amountNodeUpgrades = amountNodeUpgrades.plus(
+                            new BigNumber(n.amountUsdPaid)
+                        );
+                    }
+                }
+
+
+
+                // Add NBD amounts
+                for (const n of nbdPayments) {
+                    // if (n.amountNbdPaid) {
+                    //     totalDirectBusiness = totalDirectBusiness.plus(
+                    //         new BigNumber(n.amountNbdPaid).dividedBy(1e18)
+                    //     );
+                    //     amountNbdPayments = amountNbdPayments.plus(
+                    //         new BigNumber(n.amountNbdPaid).dividedBy(1e18)
+                    //     );
+                    // }
+                    if (n.amountNbdPaid) {
+                        totalDirectBusiness = totalDirectBusiness.plus(
+                            new BigNumber(n.amountNbdPaid)
+                        );
+                        amountNbdPayments = amountNbdPayments.plus(
+                            new BigNumber(n.amountNbdPaid)
+                        );
+                    }
+                }
+                // totalDirectBusiness = totalDirectBusiness.dividedBy(1e18);
+                // amountNbdPayments = amountNbdPayments.dividedBy(1e18);
+                // amountNodeUpgrades = amountNodeUpgrades.dividedBy(1e18);
+            }
+
+            totalDirectBusiness = totalDirectBusiness.dividedBy(1e18);
+            amountNbdPayments = amountNbdPayments.dividedBy(1e18);
+            amountNodeUpgrades = amountNodeUpgrades.dividedBy(1e18);
+
+            const newDirectStaking = Number(totalDirectBusiness.toFixed(2));
+            const finalNbdPaid = amountNbdPayments.toNumber();
+            const finalNodeUpgradePaid = amountNodeUpgrades.toNumber();
+            ct({ count, uid: "jkr675", directCount: directUsers.length, fromNbd: finalNbdPaid, fromNode: finalNodeUpgradePaid, ownerUser: userAddress, oldDirectStaking, newDirectStaking, func: "updateDirectBusinessForAll" })
+
+            // 4. Update user record
+            await RegistrationModel.findOneAndUpdate(
+                { userAddress },
+                { $set: { directStaking: newDirectStaking } },
+                { new: true }
+            );
+        }
+
+        console.log("Direct business updated with logs!");
+
+    } catch (error) {
+        console.log("Error while updating direct business:", error);
+    }
+};
+const updateSelfBusinessForAll = async () => {
+    try {
+        let count = 0;
+        const allUsers = await RegistrationModel.find({});
+
+        console.log(`Total users to update: ${allUsers.length}`);
+
+        for (const user of allUsers) {
+            count++;
+            const userAddress = user.userAddress;
+
+            // if (userAddress !== "0xdAD11D65d831e9F9Bd833081F362A4dafc02ca0c") {
+            //     continue;
+            // }
+
+            try {
+                // Fetch total NBD paid (in 1e18 as string)
+                const nbdFunds = await NbdFundModel.find({ userAddress });
+
+                let totalNbd = new BigNumber(0);
+                for (const nbd of nbdFunds) {
+                    totalNbd = totalNbd.plus(nbd.amountNbdPaid);
+                }
+                totalNbd = totalNbd.dividedBy(1e18);
+
+                // Fetch node upgrade USD paid (string, normal USD but string)
+                const upgradedNodes = await UpgradedNodes.find({ userAddress });
+
+                console.log(`User ${userAddress} - Upgraded Nodes found: ${upgradedNodes.length}`);
+
+                let totalUpgradeUsd = new BigNumber(0);
+                let countingForNodeDoc=0;
+                for (const upg of upgradedNodes) {
+                    countingForNodeDoc++;
+                    totalUpgradeUsd = totalUpgradeUsd.plus(upg.amountUsdPaid);
+                }
+                totalUpgradeUsd = totalUpgradeUsd.dividedBy(1e18);
+                ct({countingForNodeDoc})
+
+                // SUM OF BOTH BUSINESSES
+                const finalSelfBusiness = totalNbd.plus(totalUpgradeUsd).toNumber();
+
+                // Old value
+                const oldValue = user.userTotalStakeInUsd;
+
+                // console.log("------------------------------------------------------");
+                // console.log("USER:", userAddress);
+                // console.log("Old userTotalStakeInUsd:", oldValue);
+                // console.log("Total NBD Paid:", totalNbd.toNumber());
+                // console.log("Total USD Paid in Upgrades:", totalUpgradeUsd.toNumber());
+                // console.log("New userTotalStakeInUsd:", finalSelfBusiness);
+                // console.log("------------------------------------------------------");
+                ct({ count, uid: "sbUddpt2024", userAddress, userOldTotalStakeInUsd: oldValue, userNewTotalStakeInUsd: finalSelfBusiness, totalNbd: totalNbd.toNumber(), totalUpgradeUsd: totalUpgradeUsd.toNumber(), func: "update self business for all" })
+
+                // Update DB
+                await RegistrationModel.updateOne(
+                    { userAddress },
+                    { $set: { userTotalStakeInUsd: finalSelfBusiness } }
+                );
+               
+
+            } catch (err) {
+                console.log(`Error processing user ${userAddress}:`, err);
+            }
+        }
+
+        console.log("All users updated successfully!");
+
+    } catch (error) {
+        console.log("Error while updating self business:", error);
+    }
+};
+
+const updateDirectPlusSelfForAllUser = async () => {
+    try {
+        let count = 0;
+        const allUsers = await RegistrationModel.find({});
+
+        console.log(`Total users to process: ${allUsers.length}`);
+
+        for (const user of allUsers) {
+            count++;
+            const userAddress = user.userAddress;
+
+            try {
+                const directStaking = Number(user.directStaking) || 0;
+                const selfStake = Number(user.userTotalStakeInUsd) || 0;
+
+                // OLD VALUE
+                const oldValue = Number(user.userDirectPlusSelfStakeInUsd) || 0;
+
+                // NEW VALUE
+                const newValue = directStaking + selfStake;
+
+
+
+                ct({ count, uid: "dpsUddpt2024", userAddress, oldUserDirectPlusSelfStakeInUsd: oldValue, newUserDirectPlusSelfStakeInUsd: newValue, directStaking, selfStake, func: "update direct plus self" })
+                // Update DB
+                await RegistrationModel.updateOne(
+                    { userAddress },
+                    { $set: { userDirectPlusSelfStakeInUsd: newValue } }
+                );
+
+            } catch (err) {
+                console.log(`Error processing user ${userAddress}:`, err);
+            }
+        }
+
+        console.log("All users updated successfully! ✔");
+
+    } catch (error) {
+        console.log("Error while updating direct plus self business:", error);
+    }
+};
+
+const updateRanksForAll = async () => {
+    try {
+        let count = 0;
+        const allUsers = await RegistrationModel.find({});
+
+        console.log("Total users to process:", allUsers.length);
+
+        for (const user of allUsers) {
+
+            count++;
+
+            const userAddress = user.userAddress;
+            const fUserAddress = giveCheckSummedAddress(userAddress);
+
+            try {
+                const userInfo = await RegistrationModel.findOne({ userAddress: fUserAddress });
+                if (!userInfo) {
+                    console.log("User not found:", fUserAddress);
+                    continue;
+                }
+
+                // const directsNodeSums = await getDirectsNodeBalanceSum(fUserAddress);
+                // let nodePurchasingBalance = new BigNumber(userInfo.nodePurchasingBalance).dividedBy(1e18);
+
+                const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
+
+                const userTargetStakeForRankUpgradation =
+                    new BigNumber(userDirectPlusSelfStakeInUsdNormal).toNumber();
+
+                const matchedRank =
+                    ranks.find(r =>
+                        userTargetStakeForRankUpgradation >= r.lowerBound &&
+                        userTargetStakeForRankUpgradation <= r.upperBound
+                    ) || ranks[0];
+
+                const currTimeInUnix = moment().unix();
+
+                // Old rank details
+                const oldRank = userInfo.currentRank;
+                const oldRankGrade = ranks.find(r => r.rank === oldRank)?.grade || 1;
+
+                // New possible rank
+                const newRank = matchedRank.rank;
+                const newRankGrade = matchedRank.grade;
+
+                // 🔥 Log comparison
+                // console.log("---------------------------------------------------------");
+                // console.log("USER:", fUserAddress);
+                // console.log("Old Rank:", oldRank, "| Grade:", oldRankGrade);
+                // console.log("New Eligible Rank:", newRank, "| Grade:", newRankGrade);
+                // console.log("Stake Considered:", userTargetStakeForRankUpgradation);
+                // console.log("---------------------------------------------------------");
+
+                ct({ count, uid: "rkUddpt2024", fUserAddress, oldRank, oldRankGrade, newRank, newRankGrade, userTargetStakeForRankUpgradation, func: "update ranks for all" })
+
+                // Update if eligible
+                // if (matchedRank && (newRank !== oldRank) && (newRankGrade > oldRankGrade)) {
+
+                //     const updatedUser = await RegistrationModel.findOneAndUpdate(
+                //         { userAddress: fUserAddress },
+                //         { $set: { currentRank: newRank, rankAchievedAt: currTimeInUnix } },
+                //         { new: true }
+                //     );
+
+                //     console.log("Rank updated successfully!");
+                //     console.log("Updated Rank:", updatedUser.currentRank);
+                // } else {
+                //     console.log("Rank remains same. No update needed.");
+                // }
+
+            } catch (err) {
+                console.log("Error processing user:", fUserAddress, err);
+            }
+        }
+
+        console.log("Rank update completed for all users.");
+
+    } catch (error) {
+        console.log("Error while updating ranks for all users:", error);
+    }
+};
+
+const fixSystemRankAndBusinesses = async () => {
+    try {
+        // await updateDirectBusinessForAll();
+        // await updateSelfBusinessForAll();
+        // await updateDirectPlusSelfForAllUser();
+        await updateRanksForAll();
+
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 module.exports = {
     giveUserTeam,
     updateLastRoiDistributedToPaidAssuranceFees,
     distributeGapIncome,
-    fixGapIncome
+    fixGapIncome,
+    fixSystemRankAndBusinesses
 }

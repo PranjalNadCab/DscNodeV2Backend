@@ -133,8 +133,13 @@ async function processEvents(events) {
 
                     await regDoc.save();
 
+                    await updateUserTotalSelfStakeUsdt(userAddress, amountNbdPaid);
+                    await updateDirectBusiness(amountNbdPaid, userAddress);
+
+                    
                     await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid, Number(nodeNum));
                     await manageRank(userAddress);
+                    await manageRank(sponsorAddress);
                     await getLivePrice()
                 } catch (error) {
                     console.log(error);

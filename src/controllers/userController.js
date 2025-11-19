@@ -1918,7 +1918,6 @@ const getUserNodeLists = async (req, res, next) => {
 
         const { nodeValidators } = await giveAdminSettings();
 
-        console.log({ nodeValidators });
         const nodeData = nodeValidators.map((node) => {
 
             const { name, selfStaking, baseMinAss, nodeNum } = node;

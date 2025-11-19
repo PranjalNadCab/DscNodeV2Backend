@@ -671,7 +671,9 @@ const manageRank = async (userAddress) => {
         let nodePurchasingBalance = new BigNumber(userInfo.nodePurchasingBalance).dividedBy(1e18);
 
         const userDirectPlusSelfStakeInUsdNormal = userInfo.userDirectPlusSelfStakeInUsd;
-        const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).plus(directsNodeSums).toNumber();
+        // const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).plus(nodePurchasingBalance).plus(directsNodeSums).toNumber();
+        const userTargetStakeForRankUpgradation = new BigNumber(userDirectPlusSelfStakeInUsdNormal).toNumber();
+
         const matchedRank = ranks.find(r => userTargetStakeForRankUpgradation >= r.lowerBound && userTargetStakeForRankUpgradation <= r.upperBound) || ranks[0];
         console.log("matchedRank", matchedRank);
         // ct({ userAddress, userDirectPlusSelfStakeInUsdNormal, rank: matchedRank.rank });
@@ -1748,86 +1750,14 @@ const giveNumFrom1e18 = (amountIn1e18) => {
 }
 
 
-const updateDirectBusinessForAll = async () => {
-    try {
-        const allUsers = await RegistrationModel.find({});
 
-        for await (const user of allUsers) {
-            const { userAddress } = user;
 
-            // Fetch old directStaking before updating
-            const oldDirectStaking = user.directStaking || 0;
 
-            // 1. Find direct referred users
-            const directUsers = await RegistrationModel.find(
-                { sponsorAddress: userAddress },
-                { userAddress: 1 }
-            ).lean();
-
-            let totalDirectBusiness = new BigNumber(0);
-
-            // 2. Sum all business from direct users
-            for await (const directUser of directUsers) {
-                const directUserAddress = directUser.userAddress;
-
-                const nodeUpgrades = await UpgradedNodes.find(
-                    { userAddress: directUserAddress },
-                    { amountUsdPaid: 1 }
-                ).lean();
-
-                const nbdPayments = await NbdFundModel.find(
-                    { userAddress: directUserAddress },
-                    { amountNbdPaid: 1 }
-                ).lean();
-
-                // Add UpgradedNode amounts
-                for (const n of nodeUpgrades) {
-                    if (n.amountUsdPaid) {
-                        totalDirectBusiness = totalDirectBusiness.plus(
-                            new BigNumber(n.amountUsdPaid).dividedBy(1e18)
-                        );
-                    }
-                }
-
-                // Add NBD amounts
-                for (const n of nbdPayments) {
-                    if (n.amountNbdPaid) {
-                        totalDirectBusiness = totalDirectBusiness.plus(
-                            new BigNumber(n.amountNbdPaid).dividedBy(1e18)
-                        );
-                    }
-                }
-            }
-
-            const newDirectStaking = Number(totalDirectBusiness.toFixed(2));
-
-            // 3. Log old + new values
-            // console.log(`User: ${userAddress}`);
-            // console.log(`Old directStaking: ${oldDirectStaking}`);
-            // console.log(`New directStaking: ${newDirectStaking}`);
-            // console.log(`----------------------------------------`);
-            ct({ uid: "jkr675", userAddress, oldDirectStaking, newDirectStaking })
-
-            // 4. Update user record
-            await RegistrationModel.findOneAndUpdate(
-                { userAddress },
-                { $set: { directStaking: newDirectStaking } },
-                { new: true }
-            );
-        }
-
-        console.log("Direct business updated with logs!");
-
-    } catch (error) {
-        console.log("Error while updating direct business:", error);
-    }
-};
-
-const giveTeamBusinessForUser = async(userAddress)=>{
+const giveTeamBusinessForUser = async (userAddress) => {
     let teamBusiness = 0;
-    try{
-        if(!userAddress) {
-            return {status:false,message:"Invalid parameters",teamBusiness:0}
+    try {
+        if (!userAddress) {
+            return { status: false, message: "Invalid parameters", teamBusiness: 0 }
         };
 
         const teamBusinessCalculation = await RegistrationModel.aggregate([
@@ -1854,13 +1784,13 @@ const giveTeamBusinessForUser = async(userAddress)=>{
             teamBusiness = teamBusinessCalculation[0].totalTeamBusiness;
         }
 
-        return {status:true,message:"Team business calculated successfully",teamBusiness:teamBusiness}
-    
+        return { status: true, message: "Team business calculated successfully", teamBusiness: teamBusiness }
 
-    }catch(error){
+
+    } catch (error) {
         const errorMsg = error?.response?.message || error?.message || "Error occurred while calculating team business for user";
-        return {status:false,message:errorMsg,teamBusiness:0}
+        return { status: false, message: errorMsg, teamBusiness: 0 }
     }
 }
 
-module.exports = {giveTeamBusinessForUser, generateVrsForAssuranceIncome,updateDirectBusinessForAll, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+module.exports = {  giveTeamBusinessForUser,  generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }

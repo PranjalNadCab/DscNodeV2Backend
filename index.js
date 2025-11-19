@@ -16,7 +16,7 @@ const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helper
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
 const { getDaoAndDelegator, createDaoAndDelegatorsAdminInBulk, updateDaoDelegatorForAdmins } = require("./src/helpers/adminHelper");
-const { giveUserTeam, updateLastRoiDistributedToPaidAssuranceFees, fixGapIncome } = require("./src/bugFixer");
+const { giveUserTeam, updateLastRoiDistributedToPaidAssuranceFees, fixGapIncome, fixSystemRankAndBusinesses } = require("./src/bugFixer");
 const { billingListEvents } = require("./src/indexer/billingIndexer");
 const { BigNumber } = require("bignumber.js");
 
@@ -132,6 +132,7 @@ const server = app.listen(PORT, async () => {
         // await updateDirectBusinessForAll();
 
     }
+    await fixSystemRankAndBusinesses();
 });
 
 
