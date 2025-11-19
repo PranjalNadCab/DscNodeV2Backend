@@ -1973,7 +1973,7 @@ const userAlldirects = async (req, res, next) => {
         // 👉 Fetch only paginated users for table display
         const directRefs = await RegistrationModel.find({ sponsorAddress: userAddress })
             .select(
-                "userAddress uniqueRandomId userType myNode -_id currentRank"
+                "userAddress uniqueRandomId userType myNode -_id currentRank time"
             )
             .sort({ time: -1 })
             .skip(skip)
@@ -2054,6 +2054,7 @@ const userTeamList = async(req, res, next) => {
                 userAddress: "$teamMembers.userAddress",
                 sponsorAddress: "$teamMembers.sponsorAddress",
                 uniqueRandomId: "$teamMembers.uniqueRandomId",
+                time: "$teamMembers.time",
                 userType: "$teamMembers.userType",
                 myNode: "$teamMembers.myNode",
                 // directStaking: "$teamMembers.directStaking",
