@@ -11,7 +11,7 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct, updateDirectBusinessForAll } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
@@ -39,18 +39,18 @@ app.use("/api/admin", adminRoutes);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "development") {
-    cron.schedule('1 0 * * *', async () => {
-        try {
-            console.log(`Cron job started at ${new Date().toLocaleString()}`);
-            await giveRoiToNodeHolders();
+    // cron.schedule('1 0 * * *', async () => {
+    //     try {
+    //         console.log(`Cron job started at ${new Date().toLocaleString()}`);
+    //         await giveRoiToNodeHolders();
 
-        } catch (err) {
-            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
-        }
+    //     } catch (err) {
+    //         console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+    //     }
 
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 
     // cron.schedule('1 0 1 * *', async () => {
     //     try {
@@ -62,19 +62,19 @@ if (process.env.NODE_ENV !== "development") {
     // }, {
     //     timezone: 'Asia/Kolkata'
     // });
-    cron.schedule('*/1 * * * *', async () => {
-        try {
-            console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-            const res = await getLivePrice();
-            console.log("Live DSC Price fetched successfully:", res);
-            await updateDaoDelegatorForAdmins();
-            await refreshDaoDelegatorUsers();
-        } catch (err) {
-            console.error('Error in monthly cron job:', err);
-        }
-    }, {
-        timezone: 'Asia/Kolkata'
-    });
+    // cron.schedule('*/1 * * * *', async () => {
+    //     try {
+    //         console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    //         const res = await getLivePrice();
+    //         console.log("Live DSC Price fetched successfully:", res);
+    //         await updateDaoDelegatorForAdmins();
+    //         await refreshDaoDelegatorUsers();
+    //     } catch (err) {
+    //         console.error('Error in monthly cron job:', err);
+    //     }
+    // }, {
+    //     timezone: 'Asia/Kolkata'
+    // });
 
 } else {
     // cron.schedule('*/2 * * * *', async () => {
@@ -123,12 +123,13 @@ const server = app.listen(PORT, async () => {
 
     } else {
 
-        const res = await getLivePrice();
-        console.log("Live DSC Price fetched successfully:", res);
-        await generateDefaultAdminDoc();
-        await createDaoAndDelegatorsAdminInBulk();
-        await dscNodeListEvents();
-        await billingListEvents();
+        // const res = await getLivePrice();
+        // console.log("Live DSC Price fetched successfully:", res);
+        // await generateDefaultAdminDoc();
+        // await createDaoAndDelegatorsAdminInBulk();
+        // await dscNodeListEvents();
+        // await billingListEvents();
+        // await updateDirectBusinessForAll();
 
     }
 });

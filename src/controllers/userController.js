@@ -526,7 +526,7 @@ const getGapIncomeHistory = async (req, res, next) => {
 
         // Get total count for pagination metadata
         const total = await GapIncomeModel.countDocuments({ receiverAddress: userAddress });
-        console.log("Total gap income records:",userAddress,total);
+        console.log("Total gap income records:", userAddress, total);
 
         // Fetch paginated data
         const gapIncomes = await GapIncomeModel.find({ receiverAddress: userAddress })
@@ -1870,7 +1870,7 @@ const assuranceIncomeOutHistory = async (req, res, next) => {
 
 const sponsoredTxHistory = async (req, res, next) => {
     try {
-        let { userAddress,page = 1, limit = 1000 } = req.body;
+        let { userAddress, page = 1, limit = 1000 } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
 
@@ -1881,13 +1881,13 @@ const sponsoredTxHistory = async (req, res, next) => {
 
         const skip = (page - 1) * limit;
 
-        const [history, totalCount] = await Promise.all([ 
-            UpgradedNodes.find({ "paidBy.userAddress": userAddress,"paidBy.userType":{$ne:"self"} })
+        const [history, totalCount] = await Promise.all([
+            UpgradedNodes.find({ "paidBy.userAddress": userAddress, "paidBy.userType": { $ne: "self" } })
                 .sort({ time: -1 })
                 .skip(skip)
                 .limit(limit),
 
-            UpgradedNodes.countDocuments({ "paidBy.userAddress": userAddress,"paidBy.userType":{$ne:"self"} })
+            UpgradedNodes.countDocuments({ "paidBy.userAddress": userAddress, "paidBy.userType": { $ne: "self" } })
         ]);
 
         const totalPages = Math.ceil(totalCount / limit);
@@ -1896,9 +1896,9 @@ const sponsoredTxHistory = async (req, res, next) => {
             success: true,
             message: "Sponsored transaction history fetched successfully!",
             history,
-            pagination:{
-                totalRecords:totalCount,
-                totalPages:totalPages
+            pagination: {
+                totalRecords: totalCount,
+                totalPages: totalPages
             }
 
         });
@@ -1908,9 +1908,9 @@ const sponsoredTxHistory = async (req, res, next) => {
     }
 };
 
-const getUserNodeLists = async(req,res,next)=>{
-    try{
-        let {userAddress} = req.body
+const getUserNodeLists = async (req, res, next) => {
+    try {
+        let { userAddress } = req.body
 
         if (!userAddress) throw new Error("Please provide user address.");
 
@@ -1918,32 +1918,200 @@ const getUserNodeLists = async(req,res,next)=>{
 
         const { nodeValidators } = await giveAdminSettings();
 
-        console.log({nodeValidators});
-        const nodeData = nodeValidators.map((node)=>{
+        console.log({ nodeValidators });
+        const nodeData = nodeValidators.map((node) => {
 
-            const {name,selfStaking,baseMinAss,nodeNum} = node;
+            const { name, selfStaking, baseMinAss, nodeNum } = node;
             return {
-                group:name,
-                nodeNum:nodeNum,
+                group: name,
+                nodeNum: nodeNum,
                 target: new BigNumber(selfStaking).dividedBy(1e18).toNumber(),
                 baseMinAss: new BigNumber(baseMinAss).dividedBy(1e18).toNumber()
             }
         });
 
-        const userLastCompletedNode = await UpgradedNodes.findOne({userAddress,isPaymentCompleted:true},{lastUsedNonce:0,rateDollarPerDsc:0,transactionHash:0,mixTransactionHash:0,createdAt:0,updatedAt:0,__v:0}).sort({nodeNum:-1});
-
-        
+        const userLastCompletedNode = await UpgradedNodes.findOne({ userAddress, isPaymentCompleted: true }, { lastUsedNonce: 0, rateDollarPerDsc: 0, transactionHash: 0, mixTransactionHash: 0, createdAt: 0, updatedAt: 0, __v: 0 }).sort({ nodeNum: -1 });
 
 
-        return res.status(200).json({ success: true, nodes:nodeData, message: "Node validators fetched successfully!",userLastCompletedNode });
+
+
+        return res.status(200).json({ success: true, nodes: nodeData, message: "Node validators fetched successfully!", userLastCompletedNode });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const userAlldirects = async (req, res, next) => {
+    try {
+        let { userAddress, page = 1, limit = 10 } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        page = Number(page);
+        limit = Number(limit);
+
+        const skip = (page - 1) * limit;
+
+        // Count total directs
+        const totalDirects = await RegistrationModel.countDocuments({
+            sponsorAddress: userAddress
+        });
+
+        // 👉 Calculate total stake of ALL direct users (not paginated)
+        const allDirectsData = await RegistrationModel.find(
+            { sponsorAddress: userAddress },
+            { userTotalStakeInUsd: 1 }
+        ).lean();
+
+        let totalStakeOfAllDirects = 0;
+        for (const d of allDirectsData) {
+            totalStakeOfAllDirects += Number(d.userTotalStakeInUsd || 0);
+        }
+
+        // 👉 Fetch only paginated users for table display
+        const directRefs = await RegistrationModel.find({ sponsorAddress: userAddress })
+            .select(
+                "userAddress uniqueRandomId userType myNode -_id currentRank"
+            )
+            .sort({ time: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const totalPages = Math.ceil(totalDirects / limit);
+
+        return res.status(200).json({
+            success: true,
+            directs: directRefs,
+            totalStakeOfAllDirects,
+            pagination: {
+                page,
+                limit,
+                totalDirects,
+                totalPages
+            },
+            message: "Direct referrals fetched successfully!"
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const userTeamList = async(req, res, next) => {
+    try{
+
+    let { userAddress, page = 1, limit = 10 } = req.body;
+
+    if (!userAddress) throw new Error("Please provide user address.");
+
+    userAddress = giveCheckSummedAddress(userAddress);
+
+    page = Number(page);
+
+    limit = Number(limit);
+
+    const skip = (page - 1) * limit;
+
+    // Count total team members
+    let totalTeamCount= await RegistrationModel.aggregate([
+        { $match: { userAddress: userAddress } },
+        {
+            $graphLookup: {
+                from: "registration",
+                startWith: "$userAddress",
+                connectFromField: "userAddress",
+                connectToField: "sponsorAddress",
+                as: "teamMembers"
+            }
+        },
+        { $unwind: "$teamMembers" },
+        { $count: "total" }
+    ]);
+
+     totalTeamCount = totalTeamCount.length > 0 ? totalTeamCount[0].total : 0;
+
+    const teamMembers = await RegistrationModel.aggregate([
+        { $match: { userAddress: userAddress } },
+        {
+            $graphLookup: {
+                from: "registration",
+                startWith: "$userAddress",
+                connectFromField: "userAddress",
+                connectToField: "sponsorAddress",
+                as: "teamMembers"
+            }
+        },
+        { $unwind: "$teamMembers" },
+        { $skip: skip },
+        { $limit: limit },
+        {
+            $project: {
+                _id: 0,
+                userAddress: "$teamMembers.userAddress",
+                uniqueRandomId: "$teamMembers.uniqueRandomId",
+                userType: "$teamMembers.userType",
+                myNode: "$teamMembers.myNode",
+                // directStaking: "$teamMembers.directStaking",
+                // userTotalStakeInUsd: "$teamMembers.userTotalStakeInUsd",
+                currentRank: "$teamMembers.currentRank"
+            }
+        }
+    ]);
+
+    const teamBusiness = await RegistrationModel.aggregate([
+        { $match: { userAddress: userAddress } },
+        {
+            $graphLookup: {
+                from: "registration",
+                startWith: "$userAddress",
+                connectFromField: "userAddress",
+                connectToField: "sponsorAddress",
+                as: "teamMembers"
+            }
+        },
+        { $unwind: "$teamMembers" },
+        {
+            $group: {
+                _id: null,
+                totalTeamBusiness: { $sum: { $toDouble: "$teamMembers.userTotalStakeInUsd" } }
+            }
+        }
+    ]);
+
+    let totalTeamBusiness = 0;
+    if (teamBusiness.length > 0) {
+        totalTeamBusiness = teamBusiness[0].totalTeamBusiness;
+    }
+
+    const totalPages = Math.ceil(totalTeamCount / limit);
+    return res.status(200).json({
+        success: true,
+        teamMembers: teamMembers,
+        totalTeamBusiness,
+        pagination: {
+            page,
+            limit,
+            totalTeamCount,
+            totalPages
+        },
+        message: "Team members fetched successfully!"
+    });
+
+
     }catch(error){
         next(error);
     }
 }
 
+
 module.exports = {
     stakeVrs,
+    userTeamList,
     getUserNodeLists,
+    userAlldirects,
     sponsoredTxHistory,
     getUserAssuranceFeeInfo,
     assuranceIncomeOutHistory,
