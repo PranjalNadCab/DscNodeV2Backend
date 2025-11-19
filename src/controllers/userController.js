@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -2041,7 +2041,8 @@ const userTeamList = async(req, res, next) => {
                 startWith: "$userAddress",
                 connectFromField: "userAddress",
                 connectToField: "sponsorAddress",
-                as: "teamMembers"
+                as: "teamMembers",
+                depthField: "level"  
             }
         },
         { $unwind: "$teamMembers" },
@@ -2051,46 +2052,30 @@ const userTeamList = async(req, res, next) => {
             $project: {
                 _id: 0,
                 userAddress: "$teamMembers.userAddress",
+                sponsorAddress: "$teamMembers.sponsorAddress",
                 uniqueRandomId: "$teamMembers.uniqueRandomId",
                 userType: "$teamMembers.userType",
                 myNode: "$teamMembers.myNode",
                 // directStaking: "$teamMembers.directStaking",
                 // userTotalStakeInUsd: "$teamMembers.userTotalStakeInUsd",
-                currentRank: "$teamMembers.currentRank"
-            }
-        }
-    ]);
-
-    const teamBusiness = await RegistrationModel.aggregate([
-        { $match: { userAddress: userAddress } },
-        {
-            $graphLookup: {
-                from: "registration",
-                startWith: "$userAddress",
-                connectFromField: "userAddress",
-                connectToField: "sponsorAddress",
-                as: "teamMembers"
+                currentRank: "$teamMembers.currentRank",
+                level: { $add: ["$teamMembers.level", 1] }
             }
         },
-        { $unwind: "$teamMembers" },
         {
-            $group: {
-                _id: null,
-                totalTeamBusiness: { $sum: { $toDouble: "$teamMembers.userTotalStakeInUsd" } }
-            }
+            $sort: { level: 1 }
         }
     ]);
 
-    let totalTeamBusiness = 0;
-    if (teamBusiness.length > 0) {
-        totalTeamBusiness = teamBusiness[0].totalTeamBusiness;
-    }
+    const {status,message,teamBusiness} = await giveTeamBusinessForUser();
+
+   
 
     const totalPages = Math.ceil(totalTeamCount / limit);
     return res.status(200).json({
         success: true,
         teamMembers: teamMembers,
-        totalTeamBusiness,
+        totalTeamBusiness:teamBusiness,
         pagination: {
             page,
             limit,
@@ -2106,9 +2091,30 @@ const userTeamList = async(req, res, next) => {
     }
 }
 
+const userTeamBusiness = async(req,res,next)=>{
+    try{
+        let { userAddress  } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+        const {status,message,teamBusiness} = await giveTeamBusinessForUser(userAddress);
+
+        return res.status(200).json({
+            success: status,
+            totalTeamBusiness:teamBusiness,
+            message: message
+        });
+        
+    }catch(error){
+        next(error);
+    }
+}
+
 
 module.exports = {
     stakeVrs,
+    userTeamBusiness,
     userTeamList,
     getUserNodeLists,
     userAlldirects,

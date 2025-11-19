@@ -1823,4 +1823,44 @@ const updateDirectBusinessForAll = async () => {
     }
 };
 
-module.exports = { generateVrsForAssuranceIncome,updateDirectBusinessForAll, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+const giveTeamBusinessForUser = async(userAddress)=>{
+    let teamBusiness = 0;
+    try{
+        if(!userAddress) {
+            return {status:false,message:"Invalid parameters",teamBusiness:0}
+        };
+
+        const teamBusinessCalculation = await RegistrationModel.aggregate([
+            { $match: { userAddress: userAddress } },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "userAddress",
+                    connectToField: "sponsorAddress",
+                    as: "teamMembers"
+                }
+            },
+            { $unwind: "$teamMembers" },
+            {
+                $group: {
+                    _id: null,
+                    totalTeamBusiness: { $sum: { $toDouble: "$teamMembers.userTotalStakeInUsd" } }
+                }
+            }
+        ]);
+
+        if (teamBusinessCalculation.length > 0) {
+            teamBusiness = teamBusinessCalculation[0].totalTeamBusiness;
+        }
+
+        return {status:true,message:"Team business calculated successfully",teamBusiness:teamBusiness}
+    
+
+    }catch(error){
+        const errorMsg = error?.response?.message || error?.message || "Error occurred while calculating team business for user";
+        return {status:false,message:errorMsg,teamBusiness:0}
+    }
+}
+
+module.exports = {giveTeamBusinessForUser, generateVrsForAssuranceIncome,updateDirectBusinessForAll, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
