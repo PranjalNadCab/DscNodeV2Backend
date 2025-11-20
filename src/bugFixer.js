@@ -518,22 +518,22 @@ const updateRanksForAll = async () => {
                 // console.log("Stake Considered:", userTargetStakeForRankUpgradation);
                 // console.log("---------------------------------------------------------");
 
-                ct({ count, uid: "rkUddpt2024", fUserAddress, oldRank, oldRankGrade, newRank, newRankGrade, userTargetStakeForRankUpgradation, func: "update ranks for all" })
-
+                
                 // Update if eligible
-                // if (matchedRank && (newRank !== oldRank) && (newRankGrade > oldRankGrade)) {
+                if (matchedRank && (newRank !== oldRank) && (newRankGrade > oldRankGrade)) {
+                    ct({ count, uid: "rkUddpt2024", fUserAddress, oldRank, oldRankGrade, newRank, newRankGrade, userTargetStakeForRankUpgradation, func: "update ranks for all" })
 
-                //     const updatedUser = await RegistrationModel.findOneAndUpdate(
-                //         { userAddress: fUserAddress },
-                //         { $set: { currentRank: newRank, rankAchievedAt: currTimeInUnix } },
-                //         { new: true }
-                //     );
+                    // const updatedUser = await RegistrationModel.findOneAndUpdate(
+                    //     { userAddress: fUserAddress },
+                    //     { $set: { currentRank: newRank, rankAchievedAt: currTimeInUnix } },
+                    //     { new: true }
+                    // );
 
-                //     console.log("Rank updated successfully!");
-                //     console.log("Updated Rank:", updatedUser.currentRank);
-                // } else {
-                //     console.log("Rank remains same. No update needed.");
-                // }
+                    // console.log("Rank updated successfully!");
+                    // console.log("Updated Rank:", updatedUser.currentRank);
+                } else {
+                    console.log("Rank remains same. No update needed.");
+                }
 
             } catch (err) {
                 console.log("Error processing user:", fUserAddress, err);

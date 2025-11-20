@@ -1972,7 +1972,7 @@ const userAlldirects = async (req, res, next) => {
         // 👉 Fetch only paginated users for table display
         const directRefs = await RegistrationModel.find({ sponsorAddress: userAddress })
             .select(
-                "userAddress uniqueRandomId userType myNode -_id currentRank time"
+                "userAddress uniqueRandomId userType myNode -_id currentRank time directCount directStaking userTotalStakeInUsd userDirectPlusSelfStakeInUsd"
             )
             .sort({ time: -1 })
             .skip(skip)
@@ -1999,114 +1999,117 @@ const userAlldirects = async (req, res, next) => {
     }
 };
 
-const userTeamList = async(req, res, next) => {
-    try{
+const userTeamList = async (req, res, next) => {
+    try {
 
-    let { userAddress, page = 1, limit = 10 } = req.body;
-
-    if (!userAddress) throw new Error("Please provide user address.");
-
-    userAddress = giveCheckSummedAddress(userAddress);
-
-    page = Number(page);
-
-    limit = Number(limit);
-
-    const skip = (page - 1) * limit;
-
-    // Count total team members
-    let totalTeamCount= await RegistrationModel.aggregate([
-        { $match: { userAddress: userAddress } },
-        {
-            $graphLookup: {
-                from: "registration",
-                startWith: "$userAddress",
-                connectFromField: "userAddress",
-                connectToField: "sponsorAddress",
-                as: "teamMembers"
-            }
-        },
-        { $unwind: "$teamMembers" },
-        { $count: "total" }
-    ]);
-
-     totalTeamCount = totalTeamCount.length > 0 ? totalTeamCount[0].total : 0;
-
-    const teamMembers = await RegistrationModel.aggregate([
-        { $match: { userAddress: userAddress } },
-        {
-            $graphLookup: {
-                from: "registration",
-                startWith: "$userAddress",
-                connectFromField: "userAddress",
-                connectToField: "sponsorAddress",
-                as: "teamMembers",
-                depthField: "level"  
-            }
-        },
-        { $unwind: "$teamMembers" },
-        { $skip: skip },
-        { $limit: limit },
-        {
-            $project: {
-                _id: 0,
-                userAddress: "$teamMembers.userAddress",
-                sponsorAddress: "$teamMembers.sponsorAddress",
-                uniqueRandomId: "$teamMembers.uniqueRandomId",
-                time: "$teamMembers.time",
-                userType: "$teamMembers.userType",
-                myNode: "$teamMembers.myNode",
-                // directStaking: "$teamMembers.directStaking",
-                // userTotalStakeInUsd: "$teamMembers.userTotalStakeInUsd",
-                currentRank: "$teamMembers.currentRank",
-                level: { $add: ["$teamMembers.level", 1] }
-            }
-        },
-        {
-            $sort: { level: 1 }
-        }
-    ]);
-
-    const {status,message,teamBusiness} = await giveTeamBusinessForUser();
-
-   
-
-    const totalPages = Math.ceil(totalTeamCount / limit);
-    return res.status(200).json({
-        success: true,
-        teamMembers: teamMembers,
-        totalTeamBusiness:teamBusiness,
-        pagination: {
-            page,
-            limit,
-            totalTeamCount,
-            totalPages
-        },
-        message: "Team members fetched successfully!"
-    });
-
-
-    }catch(error){
-        next(error);
-    }
-}
-
-const userTeamBusiness = async(req,res,next)=>{
-    try{
-        let { userAddress  } = req.body;
+        let { userAddress, page = 1, limit = 10 } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
 
         userAddress = giveCheckSummedAddress(userAddress);
-        const {status,message,teamBusiness} = await giveTeamBusinessForUser(userAddress);
+
+        page = Number(page);
+
+        limit = Number(limit);
+
+        const skip = (page - 1) * limit;
+
+        // Count total team members
+        let totalTeamCount = await RegistrationModel.aggregate([
+            { $match: { userAddress: userAddress } },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "userAddress",
+                    connectToField: "sponsorAddress",
+                    as: "teamMembers"
+                }
+            },
+            { $unwind: "$teamMembers" },
+            { $count: "total" }
+        ]);
+
+        totalTeamCount = totalTeamCount.length > 0 ? totalTeamCount[0].total : 0;
+
+        const teamMembers = await RegistrationModel.aggregate([
+            { $match: { userAddress: userAddress } },
+            {
+                $graphLookup: {
+                    from: "registration",
+                    startWith: "$userAddress",
+                    connectFromField: "userAddress",
+                    connectToField: "sponsorAddress",
+                    as: "teamMembers",
+                    depthField: "level"
+                }
+            },
+            { $unwind: "$teamMembers" },
+            {
+                $sort: { "teamMembers.level": 1 }
+            },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $project: {
+                    _id: 0,
+                    userAddress: "$teamMembers.userAddress",
+                    sponsorAddress: "$teamMembers.sponsorAddress",
+                    uniqueRandomId: "$teamMembers.uniqueRandomId",
+                    time: "$teamMembers.time",
+                    directCount: "$teamMembers.directCount",
+                    userType: "$teamMembers.userType",
+                    myNode: "$teamMembers.myNode",
+                    directStaking: "$teamMembers.directStaking",
+                    userTotalStakeInUsd: "$teamMembers.userTotalStakeInUsd",
+                    userDirectPlusSelfStakeInUsd: "$teamMembers.userDirectPlusSelfStakeInUsd",
+                    currentRank: "$teamMembers.currentRank",
+                    level: { $add: ["$teamMembers.level", 1] }
+                }
+            },
+
+        ]);
+
+        const { status, message, teamBusiness } = await giveTeamBusinessForUser(userAddress);
+
+
+
+        const totalPages = Math.ceil(totalTeamCount / limit);
+        return res.status(200).json({
+            success: true,
+            teamMembers: teamMembers,
+            totalTeamBusiness: teamBusiness,
+            pagination: {
+                page,
+                limit,
+                totalTeamCount,
+                totalPages
+            },
+            message: "Team members fetched successfully!"
+        });
+
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+const userTeamBusiness = async (req, res, next) => {
+    try {
+        let { userAddress } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        userAddress = giveCheckSummedAddress(userAddress);
+        const { status, message, teamBusiness } = await giveTeamBusinessForUser(userAddress);
 
         return res.status(200).json({
             success: status,
-            totalTeamBusiness:teamBusiness,
+            totalTeamBusiness: teamBusiness,
             message: message
         });
-        
-    }catch(error){
+
+    } catch (error) {
         next(error);
     }
 }

@@ -132,7 +132,7 @@ const server = app.listen(PORT, async () => {
         // await updateDirectBusinessForAll();
 
     }
-    await fixSystemRankAndBusinesses();
+    // await fixSystemRankAndBusinesses();
 });
 
 
