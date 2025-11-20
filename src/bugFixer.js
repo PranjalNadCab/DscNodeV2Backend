@@ -523,14 +523,14 @@ const updateRanksForAll = async () => {
                 if (matchedRank && (newRank !== oldRank) && (newRankGrade > oldRankGrade)) {
                     ct({ count, uid: "rkUddpt2024", fUserAddress, oldRank, oldRankGrade, newRank, newRankGrade, userTargetStakeForRankUpgradation, func: "update ranks for all" })
 
-                    // const updatedUser = await RegistrationModel.findOneAndUpdate(
-                    //     { userAddress: fUserAddress },
-                    //     { $set: { currentRank: newRank, rankAchievedAt: currTimeInUnix } },
-                    //     { new: true }
-                    // );
+                    const updatedUser = await RegistrationModel.findOneAndUpdate(
+                        { userAddress: fUserAddress },
+                        { $set: { currentRank: newRank, rankAchievedAt: currTimeInUnix } },
+                        { new: true }
+                    );
 
-                    // console.log("Rank updated successfully!");
-                    // console.log("Updated Rank:", updatedUser.currentRank);
+                    console.log("Rank updated successfully!");
+                    console.log("Updated Rank:", updatedUser.currentRank);
                 } else {
                     console.log("Rank remains same. No update needed.");
                 }
@@ -549,9 +549,9 @@ const updateRanksForAll = async () => {
 
 const fixSystemRankAndBusinesses = async () => {
     try {
-        // await updateDirectBusinessForAll();
-        // await updateSelfBusinessForAll();
-        // await updateDirectPlusSelfForAllUser();
+        await updateDirectBusinessForAll();
+        await updateSelfBusinessForAll();
+        await updateDirectPlusSelfForAllUser();
         await updateRanksForAll();
 
 
