@@ -11,7 +11,7 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct, updateDirectBusinessForAll } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
@@ -129,7 +129,6 @@ const server = app.listen(PORT, async () => {
         await createDaoAndDelegatorsAdminInBulk();
         await dscNodeListEvents();
         await billingListEvents();
-        await updateDirectBusinessForAll();
 
     }
 });

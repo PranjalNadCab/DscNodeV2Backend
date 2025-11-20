@@ -793,7 +793,6 @@ const upgradeNode = async (req, res, next) => {
             nbdToApprove = 0;
         }
         nbdToApprove = new BigNumber(nbdToApprove).multipliedBy(1e18);
-        console.log("dfklgfvsdfgsdg", nbdToApprove.toFixed());
         let amountToApprove = new BigNumber(0);
         if (mixTxHash === "NA" || mixTxHash === zeroAddressTxhash) {
             if (currency === "USDT") {
