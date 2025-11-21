@@ -1629,17 +1629,65 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
     }
 };
 
+const getMonthIndex = (deploymentUnix, currentUnix = moment().unix()) => {
+    // both are seconds -> use moment.unix
+    const deployment = moment.unix(deploymentUnix).utc();
+    const today = moment.unix(currentUnix).utc();
+
+    // debug logs
+    ct({
+      deployedDate: deployment.format("DD-MM-YYYY HH:mm:ss"),
+      todayDate: today.format("DD-MM-YYYY HH:mm:ss"),
+    });
+
+    const dDate = deployment.date(); // 1–31
+
+    let firstCycleEnd;
+    if (dDate <= 6) {
+        // deploy between 1-6 => first cycle ends 6 same month
+        firstCycleEnd = deployment.clone().date(6).endOf("day");
+    } else {
+        // deploy between 7-31 => first cycle ends 6 next month
+        firstCycleEnd = deployment.clone().add(1, "month").date(6).endOf("day");
+    }
+
+    if (today.isSameOrBefore(firstCycleEnd)) return 0;
+
+    // now count how many full 7->6 cycles have passed after firstCycleEnd
+    let cycleStart = firstCycleEnd.clone().add(1, "day").startOf("day");
+    let monthIndex = 1;
+
+    while (true) {
+        let nextCycleEnd = cycleStart.clone().add(1, "month").date(6).endOf("day");
+        if (today.isSameOrBefore(nextCycleEnd)) break;
+        cycleStart = nextCycleEnd.clone().add(1, "day").startOf("day");
+        monthIndex++;
+    }
+
+    ct({
+      deploymentUnix,
+      currentUnix,
+      dDate,
+      firstCycleEnd: firstCycleEnd.format("DD-MM-YYYY HH:mm:ss"),
+      monthIndex
+    });
+
+    return monthIndex;
+};
+
 const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) => {
     let finalBaseMinAss = "0";
     let status = false;
     let isIncomeExpired = false;
-    let monthIndex = null;
+    // let monthIndex = null;
     let activationMonth = null;
     let monthsPassed = null;
     let whichMonth = null;
-
+    
+    const monthIndex = getMonthIndex(timeUnixSeconds,moment().unix());
+    
     try {
-
+        
         if (!timeUnixSeconds || !orgBaseMinAssIn1e18) {
             return {
                 status,
@@ -1648,20 +1696,23 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
                 message: "Please send required fields"
             };
         }
-
+        
         // Activation start month (month 0)
         const activation = moment.unix(timeUnixSeconds).startOf("month");
         activationMonth = activation.format("MMMM YYYY");   // e.g. "October 2025"
-
+        
         // Current month
         const now = moment().startOf("month");
-
+        
         // Month difference
         let diffMonths = now.diff(activation, "months");
 
-        monthIndex = diffMonths;            // 0 → same month
-        monthsPassed = diffMonths;          // readable number
 
+        
+        ct({ uid: "kjsd874", timeUnixSeconds, orgBaseMinAssIn1e18 });
+        // monthIndex = diffMonths;            // 0 → same month
+        // monthsPassed = diffMonths;          // readable number
+        
         // Human readable month (1st, 2nd, 3rd...)
         whichMonth = diffMonths === 0
             ? "Same month"
@@ -1672,6 +1723,10 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
         // ----------------------------
         // CONDITIONS
         // ----------------------------
+
+    
+
+       
         if (monthIndex === 0) {
             // still in same month → return 0
             finalBaseMinAss = "0";
@@ -1679,6 +1734,7 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
         } else if (monthIndex >= 1 && monthIndex <= 6) {
             // First 6 months → original value
             finalBaseMinAss = base.toFixed();
+            ct({ uid: "kjsd874", finalBaseMinAss });
 
         } else if (monthIndex >= 7 && monthIndex <= 12) {
             // 7th to 12th month → halved
@@ -1704,8 +1760,12 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
             activationMonth,   // <── ADDED
             monthsPassed,      // <── ADDED
             whichMonth,        // <── ADDED
-            message: "Assurance calculated!"
+            message: "Assurance calculated!",
+            diffMonths,
+            deployedDate:moment.unix(timeUnixSeconds).format("MMMM Do, YYYY")
         });
+
+        
 
         return {
             status,
@@ -1793,4 +1853,4 @@ const giveTeamBusinessForUser = async (userAddress) => {
     }
 }
 
-module.exports = {  giveTeamBusinessForUser,  generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+module.exports = {  giveTeamBusinessForUser,  generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount,getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }

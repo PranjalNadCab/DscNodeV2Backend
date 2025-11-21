@@ -11,7 +11,7 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const { getLivePrice } = require("./src/utils/liveDscPriceApi");
 const { errorHandler } = require("./src/middlewares/errorHandler");
 const { dscNodeListEvents } = require("./src/indexer/nodeIndexer");
-const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct } = require("./src/helpers/helper");
+const { createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, giveGapIncome, splitByRatio, generateDefaultAdminDoc, isAddressValid, setLatestBlock, refreshDaoDelegatorUsers, givePaymentRatioForDeployedNode, calculateUserRoiAssurance, ct, getMonthIndex } = require("./src/helpers/helper");
 const { updateNodeValueAssurance, giveRoiToNodeHolders } = require("./src/helpers/cronJob");
 const cron = require('node-cron');
 const { ratioUsdDsc } = require("./src/helpers/constant");
@@ -123,12 +123,19 @@ const server = app.listen(PORT, async () => {
 
     } else {
 
-        const res = await getLivePrice();
-        console.log("Live DSC Price fetched successfully:", res);
-        await generateDefaultAdminDoc();
-        await createDaoAndDelegatorsAdminInBulk();
-        await dscNodeListEvents();
-        await billingListEvents();
+        // const res = await getLivePrice();
+        // console.log("Live DSC Price fetched successfully:", res);
+        // await generateDefaultAdminDoc();
+        // await createDaoAndDelegatorsAdminInBulk();
+        // await dscNodeListEvents();
+        // await billingListEvents();
+        await giveRoiToNodeHolders();
+        // await calculateUserRoiAssurance(moment.utc("06-05-2025 10:00:00","DD-MM-YYYY HH:mm:ss").unix(),"90000000000000000000")
+    //   const result =  getMonthIndex(
+    //     moment.utc("07-12-2025 10:00:00","DD-MM-YYYY HH:mm:ss").unix(),
+    //     moment.utc("06-01-2026 18:00:00","DD-MM-YYYY HH:mm:ss").unix()
+    //   );
+        
 
     }
 });

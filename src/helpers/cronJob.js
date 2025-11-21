@@ -122,6 +122,8 @@ const giveRoiToNodeHolders = async () => {
         for await (const doc of paidFees) {
             const { userAddress, nodeNum, seqMonth, calendarMonth } = doc;
 
+            // if(userAddress !== "0xE44865573754FcB121226A4f42d56668934996a3") continue;
+
             let deploymentDoc = await NodeDeployedModel.findOne({ userAddress, nodeNum,isIncomeExpired:false });
             if (!deploymentDoc) {
                 console.log(`No deployment doc found for user ${userAddress} and node ${nodeNum}, skipping...`);
@@ -136,6 +138,7 @@ const giveRoiToNodeHolders = async () => {
                 continue;
             }
             const perDayMinAssurance = new BigNumber(finalBaseMinAss).dividedBy(targetDays);
+            // ct({perDayMinAssurance:perDayMinAssurance.toFixed(),finalBaseMinAss,targetDays,nodeNum,lastRoiDistributed,time});
             // const daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400); // 86400 seconds in a day
             if (process.env.NODE_ENV === "development") {
                 //treat 2mins as 1 day
@@ -145,6 +148,7 @@ const giveRoiToNodeHolders = async () => {
                 daysPassed = Math.floor((now.unix() - (lastRoiDistributed || time)) / 86400);
                 
             }
+
             
             if (daysPassed < 1) {
                 console.log(`Skipping user ${userAddress} for node ${nodeNum} as ROI already distributed today.`);
@@ -152,7 +156,7 @@ const giveRoiToNodeHolders = async () => {
             }
             
             let totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
-
+            
             // -----checking user total assurance for this month----
 
             const totalAssuranceGotForUser = await RoiModel.aggregate([
@@ -176,12 +180,14 @@ const giveRoiToNodeHolders = async () => {
             ]);
 
             const alreadyPaidRoi = totalAssuranceGotForUser.length > 0 ? new BigNumber(totalAssuranceGotForUser[0].totalDscAllocation || "0").plus(new BigNumber(totalAssuranceGotForUser[0].totalSwapAllocation || "0")) : new BigNumber(0);
-            ct({ uid: "already paid roi check", userAddress, nodeNum, alreadyPaidRoi: alreadyPaidRoi.toFixed(0), totalRoi: totalRoi.toFixed(0) });
+            // ct({ uid: "already paid roi check", userAddress, nodeNum, alreadyPaidRoi: alreadyPaidRoi.toFixed(0), totalRoi: totalRoi.toFixed(0) });
 
             if (alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(new BigNumber(finalBaseMinAss))) {
                
                 totalRoi = new BigNumber(finalBaseMinAss).minus(alreadyPaidRoi);
             }
+
+
 
             if(totalRoi.isLessThanOrEqualTo(0)){
                 console.log(`Total ROI calculated is zero or negative for user ${userAddress} node ${nodeNum}, skipping...`);

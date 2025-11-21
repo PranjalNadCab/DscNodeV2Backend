@@ -273,7 +273,7 @@ const updateDaoDelegatorForAdmins = async () => {
 
         const existingAdmins = await Admin.find({ role: { $ne: "admin" } });
         // console.log('existing admins', existingAdmins);
-        console.table({ existingAdminsLength: existingAdmins.length,allValidAddresses:allValidAddresses.length, message: "Existing DAO/Delegator admins fetched." });
+        // console.table({ existingAdminsLength: existingAdmins.length,allValidAddresses:allValidAddresses.length, message: "Existing DAO/Delegator admins fetched." });
 
         const bulkOps = [];
 
