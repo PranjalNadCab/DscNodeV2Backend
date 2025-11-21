@@ -1,7 +1,7 @@
 const { dscNodeContract, web3, nodeBillingContract } = require("../web3/web3.js");
 const BillingBlockConfig = require("../models/billingblockConfig.js");
 const BigNumber = require("bignumber.js");
-const { ct } = require("../helpers/helper.js");
+const { ct, returnLastRoiDistributedTimeOnFeeDeposit } = require("../helpers/helper.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
 
@@ -70,25 +70,31 @@ async function processEvents(events) {
 
                     if (!userNodeDeployedDoc) continue;
 
-                    const startDayTime = moment.unix(timestampNormal).startOf("day").unix();
+                    // const startDayTime = moment.unix(timestampNormal).startOf("day").unix();
 
-                    // ✅ Compare months (timestampNormal vs current system month)
-                    const timestampMonth = moment.unix(timestampNormal).format("MMMM YYYY");
-                    const currentMonth = moment().format("MMMM YYYY");
+                    // // ✅ Compare months (timestampNormal vs current system month)
+                    // const timestampMonth = moment.unix(timestampNormal).format("MMMM YYYY");
+                    // const currentMonth = moment().format("MMMM YYYY");
 
-                    if (timestampMonth === currentMonth) {
-                        // Only update for current month
-                        userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : startDayTime;
+                    const lastRoiDistributed = await returnLastRoiDistributedTimeOnFeeDeposit(
+                        user,
+                        Number(timestampNormal),
+                        userNodeDeployedDoc.time
+                    )
+
+                    // if (timestampMonth === currentMonth) {
+                    //     // Only update for current month
+                        userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : lastRoiDistributed;
                         await userNodeDeployedDoc.save();
 
-                        console.log(
-                            `Updated lastRoiDistributed for user ${user}, node ${nodeNum}, time ${startDayTime}`
-                        );
-                    } else {
-                        console.log(
-                            `Skipped update for user ${user}, node ${nodeNum} (month ${timestampMonth} != ${currentMonth})`
-                        );
-                    }
+                    //     console.log(
+                    //         `Updated lastRoiDistributed for user ${user}, node ${nodeNum}, time ${startDayTime}`
+                    //     );
+                    // } else {
+                    //     console.log(
+                    //         `Skipped update for user ${user}, node ${nodeNum} (month ${timestampMonth} != ${currentMonth})`
+                    //     );
+                    // }
 
                     console.log("Assurance fee stored successfully for user:", user, "nodeNum:", nodeNum, createAssuranceHistory);
 

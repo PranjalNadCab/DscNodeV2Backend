@@ -17,6 +17,7 @@ const jwt = require("jsonwebtoken");
 const { getDaoAndDelegator } = require("./adminHelper");
 const { default: axios } = require("axios");
 const NbdFundModel = require("../models/NbdFundsModel");
+const AssuranceFeeModel = require("../models/AssuranceFeeModel");
 
 
 const createJwtToken = async (data) => {
@@ -1636,8 +1637,8 @@ const getMonthIndex = (deploymentUnix, currentUnix = moment().unix()) => {
 
     // debug logs
     ct({
-      deployedDate: deployment.format("DD-MM-YYYY HH:mm:ss"),
-      todayDate: today.format("DD-MM-YYYY HH:mm:ss"),
+        deployedDate: deployment.format("DD-MM-YYYY HH:mm:ss"),
+        todayDate: today.format("DD-MM-YYYY HH:mm:ss"),
     });
 
     const dDate = deployment.date(); // 1–31
@@ -1665,11 +1666,11 @@ const getMonthIndex = (deploymentUnix, currentUnix = moment().unix()) => {
     }
 
     ct({
-      deploymentUnix,
-      currentUnix,
-      dDate,
-      firstCycleEnd: firstCycleEnd.format("DD-MM-YYYY HH:mm:ss"),
-      monthIndex
+        deploymentUnix,
+        currentUnix,
+        dDate,
+        firstCycleEnd: firstCycleEnd.format("DD-MM-YYYY HH:mm:ss"),
+        monthIndex
     });
 
     return monthIndex;
@@ -1683,11 +1684,11 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
     let activationMonth = null;
     let monthsPassed = null;
     let whichMonth = null;
-    
-    const monthIndex = getMonthIndex(timeUnixSeconds,moment().unix());
-    
+
+    const monthIndex = getMonthIndex(timeUnixSeconds, moment().unix());
+
     try {
-        
+
         if (!timeUnixSeconds || !orgBaseMinAssIn1e18) {
             return {
                 status,
@@ -1696,23 +1697,23 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
                 message: "Please send required fields"
             };
         }
-        
+
         // Activation start month (month 0)
         const activation = moment.unix(timeUnixSeconds).startOf("month");
         activationMonth = activation.format("MMMM YYYY");   // e.g. "October 2025"
-        
+
         // Current month
         const now = moment().startOf("month");
-        
+
         // Month difference
         let diffMonths = now.diff(activation, "months");
 
 
-        
+
         ct({ uid: "kjsd874", timeUnixSeconds, orgBaseMinAssIn1e18 });
         // monthIndex = diffMonths;            // 0 → same month
         // monthsPassed = diffMonths;          // readable number
-        
+
         // Human readable month (1st, 2nd, 3rd...)
         whichMonth = diffMonths === 0
             ? "Same month"
@@ -1724,9 +1725,9 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
         // CONDITIONS
         // ----------------------------
 
-    
 
-       
+
+
         if (monthIndex === 0) {
             // still in same month → return 0
             finalBaseMinAss = "0";
@@ -1762,10 +1763,10 @@ const calculateUserRoiAssurance = async (timeUnixSeconds, orgBaseMinAssIn1e18) =
             whichMonth,        // <── ADDED
             message: "Assurance calculated!",
             diffMonths,
-            deployedDate:moment.unix(timeUnixSeconds).format("MMMM Do, YYYY")
+            deployedDate: moment.unix(timeUnixSeconds).format("MMMM Do, YYYY")
         });
 
-        
+
 
         return {
             status,
@@ -1853,4 +1854,186 @@ const giveTeamBusinessForUser = async (userAddress) => {
     }
 }
 
-module.exports = {  giveTeamBusinessForUser,  generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount,getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+// const updateLastRoiDistributedTimeOnFeeDeposit = async (
+//     userAddress,
+//     depositTimeInUnix,
+//     nodeDeployedTime
+// ) => {
+//     try {
+//         const feeTime = moment.unix(depositTimeInUnix).utc();
+//         const deployTime = moment.unix(nodeDeployedTime).utc();
+
+//         const feeDate = feeTime.date();
+//         const deployDate = deployTime.date();
+
+//         // ---- Fetch DB details (YOU MUST IMPLEMENT THESE) ---- //
+//         const addrFilter = { userAddress: { $regex: new RegExp(`^${userAddress}$`, "i") } };
+//         const lastRoi = await RoiModel.findOne(addrFilter).sort({ time: -1 });
+//         const lastFee = await AssuranceFeeModel.findOne(addrFilter).sort({ time: -1 });
+//         console.log("last roi is",lastRoi)
+
+//         const prevMonthPaid = lastFee ? true : false; // Change logic as needed
+
+//         // ---- Utility functions ---- //
+//         const startOfDayUnix = (m) => m.clone().startOf("day").unix();
+//         const getNext7th = (m) => m.clone().add(1, "month").date(7).startOf("day").unix();
+
+//         // ======================================================
+//         // =============== CASE A: FIRST TIME FEE ===============
+//         // ======================================================
+
+//         if (!lastFee) {
+//             // A.1 Fee in 1–6 of deployment month
+//             if (feeDate <= 6 && feeTime.month() === deployTime.month()) {
+//                 return deployTime.clone().date(7).startOf("day").unix();
+//             }
+
+//             // A.2 Fee in 7–end of deployment month
+//             if (feeDate > 6 && feeTime.month() === deployTime.month()) {
+//                 return startOfDayUnix(feeTime);
+//             }
+
+//             // ==============================
+//             // CASE B: FIRST FEE BUT MISSED PREV MONTH
+//             // ==============================
+//             // This happens when:
+//             // deployment month = Nov
+//             // user missed Nov fee
+//             // and fee now coming in Dec
+
+//             // B.1 Fee 1–6 of next month after missing
+//             if (feeDate <= 6 && feeTime.month() === deployTime.month() + 1) {
+//                 return feeTime.clone().date(7).startOf("day").unix();
+//             }
+
+//             // B.2 Fee 7–end of next month after missing
+//             if (feeDate > 6 && feeTime.month() === deployTime.month() + 1) {
+//                 return startOfDayUnix(feeTime);
+//             }
+//         }
+
+//         // ======================================================
+//         // =============== CASE C: RE-TOPUP =====================
+//         // ======================================================
+
+//         if (lastFee) {
+//             const currentMonth = feeTime.month();
+//             const prevMonth = currentMonth - 1;
+
+//             // C.1 Re-Topup: Fee in 1–6 & prev month paid
+//             if (feeDate <= 6 && prevMonthPaid) {
+//                 if (lastRoi) return lastRoi.time;
+//             }
+
+//             // C.2 Re-Topup: Fee in 1–6 & prev month NOT paid
+//             if (feeDate <= 6 && !prevMonthPaid) {
+//                 return feeTime.clone().date(7).startOf("day").unix();
+//             }
+
+//             // C.3 Fee 7–end (always return start-of-day)
+//             if (feeDate > 6) {
+//                 return startOfDayUnix(feeTime);
+//             }
+//         }
+
+//         // fallback safe
+//         return startOfDayUnix(feeTime);
+
+//     } catch (error) {
+//         console.log(error);
+//         return moment().unix(); // safe fallback
+//     }
+// };
+
+
+const returnLastRoiDistributedTimeOnFeeDeposit = async (
+    userAddress,
+    depositTimeInUnix,
+    nodeDeployedTime
+) => {
+    try {
+        // Use SERVER LOCAL TIMEZONE (NO UTC)
+        const feeTime = moment.unix(depositTimeInUnix);
+        const deployTime = moment.unix(nodeDeployedTime);
+
+        const feeDate = feeTime.date();
+        const deployDate = deployTime.date();
+
+        const addrFilter = { userAddress: { $regex: new RegExp(`^${userAddress}$`, "i") } };
+
+        const lastRoi = await RoiModel.findOne(addrFilter).sort({ time: -1 });
+        const lastFee = await AssuranceFeeModel.findOne(addrFilter).sort({ time: -1 });
+
+        console.log("Last ROI:", lastRoi);
+
+        const prevMonthPaid = lastFee ? true : false;
+
+        // --- utility ---
+        const startOfDayUnix = (m) => m.clone().startOf("day").unix();
+
+        // ======================================================
+        // =============== CASE A: FIRST TIME FEE ===============
+        // ======================================================
+
+        if (!lastFee) {
+
+            // A.1 Fee 1–6 of same month of deployment
+            if (feeDate <= 6 && feeTime.month() === deployTime.month()) {
+                return deployTime.clone().date(7).startOf("day").unix();
+            }
+
+            // A.2 Fee 7–end of same month
+            if (feeDate > 6 && feeTime.month() === deployTime.month()) {
+                return startOfDayUnix(feeTime);
+            }
+
+            // ======================================================
+            // ========== CASE B: PREVIOUS MONTH MISSED ============
+            // ======================================================
+
+            // B.1 Fee 1–6 of NEXT month
+            if (feeDate <= 6 && feeTime.month() === deployTime.month() + 1) {
+                return feeTime.clone().date(7).startOf("day").unix();
+            }
+
+            // B.2 Fee 7–end of NEXT month
+            if (feeDate > 6 && feeTime.month() === deployTime.month() + 1) {
+                return startOfDayUnix(feeTime);
+            }
+        }
+
+        // ======================================================
+        // =============== CASE C: RE-TOPUP =====================
+        // ======================================================
+
+        if (lastFee) {
+
+            const currentMonth = feeTime.month();
+            const previousMonth = currentMonth - 1;
+
+            // C.1 Re-topup: Fee 1–6 and prev month PAID
+            if (feeDate <= 6 && prevMonthPaid) {
+                if (lastRoi) return lastRoi.time;
+            }
+
+            // C.2 Re-topup: Fee 1–6 and prev month NOT PAID
+            if (feeDate <= 6 && !prevMonthPaid) {
+                return feeTime.clone().date(7).startOf("day").unix();
+            }
+
+            // C.3 Fee 7–30 (always TODAY start-of-day)
+            if (feeDate > 6) {
+                return startOfDayUnix(feeTime);
+            }
+        }
+
+        // default fallback
+        return startOfDayUnix(feeTime);
+
+    } catch (error) {
+        console.log(error);
+        return moment().unix(); 
+    }
+};
+
+module.exports = { giveTeamBusinessForUser,returnLastRoiDistributedTimeOnFeeDeposit, generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
