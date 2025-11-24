@@ -1928,12 +1928,18 @@ const getUserNodeLists = async (req, res, next) => {
             }
         });
 
-        const userLastCompletedNode = await UpgradedNodes.findOne({ userAddress, isPaymentCompleted: true }, { lastUsedNonce: 0, rateDollarPerDsc: 0, transactionHash: 0, mixTransactionHash: 0, createdAt: 0, updatedAt: 0, __v: 0 }).sort({ nodeNum: -1 });
+        // const userLastCompletedNode = await UpgradedNodes.findOne({ userAddress, isPaymentCompleted: true }, { lastUsedNonce: 0, rateDollarPerDsc: 0, transactionHash: 0, mixTransactionHash: 0, createdAt: 0, updatedAt: 0, __v: 0 }).sort({ nodeNum: -1 });
+        const userPreviouslyPaidAmount = await UpgradedNodes.find({ userAddress}).select("amountUsdPaid -_id").lean();
+
+        const totalPaidAmount = userPreviouslyPaidAmount.reduce((acc, curr) => {
+            return acc.plus(new BigNumber(curr.amountUsdPaid || 0));
+        }
+        , new BigNumber(0));
 
 
 
 
-        return res.status(200).json({ success: true, nodes: nodeData, message: "Node validators fetched successfully!", userLastCompletedNode });
+        return res.status(200).json({ success: true, nodes: nodeData, message: "Node validators fetched successfully!",prevPaidAmount: new BigNumber(totalPaidAmount).dividedBy(1e18).toNumber() });
     } catch (error) {
         next(error);
     }
