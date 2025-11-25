@@ -2133,11 +2133,19 @@ const getValidatorsGroupData = async (req, res, next) => {
             // Extract month & year
             // -------------------------
             const parsedDate = moment(grp.month, "MMMM YYYY");
-            const startOfMonth = parsedDate.startOf("month").unix();
-            const endOfMonth = parsedDate.endOf("month").unix();
+            const startOfCustomMonth = parsedDate
+            .date(7)            // 7th of current month
+            .startOf("day")
+            .unix();
+
+        const endOfCustomMonth = parsedDate
+            .add(1, "month")    // move to next month
+            .date(6)            // 6th of next month
+            .endOf("day")
+            .unix();
 
             if(grp.month == "October 2025"){
-                ct({startOfMonth, endOfMonth,month:grp.month});
+                ct({month:grp.month});
             }
 
             // -------------------------
@@ -2145,7 +2153,10 @@ const getValidatorsGroupData = async (req, res, next) => {
             // -------------------------
             const docs = await NodeDeployedModel.find(
                 {
-                    time: { $gte: startOfMonth, $lte: endOfMonth }
+                    time: { 
+                        $gte: startOfCustomMonth, 
+                        $lte: endOfCustomMonth 
+                    }
                 },
                 { _id: 0, baseMinValue: 1, block: 1 }
             ).lean();
