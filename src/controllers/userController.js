@@ -2125,37 +2125,34 @@ const getValidatorsGroupData = async (req, res, next) => {
 
         let finalGroups = [];
 
+        let validCount=0;
         for (let i = 0; i < nodeGroups.length; i++) {
 
             const grp = nodeGroups[i];
 
-              // -------------------------
+            // -------------------------
             // Extract month & year
             // -------------------------
             const parsedDate = moment(grp.month, "MMMM YYYY");
             const startOfCustomMonth = parsedDate
-            .date(7)            // 7th of current month
-            .startOf("day")
-            .unix();
+                .date(7)            // 7th of current month
+                .startOf("day")
+                .unix();
 
-        const endOfCustomMonth = parsedDate
-            .add(1, "month")    // move to next month
-            .date(6)            // 6th of next month
-            .endOf("day")
-            .unix();
-
-            if(grp.month == "October 2025"){
-                ct({month:grp.month});
-            }
+            const endOfCustomMonth = parsedDate
+                .add(1, "month")    // move to next month
+                .date(6)            // 6th of next month
+                .endOf("day")
+                .unix();
 
             // -------------------------
             // Fetch nodes for this month
             // -------------------------
             const docs = await NodeDeployedModel.find(
                 {
-                    time: { 
-                        $gte: startOfCustomMonth, 
-                        $lte: endOfCustomMonth 
+                    time: {
+                        $gte: startOfCustomMonth,
+                        $lte: endOfCustomMonth
                     }
                 },
                 { _id: 0, baseMinValue: 1, block: 1 }
@@ -2172,17 +2169,23 @@ const getValidatorsGroupData = async (req, res, next) => {
             const votingPower = (totalBase.dividedBy(1e18)).dividedBy(5.4).toNumber();
 
             // --- Build final sample object ---
+            if (docs.length === 0) continue;
+            validCount++;
             finalGroups.push({
-                id: i + 1,
+                id: validCount,
                 groupName: grp.groupName,
                 month: grp.month,
-                votingPower:votingPower.toFixed(2),
-                firstBlock: docs.length > 0 ? docs[0].block : null,
+                votingPower: votingPower.toFixed(2),
+                // firstBlock: docs.length > 0 ? docs[0].block : null,
+                firstBlock: null,
                 availability: docs.length > 0,
                 gas: docs.length > 0,
-                minAssurance: docs.length > 0
+                minAssurance: docs.length > 0,
+                active: docs.length > 0
             });
         }
+
+        finalGroups = finalGroups.filter(g => g.availability);
 
         return res.status(200).json({
             success: true,
@@ -2195,11 +2198,147 @@ const getValidatorsGroupData = async (req, res, next) => {
     }
 };
 
+const getValidatorsList = async (req, res, next) => {
+    try {
+        const { groupName } = req.body;
+        if (!groupName) throw new Error("Please provide group name.");
+
+        const group = nodeGroups.find((g) => g.groupName === groupName);
+        if (!group) throw new Error("Please provide valid group name.");
+
+        // ---------------------------------------
+        // Calculate custom month range
+        // ---------------------------------------
+        const parsedDate = moment(group.month, "MMMM YYYY");
+
+        const startOfCustomMonth = parsedDate.date(7).startOf("day").unix();  // 7th 00:00
+        const endOfCustomMonth = parsedDate
+            .add(1, "month")
+            .date(6)
+            .endOf("day")
+            .unix();                                                             // Next month 6th 23:59
+
+        // --------------------------------------------------
+        // Fetch deployed nodes that belong to this time window
+        // --------------------------------------------------
+        const deployedNodes = await NodeDeployedModel.find({
+            time: { $gte: startOfCustomMonth, $lte: endOfCustomMonth },
+        }).lean();
+
+        let result = [];
+        let idCounter = 1;
+
+        const {nodeValidators} = await giveAdminSettings();
+
+        for (const node of deployedNodes) {
+            // --------------------------------------------
+            //   MIN ASSURANCE (baseMinAss in 1e18 → decimal)
+            // --------------------------------------------
+            let minAssurance = "0";
+            if (node.baseMinAss) {
+                minAssurance = new BigNumber(node.baseMinAss)
+                    .div(1e18)
+                    .toString(10);
+            }
+
+            // --------------------------------------------
+            // VOTING POWER = SUM(minAss) / 5.4
+            // --------------------------------------------
+            const minAssBN = new BigNumber(minAssurance);
+            const votingPower = minAssBN.div(5.4).toFixed(4);
+
+            // --------------------------------------------
+            // ROI MODEL CALCULATIONS
+            // --------------------------------------------
+            const roiRecords = await RoiModel.find({
+                userAddress: node.userAddress,
+                nodeNum: node.nodeNum,
+                time: { $gte: startOfCustomMonth, $lte: endOfCustomMonth },
+            }).lean();
+
+
+            ct({ roiCount: roiRecords.length,startOfCustomMonth,endOfCustomMonth });
+
+            // ***************************************
+            // ONE DAY ROI (same-day entries)
+            // ***************************************
+            const todayStart = moment.unix(startOfCustomMonth).startOf("day").unix();
+            const todayEnd = moment.unix(startOfCustomMonth).endOf("day").unix();
+
+            const oneDayIncomes = roiRecords.filter(
+                (r) => r.time >= todayStart && r.time <= todayEnd
+            );
+
+            const oneDay = oneDayIncomes.reduce((acc, r) => {
+                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                return acc.plus(d).plus(s);
+            }, new BigNumber(0)).toFixed(6);
+
+            // ***************************************
+            // SEVEN DAYS (ISO Monday → Sunday)
+            // ***************************************
+            const monday = moment.unix(startOfCustomMonth).isoWeekday(1).startOf("day").unix();
+            const sunday = moment.unix(startOfCustomMonth).isoWeekday(7).endOf("day").unix();
+
+            const sevenDayRecords = roiRecords.filter(
+                (r) => r.time >= monday && r.time <= sunday
+            );
+
+            const sevenDays = sevenDayRecords.reduce((acc, r) => {
+                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                return acc.plus(d).plus(s);
+            }, new BigNumber(0)).toFixed(6);
+
+            // ***************************************
+            // THIRTY DAYS = full custom month window
+            // ***************************************
+            const thirtyDayRecords = roiRecords; // already filtered
+
+            const thirtyDays = thirtyDayRecords.reduce((acc, r) => {
+                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                return acc.plus(d).plus(s);
+            }, new BigNumber(0)).toFixed(6);
+
+            // --------------------------------------------
+            // Build FINAL OBJECT
+            // --------------------------------------------
+            const nodeName = nodeValidators.find(n => n.nodeNum === node.nodeNum)?.name || `Node ${node.nodeNum}`;
+            result.push({
+                id: idCounter++,
+                groupName,
+                votingPower,
+                firstBlock: node.block || null,
+                gasTracker: 0, // you can enable later if needed
+                minAssurance,
+                oneDay,
+                sevenDays,
+                thirtyDays,
+                active: true,
+                nodeName
+
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Validator list fetched successfully!",
+            validatorsList: result,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 module.exports = {
     stakeVrs,
     userTeamBusiness,
     userTeamList,
+    getValidatorsList,
     getUserNodeLists,
     getValidatorsGroupData,
     userAlldirects,
