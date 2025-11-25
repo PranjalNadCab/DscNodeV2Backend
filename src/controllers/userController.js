@@ -12,7 +12,7 @@ const Admin = require("../models/AdminModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const UpgradedNodes = require("../models/UpgradeNodeModel");
 const RoiModel = require("../models/RoiModel");
-const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash } = require("../helpers/constant");
+const { usdDscRatio, ratioUsdDsc, nbdAmounts, zeroAddressTxhash, nodeGroups } = require("../helpers/constant");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel.js");
 const NbdFundModel = require("../models/NbdFundsModel.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
@@ -20,6 +20,7 @@ const ActivateFsrModel = require("../models/ActivateFsrModel.js");
 const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
 const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
+const moment = require("moment");
 
 
 
@@ -1929,17 +1930,17 @@ const getUserNodeLists = async (req, res, next) => {
         });
 
         // const userLastCompletedNode = await UpgradedNodes.findOne({ userAddress, isPaymentCompleted: true }, { lastUsedNonce: 0, rateDollarPerDsc: 0, transactionHash: 0, mixTransactionHash: 0, createdAt: 0, updatedAt: 0, __v: 0 }).sort({ nodeNum: -1 });
-        const userPreviouslyPaidAmount = await UpgradedNodes.find({ userAddress}).select("amountUsdPaid -_id").lean();
+        const userPreviouslyPaidAmount = await UpgradedNodes.find({ userAddress }).select("amountUsdPaid -_id").lean();
 
         const totalPaidAmount = userPreviouslyPaidAmount.reduce((acc, curr) => {
             return acc.plus(new BigNumber(curr.amountUsdPaid || 0));
         }
-        , new BigNumber(0));
+            , new BigNumber(0));
 
 
 
 
-        return res.status(200).json({ success: true, nodes: nodeData, message: "Node validators fetched successfully!",prevPaidAmount: new BigNumber(totalPaidAmount).dividedBy(1e18).toNumber() });
+        return res.status(200).json({ success: true, nodes: nodeData, message: "Node validators fetched successfully!", prevPaidAmount: new BigNumber(totalPaidAmount).dividedBy(1e18).toNumber() });
     } catch (error) {
         next(error);
     }
@@ -2119,12 +2120,77 @@ const userTeamBusiness = async (req, res, next) => {
     }
 }
 
+const getValidatorsGroupData = async (req, res, next) => {
+    try {
+
+        let finalGroups = [];
+
+        for (let i = 0; i < nodeGroups.length; i++) {
+
+            const grp = nodeGroups[i];
+
+              // -------------------------
+            // Extract month & year
+            // -------------------------
+            const parsedDate = moment(grp.month, "MMMM YYYY");
+            const startOfMonth = parsedDate.startOf("month").unix();
+            const endOfMonth = parsedDate.endOf("month").unix();
+
+            if(grp.month == "October 2025"){
+                ct({startOfMonth, endOfMonth,month:grp.month});
+            }
+
+            // -------------------------
+            // Fetch nodes for this month
+            // -------------------------
+            const docs = await NodeDeployedModel.find(
+                {
+                    time: { $gte: startOfMonth, $lte: endOfMonth }
+                },
+                { _id: 0, baseMinValue: 1, block: 1 }
+            ).lean();
+
+            // --- Calculate voting power ---
+            let totalBase = new BigNumber(0);
+
+            for (const d of docs) {
+                totalBase = totalBase.plus(new BigNumber(d.baseMinValue || 0));
+            }
+
+            // Convert from wei & divide by 5.4
+            const votingPower = (totalBase.dividedBy(1e18)).dividedBy(5.4).toNumber();
+
+            // --- Build final sample object ---
+            finalGroups.push({
+                id: i + 1,
+                groupName: grp.groupName,
+                month: grp.month,
+                votingPower:votingPower.toFixed(2),
+                firstBlock: docs.length > 0 ? docs[0].block : null,
+                availability: docs.length > 0,
+                gas: docs.length > 0,
+                minAssurance: docs.length > 0
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Validator group data fetched successfully!",
+            groups: finalGroups
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 module.exports = {
     stakeVrs,
     userTeamBusiness,
     userTeamList,
     getUserNodeLists,
+    getValidatorsGroupData,
     userAlldirects,
     sponsoredTxHistory,
     getUserAssuranceFeeInfo,

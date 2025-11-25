@@ -78,7 +78,26 @@ const zeroAddressTxhash = "0x000000000000000000000000000000000000000000000000000
 
 const nbdAmounts=[
     300,600,900,1200,1800,2400,3600,4800,6000
-]
+];
+
+const nodeGroups =[
+    {
+        groupName:"Alpha I",
+        month:"August 2025"
+    },
+    {
+        groupName:"Alpha II",
+        month:"September 2025"
+    },
+    {
+        groupName:"Octa",
+        month:"October 2025"
+    },
+    {
+        groupName:"Nova",
+        month:"November 2025"
+    }
+];
 
 module.exports = {
     ranks,
@@ -86,5 +105,6 @@ module.exports = {
     ratioUsdDsc,
     zeroAddressTxhash,
     nbdAmounts,
+    nodeGroups
   
 };

@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness, getValidatorsGroupData } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -39,6 +39,7 @@ router.post("/get-user-node-lists",getUserNodeLists);
 router.post("/user-directs-list",userAlldirects);
 router.post("/user-team-list",userTeamList);
 router.post("get-user-team-business",userTeamBusiness);
+router.get("/get-validators-group-data",getValidatorsGroupData);
 
 
 
