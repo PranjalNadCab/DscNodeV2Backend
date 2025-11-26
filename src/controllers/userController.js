@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser, getRealCustomMonthRange } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -2125,7 +2125,7 @@ const getValidatorsGroupData = async (req, res, next) => {
 
         let finalGroups = [];
 
-        let validCount=0;
+        let validCount = 0;
         for (let i = 0; i < nodeGroups.length; i++) {
 
             const grp = nodeGroups[i];
@@ -2228,7 +2228,7 @@ const getValidatorsList = async (req, res, next) => {
         let result = [];
         let idCounter = 1;
 
-        const {nodeValidators} = await giveAdminSettings();
+        const { nodeValidators } = await giveAdminSettings();
 
         for (const node of deployedNodes) {
             // --------------------------------------------
@@ -2250,24 +2250,30 @@ const getValidatorsList = async (req, res, next) => {
             // --------------------------------------------
             // ROI MODEL CALCULATIONS
             // --------------------------------------------
+            const { start: realStart, end: realEnd } = getRealCustomMonthRange();
+
+
             const roiRecords = await RoiModel.find({
                 userAddress: node.userAddress,
                 nodeNum: node.nodeNum,
-                time: { $gte: startOfCustomMonth, $lte: endOfCustomMonth },
+                time: { $gte: realStart, $lte: realEnd },
             }).lean();
 
 
-            ct({ roiCount: roiRecords.length,startOfCustomMonth,endOfCustomMonth });
 
             // ***************************************
             // ONE DAY ROI (same-day entries)
             // ***************************************
-            const todayStart = moment.unix(startOfCustomMonth).startOf("day").unix();
-            const todayEnd = moment.unix(startOfCustomMonth).endOf("day").unix();
+            const todayStart = moment().startOf("day").unix();
+            const todayEnd = moment().endOf("day").unix();
 
+           
             const oneDayIncomes = roiRecords.filter(
                 (r) => r.time >= todayStart && r.time <= todayEnd
             );
+            if(node.userAddress == "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC"){
+                ct({ userAddress:node.userAddress,roiCountForUser: roiRecords.length, realStart, realEnd, startOfCustomMonth,oneDayIncomesCount: oneDayIncomes.length,todayStart,todayEnd });
+            }
 
             const oneDay = oneDayIncomes.reduce((acc, r) => {
                 let d = new BigNumber(r.dscAllocation || "0").div(1e18);
@@ -2275,11 +2281,10 @@ const getValidatorsList = async (req, res, next) => {
                 return acc.plus(d).plus(s);
             }, new BigNumber(0)).toFixed(6);
 
-            // ***************************************
-            // SEVEN DAYS (ISO Monday → Sunday)
-            // ***************************************
-            const monday = moment.unix(startOfCustomMonth).isoWeekday(1).startOf("day").unix();
-            const sunday = moment.unix(startOfCustomMonth).isoWeekday(7).endOf("day").unix();
+    
+
+            const monday = moment().startOf('isoWeek').unix(); // Monday 00:00
+            const sunday = moment().endOf('isoWeek').unix(); 
 
             const sevenDayRecords = roiRecords.filter(
                 (r) => r.time >= monday && r.time <= sunday
@@ -2317,7 +2322,8 @@ const getValidatorsList = async (req, res, next) => {
                 sevenDays,
                 thirtyDays,
                 active: true,
-                nodeName
+                nodeName,
+                userAddress:node.userAddress
 
             });
         }

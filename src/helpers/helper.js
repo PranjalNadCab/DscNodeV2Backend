@@ -2036,4 +2036,24 @@ const returnLastRoiDistributedTimeOnFeeDeposit = async (
     }
 };
 
-module.exports = { giveTeamBusinessForUser,returnLastRoiDistributedTimeOnFeeDeposit, generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+function getRealCustomMonthRange() {
+    const today = moment();
+
+    let monthStart;
+    let monthEnd;
+
+    if (today.date() >= 7) {
+        monthStart = today.clone().date(7).startOf("day");
+        monthEnd = today.clone().add(1, "month").date(6).endOf("day");
+    } else {
+        monthStart = today.clone().subtract(1, "month").date(7).startOf("day");
+        monthEnd = today.clone().date(6).endOf("day");
+    }
+
+    return {
+        start: monthStart.unix(),
+        end: monthEnd.unix()
+    };
+}
+
+module.exports = {getRealCustomMonthRange, giveTeamBusinessForUser,returnLastRoiDistributedTimeOnFeeDeposit, generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
