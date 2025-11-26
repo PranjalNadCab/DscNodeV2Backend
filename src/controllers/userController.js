@@ -21,6 +21,7 @@ const { getLivePrice } = require("../utils/liveDscPriceApi.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
 const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel.js");
 const moment = require("moment");
+const { default: axios } = require("axios");
 
 
 
@@ -2187,10 +2188,22 @@ const getValidatorsGroupData = async (req, res, next) => {
 
         finalGroups = finalGroups.filter(g => g.availability);
 
+        //=======include node 1.0 group data======================
+        let groups = [];
+        const url = `${process.env.NODE1_API}/api/get-validators-group`;
+        const result = await axios.get(url);
+        if (result.status == 200) {
+            groups = result.data.groups
+        }
+
+
+        //=======include node 1.0 group data======================
+
+
         return res.status(200).json({
             success: true,
             message: "Validator group data fetched successfully!",
-            groups: finalGroups
+            groups: [...groups, ...finalGroups]
         });
 
     } catch (error) {
@@ -2206,134 +2219,168 @@ const getValidatorsList = async (req, res, next) => {
         const group = nodeGroups.find((g) => g.groupName === groupName);
         if (!group) throw new Error("Please provide valid group name.");
 
-        // ---------------------------------------
-        // Calculate custom month range
-        // ---------------------------------------
-        const parsedDate = moment(group.month, "MMMM YYYY");
-
-        const startOfCustomMonth = parsedDate.date(7).startOf("day").unix();  // 7th 00:00
-        const endOfCustomMonth = parsedDate
-            .add(1, "month")
-            .date(6)
-            .endOf("day")
-            .unix();                                                             // Next month 6th 23:59
-
-        // --------------------------------------------------
-        // Fetch deployed nodes that belong to this time window
-        // --------------------------------------------------
-        const deployedNodes = await NodeDeployedModel.find({
-            time: { $gte: startOfCustomMonth, $lte: endOfCustomMonth },
-        }).lean();
-
-        let result = [];
-        let idCounter = 1;
-
-        const { nodeValidators } = await giveAdminSettings();
-
-        for (const node of deployedNodes) {
-            // --------------------------------------------
-            //   MIN ASSURANCE (baseMinAss in 1e18 → decimal)
-            // --------------------------------------------
-            let minAssurance = "0";
-            if (node.baseMinAss) {
-                minAssurance = new BigNumber(node.baseMinAss)
-                    .div(1e18)
-                    .toString(10);
+        if (groupName === nodeGroups[0].groupName || groupName === nodeGroups[1].groupName) {
+            ct({groupName,nodeInfo:nodeGroups[0].groupName})
+            //=======include node 1.0 list data======================
+            let allList = [];
+            try{
+                const url = `${process.env.NODE1_API}/api/get-validators-list`;
+                const list = await axios.post(url,{groupName});
+                if (list.status == 200) {
+                    allList = list.data.validatorsList
+                }
+    
+                return res.status(200).json({
+                    success: true,
+                    message: "Validator list fetched successfully!",
+                    validatorsList: allList || [],
+                });
+            }catch(error){
+                console.log("Error fetching node 1.0 validator list:",error);
+                return res.status(200).json({
+                    success: true,
+                    message: "Validator list fetched successfully!",
+                    validatorsList:  [],
+                });
             }
-
-            // --------------------------------------------
-            // VOTING POWER = SUM(minAss) / 5.4
-            // --------------------------------------------
-            const minAssBN = new BigNumber(minAssurance);
-            const votingPower = minAssBN.div(5.4).toFixed(4);
-
-            // --------------------------------------------
-            // ROI MODEL CALCULATIONS
-            // --------------------------------------------
-            const { start: realStart, end: realEnd } = getRealCustomMonthRange();
+           
 
 
-            const roiRecords = await RoiModel.find({
-                userAddress: node.userAddress,
-                nodeNum: node.nodeNum,
-                time: { $gte: realStart, $lte: realEnd },
+            //=======include node 1.0 list data======================
+        } else {
+
+
+
+            // ---------------------------------------
+            // Calculate custom month range
+            // ---------------------------------------
+            const parsedDate = moment(group.month, "MMMM YYYY");
+
+            const startOfCustomMonth = parsedDate.date(7).startOf("day").unix();  // 7th 00:00
+            const endOfCustomMonth = parsedDate
+                .add(1, "month")
+                .date(6)
+                .endOf("day")
+                .unix();                                                             // Next month 6th 23:59
+
+            // --------------------------------------------------
+            // Fetch deployed nodes that belong to this time window
+            // --------------------------------------------------
+            const deployedNodes = await NodeDeployedModel.find({
+                time: { $gte: startOfCustomMonth, $lte: endOfCustomMonth },
             }).lean();
 
+            let result = [];
+            let idCounter = 1;
+
+            const { nodeValidators } = await giveAdminSettings();
+
+            for (const node of deployedNodes) {
+                // --------------------------------------------
+                //   MIN ASSURANCE (baseMinAss in 1e18 → decimal)
+                // --------------------------------------------
+                let minAssurance = "0";
+                if (node.baseMinAss) {
+                    minAssurance = new BigNumber(node.baseMinAss)
+                        .div(1e18)
+                        .toString(10);
+                }
+
+                // --------------------------------------------
+                // VOTING POWER = SUM(minAss) / 5.4
+                // --------------------------------------------
+                const minAssBN = new BigNumber(minAssurance);
+                const votingPower = minAssBN.div(5.4).toFixed(4);
+
+                // --------------------------------------------
+                // ROI MODEL CALCULATIONS
+                // --------------------------------------------
+                const { start: realStart, end: realEnd } = getRealCustomMonthRange();
 
 
-            // ***************************************
-            // ONE DAY ROI (same-day entries)
-            // ***************************************
-            const todayStart = moment().startOf("day").unix();
-            const todayEnd = moment().endOf("day").unix();
+                const roiRecords = await RoiModel.find({
+                    userAddress: node.userAddress,
+                    nodeNum: node.nodeNum,
+                    time: { $gte: realStart, $lte: realEnd },
+                }).lean();
 
-           
-            const oneDayIncomes = roiRecords.filter(
-                (r) => r.time >= todayStart && r.time <= todayEnd
-            );
-            if(node.userAddress == "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC"){
-                ct({ userAddress:node.userAddress,roiCountForUser: roiRecords.length, realStart, realEnd, startOfCustomMonth,oneDayIncomesCount: oneDayIncomes.length,todayStart,todayEnd });
+
+
+                // ***************************************
+                // ONE DAY ROI (same-day entries)
+                // ***************************************
+                const todayStart = moment().startOf("day").unix();
+                const todayEnd = moment().endOf("day").unix();
+
+
+                const oneDayIncomes = roiRecords.filter(
+                    (r) => r.time >= todayStart && r.time <= todayEnd
+                );
+                if (node.userAddress == "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC") {
+                    ct({ userAddress: node.userAddress, roiCountForUser: roiRecords.length, realStart, realEnd, startOfCustomMonth, oneDayIncomesCount: oneDayIncomes.length, todayStart, todayEnd });
+                }
+
+                const oneDay = oneDayIncomes.reduce((acc, r) => {
+                    let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                    let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                    return acc.plus(d).plus(s);
+                }, new BigNumber(0)).toFixed(2);
+
+
+
+                const monday = moment().startOf('isoWeek').unix(); // Monday 00:00
+                const sunday = moment().endOf('isoWeek').unix();
+
+                const sevenDayRecords = roiRecords.filter(
+                    (r) => r.time >= monday && r.time <= sunday
+                );
+
+                const sevenDays = sevenDayRecords.reduce((acc, r) => {
+                    let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                    let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                    return acc.plus(d).plus(s);
+                }, new BigNumber(0)).toFixed(2);
+
+                // ***************************************
+                // THIRTY DAYS = full custom month window
+                // ***************************************
+                const thirtyDayRecords = roiRecords; // already filtered
+
+                const thirtyDays = thirtyDayRecords.reduce((acc, r) => {
+                    let d = new BigNumber(r.dscAllocation || "0").div(1e18);
+                    let s = new BigNumber(r.swapAllocation || "0").div(1e18);
+                    return acc.plus(d).plus(s);
+                }, new BigNumber(0)).toFixed(2);
+
+                // --------------------------------------------
+                // Build FINAL OBJECT
+                // --------------------------------------------
+                const nodeName = nodeValidators.find(n => n.nodeNum === node.nodeNum)?.name || `Node ${node.nodeNum}`;
+                result.push({
+                    id: idCounter++,
+                    groupName,
+                    votingPower,
+                    firstBlock: node.block || null,
+                    gasTracker: 0, // you can enable later if needed
+                    minAssurance,
+                    oneDay,
+                    sevenDays,
+                    thirtyDays,
+                    active: true,
+                    nodeName,
+                    userAddress: node.userAddress
+
+                });
             }
 
-            const oneDay = oneDayIncomes.reduce((acc, r) => {
-                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
-                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
-                return acc.plus(d).plus(s);
-            }, new BigNumber(0)).toFixed(6);
 
-    
 
-            const monday = moment().startOf('isoWeek').unix(); // Monday 00:00
-            const sunday = moment().endOf('isoWeek').unix(); 
-
-            const sevenDayRecords = roiRecords.filter(
-                (r) => r.time >= monday && r.time <= sunday
-            );
-
-            const sevenDays = sevenDayRecords.reduce((acc, r) => {
-                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
-                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
-                return acc.plus(d).plus(s);
-            }, new BigNumber(0)).toFixed(6);
-
-            // ***************************************
-            // THIRTY DAYS = full custom month window
-            // ***************************************
-            const thirtyDayRecords = roiRecords; // already filtered
-
-            const thirtyDays = thirtyDayRecords.reduce((acc, r) => {
-                let d = new BigNumber(r.dscAllocation || "0").div(1e18);
-                let s = new BigNumber(r.swapAllocation || "0").div(1e18);
-                return acc.plus(d).plus(s);
-            }, new BigNumber(0)).toFixed(6);
-
-            // --------------------------------------------
-            // Build FINAL OBJECT
-            // --------------------------------------------
-            const nodeName = nodeValidators.find(n => n.nodeNum === node.nodeNum)?.name || `Node ${node.nodeNum}`;
-            result.push({
-                id: idCounter++,
-                groupName,
-                votingPower,
-                firstBlock: node.block || null,
-                gasTracker: 0, // you can enable later if needed
-                minAssurance,
-                oneDay,
-                sevenDays,
-                thirtyDays,
-                active: true,
-                nodeName,
-                userAddress:node.userAddress
-
+            return res.status(200).json({
+                success: true,
+                message: "Validator list fetched successfully!",
+                validatorsList: result,
             });
         }
-
-        return res.status(200).json({
-            success: true,
-            message: "Validator list fetched successfully!",
-            validatorsList: result,
-        });
-
     } catch (error) {
         next(error);
     }
