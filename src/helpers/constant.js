@@ -90,13 +90,149 @@ const nodeGroups =[
         month:"September 2025"
     },
     {
-        groupName:"Octa",
+        groupName:"Octa I",
         month:"October 2025"
     },
     {
-        groupName:"Nova",
+        groupName:"Nova I",
         month:"November 2025"
-    }
+    },
+    {
+        groupName:"Decenta I",
+        month:"December 2025"
+    },
+    {
+        groupName:"Janus I",
+        month:"January 2026"
+    },
+    {
+        groupName:"Fabrus I",
+        month:"February 2026"
+    },
+    {
+        groupName:"Marche I",
+        month:"March 2026"
+    },
+    {
+        groupName:"Aprila I",
+        month:"April 2026"
+    },
+    {
+        groupName:"Maya I",
+        month:"May 2026"
+    },
+    {
+        groupName:"Junio I",
+        month:"June 2026"
+    },
+    {
+        groupName:"Juliet I",
+        month:"July 2026"
+    },
+    {
+        groupName:"Augustus I",
+        month:"August 2026"
+    },
+    {
+        groupName:"Septima I",
+        month:"September 2026"
+    },
+    {
+        groupName:"Octa II",
+        month:"October 2026"
+    },
+    {
+        groupName:"Nova II",
+        month:"November 2026"
+    },
+    {
+        groupName:"Decenta II",
+        month:"December 2026"
+    },
+    {
+        groupName:"Janus II",
+        month:"January 2027"
+    },
+    {
+        groupName:"Fabrus II",
+        month:"February 2027"
+    },
+    {
+        groupName:"Marche II",
+        month:"March 2027"
+    },
+    {
+        groupName:"Aprila II",
+        month:"April 2027"
+    },
+    {
+        groupName:"Maya II",
+        month:"May 2027"
+    },
+    {
+        groupName:"Junio II",
+        month:"June 2027"
+    },
+    {
+        groupName:"Juliet II",
+        month:"July 2027"
+    },
+    {
+        groupName:"Augustus II",
+        month:"August 2027"
+    },
+    {
+        groupName:"Septima II",
+        month:"September 2027"
+    },
+    {
+        groupName:"Octa III",
+        month:"October 2027"
+    },
+    {
+        groupName:"Nova III",
+        month:"November 2027"
+    },
+    {
+        groupName:"Decenta III",
+        month:"December 2027"
+    },
+    {
+        groupName:"Janus III",
+        month:"January 2028"
+    },
+    {
+        groupName:"Fabrus III",
+        month:"February 2028"
+    },
+    {
+        groupName:"Marche III",
+        month:"March 2028"
+    },
+    {
+        groupName:"Aprila III",
+        month:"April 2028"
+    },
+    {
+        groupName:"Maya III",
+        month:"May 2028"
+    },
+    {
+        groupName:"Junio III",
+        month:"June 2028"
+    },
+    {
+        groupName:"Juliet III",
+        month:"July 2028"
+    },
+    {
+        groupName:"Augustus III",
+        month:"August 2028"
+    },
+    {
+        groupName:"Septima III",
+        month:"September 2028"
+    },
 ];
 
 module.exports = {
