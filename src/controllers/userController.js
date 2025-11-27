@@ -2130,6 +2130,7 @@ const getValidatorsGroupData = async (req, res, next) => {
         for (let i = 0; i < nodeGroups.length; i++) {
 
             const grp = nodeGroups[i];
+            if(grp.groupName === "Alpha I" || grp.groupName === "Alpha II") continue;
 
             // -------------------------
             // Extract month & year
@@ -2170,7 +2171,15 @@ const getValidatorsGroupData = async (req, res, next) => {
             const votingPower = (totalBase.dividedBy(1e18)).dividedBy(5.4).toNumber();
 
             // --- Build final sample object ---
-            if (docs.length === 0) continue;
+            // if (docs.length === 0) continue;
+            const currentUnix = moment().unix();
+    let availabilityStatus = "Coming Soon"; // default
+
+    if (currentUnix >= startOfCustomMonth && currentUnix <= endOfCustomMonth) {
+    availabilityStatus = "Yes";
+    } else if (currentUnix > endOfCustomMonth) {
+    availabilityStatus = "No";
+    }
             validCount++;
             finalGroups.push({
                 id: validCount,
@@ -2179,8 +2188,8 @@ const getValidatorsGroupData = async (req, res, next) => {
                 votingPower: votingPower.toFixed(2),
                 // firstBlock: docs.length > 0 ? docs[0].block : null,
                 firstBlock: null,
-                availability: docs.length > 0,
-                gas: docs.length > 0,
+                availability: availabilityStatus,
+                gas: false,
                 minAssurance: docs.length > 0,
                 active: docs.length > 0
             });
@@ -2220,7 +2229,6 @@ const getValidatorsList = async (req, res, next) => {
         if (!group) throw new Error("Please provide valid group name.");
 
         if (groupName === nodeGroups[0].groupName || groupName === nodeGroups[1].groupName) {
-            ct({groupName,nodeInfo:nodeGroups[0].groupName})
             //=======include node 1.0 list data======================
             let allList = [];
             try{
@@ -2316,9 +2324,7 @@ const getValidatorsList = async (req, res, next) => {
                 const oneDayIncomes = roiRecords.filter(
                     (r) => r.time >= todayStart && r.time <= todayEnd
                 );
-                if (node.userAddress == "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC") {
-                    ct({ userAddress: node.userAddress, roiCountForUser: roiRecords.length, realStart, realEnd, startOfCustomMonth, oneDayIncomesCount: oneDayIncomes.length, todayStart, todayEnd });
-                }
+               
 
                 const oneDay = oneDayIncomes.reduce((acc, r) => {
                     let d = new BigNumber(r.dscAllocation || "0").div(1e18);
