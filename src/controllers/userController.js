@@ -2199,7 +2199,7 @@ const getValidatorsGroupData = async (req, res, next) => {
 
         //=======include node 1.0 group data======================
         let groups = [];
-        const url = `${process.env.NODE1_API}/api/get-validators-group`;
+        const url = `${process.env.NODE1_API}/get-validators-group`;
         const result = await axios.get(url);
         if (result.status == 200) {
             groups = result.data.groups
@@ -2232,7 +2232,7 @@ const getValidatorsList = async (req, res, next) => {
             //=======include node 1.0 list data======================
             let allList = [];
             try{
-                const url = `${process.env.NODE1_API}/api/get-validators-list`;
+                const url = `${process.env.NODE1_API}/get-validators-list`;
                 const list = await axios.post(url,{groupName});
                 if (list.status == 200) {
                     allList = list.data.validatorsList
