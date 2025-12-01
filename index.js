@@ -106,6 +106,7 @@ const server = app.listen(PORT, async () => {
     const unixServerTimeCheck = moment().unix();
     console.log(`🚀 Server is running on port ${PORT} at ${currentTime} & in unix check: ${unixServerTimeCheck}`);
 
+    await ratioUsdDsc();
     if (process.env.NODE_ENV === "development") {
         const res = await getLivePrice();
         console.log("Live DSC Price fetched successfully:", res);
@@ -120,7 +121,7 @@ const server = app.listen(PORT, async () => {
         // await giveRoiToNodeHolders();
         // await givePaymentRatioForDeployedNode("0x63bD0d5ae4E76AB501E3bD03A03c52Db8D3429CF",3);
     //    await calculateUserRoiAssurance(1722470400,"270000000000000000000"); 
-
+        // await updateNodeValueAssurance();
     } else {
 
         const res = await getLivePrice();

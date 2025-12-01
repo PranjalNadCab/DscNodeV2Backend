@@ -45,34 +45,70 @@ const gapIncome = {
 
 
 
+// const ratioUsdDsc = () => {
+//     const START_MONTH = process.env.START_MONTH || "2025-11"; // format YYYY-MM
+
+//     // fixed 9 months
+//     const MONTHS_COUNT = 9;
+
+//     // base ratios (you can adjust increments however you want)
+//     const baseUsd = 55;
+//     const baseDsc = 45;
+//     const increment = 5;
+
+//     const startMoment = moment(START_MONTH, "YYYY-MM");
+
+//     // Generate dynamic month ratio object
+//     const usdDscRatio = {};
+
+//     for (let i = 0; i < MONTHS_COUNT; i++) {
+//         const monthName = startMoment.clone().add(i, "months").format("MMMM").toLowerCase();
+
+//         usdDscRatio[monthName] = {
+//             usd: baseUsd + i * increment,
+//             dsc: baseDsc - i * increment
+//         };
+//     }
+
+//     const monthKey = moment().format("MMMM").toLowerCase(); 
+//     console.log("Current Month Key for USD/DSC Ratio:-----", usdDscRatio[monthKey]);
+//     return usdDscRatio[monthKey] ? usdDscRatio[monthKey] : { usd: 55, dsc: 45 };
+// }
+
 const ratioUsdDsc = () => {
     const START_MONTH = process.env.START_MONTH || "2025-11"; // format YYYY-MM
 
-    // fixed 9 months
     const MONTHS_COUNT = 9;
-
-    // base ratios (you can adjust increments however you want)
+    
     const baseUsd = 55;
     const baseDsc = 45;
     const increment = 5;
 
-    const startMoment = moment(START_MONTH, "YYYY-MM");
+    const today = moment();
+    let cycleMonth = today.clone();
 
-    // Generate dynamic month ratio object
+    // If date is 1 to 6 → treat it as previous month
+    if (today.date() <= 6) {
+        cycleMonth = today.clone().subtract(1, "month");
+    }
+
+    const startMoment = moment(START_MONTH, "YYYY-MM").date(6); // start cycle from 6th
     const usdDscRatio = {};
 
     for (let i = 0; i < MONTHS_COUNT; i++) {
-        const monthName = startMoment.clone().add(i, "months").format("MMMM").toLowerCase();
+        const monthKey = startMoment.clone().add(i, "month").format("MMMM").toLowerCase();
 
-        usdDscRatio[monthName] = {
+        usdDscRatio[monthKey] = {
             usd: baseUsd + i * increment,
             dsc: baseDsc - i * increment
         };
     }
 
-    const monthKey = moment().format("MMMM").toLowerCase(); 
-    return usdDscRatio[monthKey] ? usdDscRatio[monthKey] : { usd: 55, dsc: 45 };
-}
+    const currentMonthKey = cycleMonth.format("MMMM").toLowerCase();
+    console.log("Current Cycle Month Key:", currentMonthKey, usdDscRatio[currentMonthKey]);
+
+    return usdDscRatio[currentMonthKey] || { usd: 55, dsc: 45 };
+};
 
 const zeroAddressTxhash = "0x0000000000000000000000000000000000000000000000000000000000000000";
 

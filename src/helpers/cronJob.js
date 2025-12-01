@@ -30,7 +30,7 @@ const updateNodeValueAssurance = async () => {
             const lastUpdated = adminSettings.lastUpdatedMonthForNodeValidators;
             ct({ lastUpdatedMonth: lastUpdated, currentMonth: currentMonth });
             if (adminSettings.lastUpdatedMonthForNodeValidators === currentMonth) {
-                console.log(`Already updated for ${currentMonth} ✅`);
+                console.log(`Already updated-x-x-x- for ${currentMonth} ✅`);
                 return;
             }
 
@@ -41,7 +41,7 @@ const updateNodeValueAssurance = async () => {
             }
 
             if (monthsPassed <= 0) {
-                console.log(`Already updated for ${currentMonth} ✅`);
+                console.log(`Already updated--- for ${currentMonth} ✅`);
                 return;
             }
             const currentNodeValueAssurance = adminSettings.nodeValidators || 0;
@@ -73,7 +73,7 @@ const updateNodeValueAssurance = async () => {
 
             adminSettings.lastUpdatedMonthForNodeValidators = currentMonth;
 
-            await adminSettings.save();
+            // await adminSettings.save();
 
             console.log("Updated node value assurance for all validators.");
 
