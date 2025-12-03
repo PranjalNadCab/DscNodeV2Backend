@@ -30,8 +30,8 @@ const updateNodeValueAssurance = async () => {
 
         const currentMonthNumber = moment().month();
         const currentYear = moment().year();
-        // const startingMonthName = process.env.START_MONTH || "2025-11";
-        const startingMonthName = "2025-11";
+        const startingMonthName = process.env.START_MONTH || "2025-11";
+        // const startingMonthName = "2025-11";
 
         const startingYear = 2025;
 
