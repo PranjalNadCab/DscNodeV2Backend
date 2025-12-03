@@ -80,7 +80,9 @@ const getAllUsers = async (req, res, next) => {
             createdAt: 1,
             totalIncomeDscInUsdReceived: 1,
             usdtIncomeWallet: 1,
-            dscIncomeInUsdWallet: 1
+            dscIncomeInUsdWallet: 1,
+            swapAllocation:1,
+            dscAllocation:1
         };
 
         // Fetch users
