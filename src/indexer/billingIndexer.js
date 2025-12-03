@@ -4,7 +4,7 @@ const BigNumber = require("bignumber.js");
 const { ct, returnLastRoiDistributedTimeOnFeeDeposit } = require("../helpers/helper.js");
 const AssuranceFeeModel = require("../models/AssuranceFeeModel.js");
 const NodeDeployedModel = require("../models/NodeDeployedModel.js");
-
+const moment = require("moment");
 
 
 
@@ -53,7 +53,36 @@ async function processEvents(events) {
             if (event == "Payment") {
                 try {
 
-                    let { user, nodeNum, amount, seqMonth, calendarMonth } = returnValues;
+                    let { user, nodeNum, amount, seqMonth } = returnValues;
+
+                    const timestampMoment = moment.unix(Number(timestampNormal)); 
+                    const currentMonth = timestampMoment.clone().startOf("month");
+                    
+                    const lastRecord = await AssuranceFeeModel
+                        .findOne({ userAddress: user })
+                        .sort({ time: -1 }); // get latest record by time
+                    
+                    let nextMonth;
+                    
+                    if (!lastRecord) {
+                        // First ever fee for this user
+                        nextMonth = currentMonth;
+                    } else {
+                        const lastPaidMonth = moment(lastRecord.calendarMonth, "MMMM YYYY").startOf("month");
+                    
+                        if (currentMonth.isAfter(lastPaidMonth)) {
+                            // User paid after a gap → assign current real month
+                            nextMonth = currentMonth;
+                        } else {
+                            // Multiple payments in same month → increment from lastPaidMonth
+                            nextMonth = lastPaidMonth.clone().add(1, "month");
+                        }
+                    }
+                    
+                    const calendarMonth = nextMonth.format("MMMM YYYY");
+                    
+                    ct({user,calendarMonth,lastRecord:lastRecord.calendarMonth,amount:Number(new BigNumber(amount).dividedBy(new BigNumber(10).pow(18)).toNumber())});
+                    // continue;
 
                     const createAssuranceHistory = await AssuranceFeeModel.create({
                         userAddress: user,
@@ -84,8 +113,8 @@ async function processEvents(events) {
 
                     // if (timestampMonth === currentMonth) {
                     //     // Only update for current month
-                        userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : lastRoiDistributed;
-                        await userNodeDeployedDoc.save();
+                    userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : lastRoiDistributed;
+                    await userNodeDeployedDoc.save();
 
                     //     console.log(
                     //         `Updated lastRoiDistributed for user ${user}, node ${nodeNum}, time ${startDayTime}`
@@ -145,8 +174,8 @@ const billingListEvents = async () => {
         toBlock = toBlock.toString()
         ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
 
-        // lastSyncBlock = "70499894"; 
-        // toBlock = "70499894"
+        // lastSyncBlock = "76324955"; 
+        // toBlock = "76324955"
         let events = await getEventReciept(lastSyncBlock, toBlock);
 
         console.log("events", events.length);

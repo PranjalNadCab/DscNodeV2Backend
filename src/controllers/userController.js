@@ -1765,7 +1765,7 @@ const getUserAssuranceFeeInfo = async (req, res, next) => {
 
         const totalAssuranceFeePaid = totalAssuranceFeeDoc.length > 0 ? totalAssuranceFeeDoc[0].totalAssuranceFeePaid : 0;
         const lastPayment = await AssuranceFeeModel.findOne({ userAddress }).sort({ time: -1 });
-        console.log({ totalAssuranceFeePaid, lastPayment, userDeployedNode });
+        // console.log({ totalAssuranceFeePaid, lastPayment, userDeployedNode });
         return res.status(200).json({ success: true, message: "User assurance fee info fetched successfully!", feeInfo: { totalAssuranceFeePaid, lastPayment, userDeployedNode } });
 
 
