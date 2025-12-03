@@ -11,22 +11,41 @@ const AssuranceFeeModel = require("../models/AssuranceFeeModel");
 
 const updateNodeValueAssurance = async () => {
     try {
+        const adminSettings = await Admin.findOne({role:"admin"});
+        if (!adminSettings) {
+            console.error("Admin settings not found.");
+            return;
+        }
+
+        const currentMonth = moment().startOf("month").format("YYYY-MM");
+        const lastUpdatedMonth = adminSettings.lastUpdatedMonthForNodeValidators; // like "2025-12"
+
+        console.log({ currentMonth, lastUpdatedMonth });
+
+        // 🛑 STOP if already executed for this month
+        if (lastUpdatedMonth === currentMonth) {
+            console.log(`⏹ Skipped: Already executed for ${currentMonth}`);
+            return;
+        }
+
         const currentMonthNumber = moment().month();
         const currentYear = moment().year();
-        const startingMonthName = process.env.STARTING_MONTH || "October";
+        // const startingMonthName = process.env.START_MONTH || "2025-11";
+        const startingMonthName = "2025-11";
+
         const startingYear = 2025;
 
-        let startingMonthIndex = moment().month(startingMonthName).month();
+
+        const startingMonth = moment(startingMonthName, "YYYY-MM");
+        const startingMonthIndex = startingMonth.month();
+
         if (startingMonthIndex === currentMonthNumber && startingYear === currentYear) {
+            // ct({startingMonthIndex,currentMonthNumber})
             console.log(`No update needed for ${startingMonthName} ${startingYear} ✅`);
         } else {
 
             const currentMonth = moment().format("YYYY-MM");
-            const adminSettings = await Admin.findOne({});
-            if (!adminSettings) {
-                console.error("Admin settings not found.");
-                return;
-            }
+            
             const lastUpdated = adminSettings.lastUpdatedMonthForNodeValidators;
             ct({ lastUpdatedMonth: lastUpdated, currentMonth: currentMonth });
             if (adminSettings.lastUpdatedMonthForNodeValidators === currentMonth) {
@@ -48,7 +67,7 @@ const updateNodeValueAssurance = async () => {
 
 
 
-            adminSettings.nodeValidators = currentNodeValueAssurance.map((node) => {
+            adminSettings.nodeValidators = currentNodeValueAssurance.map((node, index) => {
                 // Increase selfStaking by 3%
                 // const stakingBN = new BigNumber(node.selfStaking);
                 // const updatedSelfStaking = stakingBN.multipliedBy(1.03).toFixed(0); // keep as string (no decimals)
@@ -62,6 +81,7 @@ const updateNodeValueAssurance = async () => {
                 // Decrease baseMinAss by 3% compounded
                 const baseMinAssBN = new BigNumber(node.baseMinAss);
                 const updatedBaseMinAss = baseMinAssBN.multipliedBy(new BigNumber(0.97).pow(monthsPassed)).toFixed(0);
+                ct({ uid: index, updatedSelfStaking: giveNumFrom1e18(updatedSelfStaking), updatedBaseMinAss: giveNumFrom1e18(updatedBaseMinAss), nodeNum: node.nodeNum })
 
                 return {
                     ...node,
@@ -71,9 +91,10 @@ const updateNodeValueAssurance = async () => {
                 };
             });
 
+            ct({ currentMonth })
             adminSettings.lastUpdatedMonthForNodeValidators = currentMonth;
 
-            // await adminSettings.save();
+            await adminSettings.save();
 
             console.log("Updated node value assurance for all validators.");
 
@@ -468,8 +489,8 @@ const giveRoiToNodeHolders = async () => {
 
         const targetDays = periodEndMoment.diff(periodStartMoment, "days") + 1;
 
-        ct({uid:"📌 ROI Month:", targetMonth, days: targetDays});
-        ct({uid:"➡ Range:", periodStart:periodStartMoment.format(),periodEnd: periodEndMoment.format()});
+        ct({ uid: "📌 ROI Month:", targetMonth, days: targetDays });
+        ct({ uid: "➡ Range:", periodStart: periodStartMoment.format(), periodEnd: periodEndMoment.format() });
         // return;
         const paidFees = AssuranceFeeModel.find({
             calendarMonth: targetMonth,
@@ -500,7 +521,7 @@ const giveRoiToNodeHolders = async () => {
             const daysPassed = Math.floor((today.unix() - lastTimestamp) / 86400);
 
             if (daysPassed < 1) continue;
-            
+
 
             let totalRoi = perDayMinAssurance.multipliedBy(daysPassed);
 
@@ -524,10 +545,10 @@ const giveRoiToNodeHolders = async () => {
 
             const alreadyPaidRoi = (totalAssuranceGotForUser.length > 0)
                 ? new BigNumber(totalAssuranceGotForUser[0].totalDscAllocation || "0")
-                .plus(totalAssuranceGotForUser[0].totalSwapAllocation || "0")
+                    .plus(totalAssuranceGotForUser[0].totalSwapAllocation || "0")
                 : new BigNumber(0);
-                ct({daysPassed,alreadyPaidRoi:alreadyPaidRoi.toFixed()})
-                
+            ct({ daysPassed, alreadyPaidRoi: alreadyPaidRoi.toFixed() })
+
             if (alreadyPaidRoi.plus(totalRoi).isGreaterThan(finalBaseMinAss)) {
                 totalRoi = new BigNumber(finalBaseMinAss).minus(alreadyPaidRoi);
             }
@@ -538,7 +559,7 @@ const giveRoiToNodeHolders = async () => {
 
             const dscAllocation = totalRoi.multipliedBy(dsc).div(100).toFixed(0);
             const swapAllocation = totalRoi.multipliedBy(usdt).div(100).toFixed(0);
-            ct({uid:"dxhnfgr",alreadyPaidRoi:giveNumFrom1e18(alreadyPaidRoi.toFixed(2)),swapAllocation:giveNumFrom1e18(swapAllocation),dscAllocation:giveNumFrom1e18(dscAllocation),daysPassed,totalRoi:giveNumFrom1e18(totalRoi).toFixed()})
+            ct({ uid: "dxhnfgr", alreadyPaidRoi: giveNumFrom1e18(alreadyPaidRoi.toFixed(2)), swapAllocation: giveNumFrom1e18(swapAllocation), dscAllocation: giveNumFrom1e18(dscAllocation), daysPassed, totalRoi: giveNumFrom1e18(totalRoi).toFixed() })
             const roiDoc = await RoiModel.create({
                 userAddress,
                 nodeNum,

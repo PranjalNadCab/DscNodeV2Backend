@@ -52,16 +52,16 @@ if (process.env.NODE_ENV !== "development") {
         timezone: 'Asia/Kolkata'
     });
 
-    // cron.schedule('1 0 1 * *', async () => {
-    //     try {
-    //         console.log(`Monthly Cron (12:01 AM 1st day) started at ${new Date().toLocaleString()}`);
-    //         await updateNodeValueAssurance();
-    //     } catch (err) {
-    //         console.error('Error in monthly cron job:', err);
-    //     }
-    // }, {
-    //     timezone: 'Asia/Kolkata'
-    // });
+    cron.schedule('1 0 7 * *', async () => {
+        try {
+            console.log(`Monthly Cron (12:01 AM 1st day) started at ${new Date().toLocaleString()}`);
+            await updateNodeValueAssurance();
+        } catch (err) {
+            console.error('Error in monthly cron job:', err);
+        }
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
     cron.schedule('*/1 * * * *', async () => {
         try {
             console.log(`[CRON] Updating live price at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
