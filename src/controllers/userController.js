@@ -1707,6 +1707,21 @@ const assuranceRoiHistory = async (req, res, next) => {
             .limit(limit)
             .lean();
 
+        const totalRoi = await RoiModel.aggregate([
+            { $match: { userAddress } },
+            {
+                $group: {
+                    _id: null,
+                    dscAllocation: { $sum: {$toDouble:"$dscAllocation"} },
+                    swapAllocation: { $sum: {$toDouble:"$swapAllocation"} }
+
+                }
+            }
+        ]);
+
+        const totalDscRoi = totalRoi.length > 0 ? totalRoi[0].dscAllocation : 0;
+        const totalSwapRoi = totalRoi.length > 0 ? totalRoi[0].swapAllocation : 0;
+
 
         return res.status(200).json({
             success: true,
@@ -1716,7 +1731,10 @@ const assuranceRoiHistory = async (req, res, next) => {
                 totalPages: Math.ceil(totalCount / limit),
                 totalRecords: totalCount
             },
-            assuranceRoiHistory: history
+            assuranceRoiHistory: history,
+            totalSwapRoi:(Number(totalSwapRoi)/1e18).toFixed(2),
+            totalDscRoi:(Number(totalDscRoi)/1e18).toFixed(2),
+            totalRoi:(Number(totalDscRoi + totalSwapRoi)/1e18).toFixed(2)
         });
 
     } catch (error) {
