@@ -81,7 +81,7 @@ async function processEvents(events) {
                     
                     const calendarMonth = nextMonth.format("MMMM YYYY");
                     
-                    ct({user,calendarMonth,lastRecord:lastRecord.calendarMonth,amount:Number(new BigNumber(amount).dividedBy(new BigNumber(10).pow(18)).toNumber())});
+                    // ct({user,calendarMonth,lastRecord:lastRecord.calendarMonth,amount:Number(new BigNumber(amount).dividedBy(new BigNumber(10).pow(18)).toNumber())});
                     // continue;
 
                     const createAssuranceHistory = await AssuranceFeeModel.create({
