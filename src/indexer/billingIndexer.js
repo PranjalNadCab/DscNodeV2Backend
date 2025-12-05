@@ -108,9 +108,12 @@ async function processEvents(events) {
                     const lastRoiDistributed = await returnLastRoiDistributedTimeOnFeeDeposit(
                         user,
                         Number(timestampNormal),
-                        userNodeDeployedDoc.time
+                        userNodeDeployedDoc.time,
+                        lastRecord
                     )
-
+                        ct({uid:"indexer", lastRoiDistributed, user,
+                       depoTime: Number(timestampNormal),
+                       deployedTime: userNodeDeployedDoc.time });
                     // if (timestampMonth === currentMonth) {
                     //     // Only update for current month
                     userNodeDeployedDoc.lastRoiDistributed = process.env.NODE_ENV === "development" ? Number(timestampNormal) : lastRoiDistributed;

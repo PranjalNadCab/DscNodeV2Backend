@@ -1949,7 +1949,8 @@ const giveTeamBusinessForUser = async (userAddress) => {
 const returnLastRoiDistributedTimeOnFeeDeposit = async (
     userAddress,
     depositTimeInUnix,
-    nodeDeployedTime
+    nodeDeployedTime,
+    lastFee
 ) => {
     try {
         // Use SERVER LOCAL TIMEZONE (NO UTC)
@@ -1962,12 +1963,15 @@ const returnLastRoiDistributedTimeOnFeeDeposit = async (
         const addrFilter = { userAddress: { $regex: new RegExp(`^${userAddress}$`, "i") } };
 
         const lastRoi = await RoiModel.findOne(addrFilter).sort({ time: -1 });
-        const lastFee = await AssuranceFeeModel.findOne(addrFilter).sort({ time: -1 });
+        // const lastFee = await AssuranceFeeModel.findOne(addrFilter).sort({ time: -1 });
 
-        console.log("Last ROI:", lastRoi);
+        console.log("Last fee:", lastFee);
+                // PREVIOUS MONTH
+        const prevMonth = moment().subtract(1, "month").format("MMMM YYYY");
 
-        const prevMonthPaid = lastFee ? true : false;
+        const prevMonthPaid = lastFee ? (lastFee.calendarMonth === prevMonth) : false;
 
+        ct({ uid: "ksjdh874", prevMonth, prevMonthPaid });
         // --- utility ---
         const startOfDayUnix = (m) => m.clone().startOf("day").unix();
 
