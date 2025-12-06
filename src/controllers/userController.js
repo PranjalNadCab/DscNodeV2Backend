@@ -2376,6 +2376,15 @@ const getValidatorsList = async (req, res, next) => {
                     return acc.plus(d).plus(s);
                 }, new BigNumber(0)).toFixed(2);
 
+                let active = false
+                const currMonth = moment().format("MMMM YYYY");
+                const lastFeeRecord = await AssuranceFeeModel.findOne({
+                    userAddress: node.userAddress
+                }).sort({ time: -1 });
+                if(lastFeeRecord.calendarMonth === currMonth){
+                    active = true;
+                }
+
                 // --------------------------------------------
                 // Build FINAL OBJECT
                 // --------------------------------------------
@@ -2390,7 +2399,7 @@ const getValidatorsList = async (req, res, next) => {
                     oneDay,
                     sevenDays,
                     thirtyDays,
-                    active: true,
+                    active: active,
                     nodeName,
                     userAddress: node.userAddress
 
