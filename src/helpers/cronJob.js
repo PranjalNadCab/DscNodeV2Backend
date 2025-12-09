@@ -505,7 +505,7 @@ const giveRoiToNodeHolders = async () => {
             let deploymentDoc = await NodeDeployedModel.findOne({
                 userAddress,
                 nodeNum,
-                isIncomeExpired: false,
+                // isIncomeExpired: false,
             });
 
             if (!deploymentDoc) continue;
@@ -585,7 +585,7 @@ const giveRoiToNodeHolders = async () => {
             deploymentDoc.currGenratedRoi = new BigNumber(currGenratedRoi || 0)
                 .plus(totalRoi).toFixed(0);
             deploymentDoc.lastRoiDistributed = today.unix();
-            deploymentDoc.isIncomeExpired = alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(finalBaseMinAss);
+            // deploymentDoc.isIncomeExpired = alreadyPaidRoi.plus(totalRoi).isGreaterThanOrEqualTo(finalBaseMinAss);
             await deploymentDoc.save();
         }
 
