@@ -563,7 +563,7 @@ const giveRoiToNodeHolders = async () => {
             const roiDoc = await RoiModel.create({
                 userAddress,
                 nodeNum,
-                baseMinAss,
+                baseMinAss:typeof finalBaseMinAss !== 'string' ? finalBaseMinAss.toFixed(0) : finalBaseMinAss,
                 time: today.unix(),
                 dscAllocation,
                 swapAllocation,
