@@ -1712,8 +1712,8 @@ const assuranceRoiHistory = async (req, res, next) => {
             {
                 $group: {
                     _id: null,
-                    dscAllocation: { $sum: {$toDouble:"$dscAllocation"} },
-                    swapAllocation: { $sum: {$toDouble:"$swapAllocation"} }
+                    dscAllocation: { $sum: { $toDouble: "$dscAllocation" } },
+                    swapAllocation: { $sum: { $toDouble: "$swapAllocation" } }
 
                 }
             }
@@ -1732,9 +1732,9 @@ const assuranceRoiHistory = async (req, res, next) => {
                 totalRecords: totalCount
             },
             assuranceRoiHistory: history,
-            totalSwapRoi:(Number(totalSwapRoi)/1e18).toFixed(2),
-            totalDscRoi:(Number(totalDscRoi)/1e18).toFixed(2),
-            totalRoi:(Number(totalDscRoi + totalSwapRoi)/1e18).toFixed(2)
+            totalSwapRoi: (Number(totalSwapRoi) / 1e18).toFixed(2),
+            totalDscRoi: (Number(totalDscRoi) / 1e18).toFixed(2),
+            totalRoi: (Number(totalDscRoi + totalSwapRoi) / 1e18).toFixed(2)
         });
 
     } catch (error) {
@@ -2148,7 +2148,7 @@ const getValidatorsGroupData = async (req, res, next) => {
         for (let i = 0; i < nodeGroups.length; i++) {
 
             const grp = nodeGroups[i];
-            if(grp.groupName === "Alpha I" || grp.groupName === "Alpha II") continue;
+            if (grp.groupName === "Alpha I" || grp.groupName === "Alpha II") continue;
 
             // -------------------------
             // Extract month & year
@@ -2191,13 +2191,13 @@ const getValidatorsGroupData = async (req, res, next) => {
             // --- Build final sample object ---
             // if (docs.length === 0) continue;
             const currentUnix = moment().unix();
-    let availabilityStatus = "Coming Soon"; // default
+            let availabilityStatus = "Coming Soon"; // default
 
-    if (currentUnix >= startOfCustomMonth && currentUnix <= endOfCustomMonth) {
-    availabilityStatus = "Yes";
-    } else if (currentUnix > endOfCustomMonth) {
-    availabilityStatus = "No";
-    }
+            if (currentUnix >= startOfCustomMonth && currentUnix <= endOfCustomMonth) {
+                availabilityStatus = "Yes";
+            } else if (currentUnix > endOfCustomMonth) {
+                availabilityStatus = "No";
+            }
             validCount++;
             finalGroups.push({
                 id: validCount,
@@ -2249,27 +2249,27 @@ const getValidatorsList = async (req, res, next) => {
         if (groupName === nodeGroups[0].groupName || groupName === nodeGroups[1].groupName) {
             //=======include node 1.0 list data======================
             let allList = [];
-            try{
+            try {
                 const url = `${process.env.NODE1_API}/get-validators-list`;
-                const list = await axios.post(url,{groupName});
+                const list = await axios.post(url, { groupName });
                 if (list.status == 200) {
                     allList = list.data.validatorsList
                 }
-    
+
                 return res.status(200).json({
                     success: true,
                     message: "Validator list fetched successfully!",
                     validatorsList: allList || [],
                 });
-            }catch(error){
-                console.log("Error fetching node 1.0 validator list:",error);
+            } catch (error) {
+                console.log("Error fetching node 1.0 validator list:", error);
                 return res.status(200).json({
                     success: true,
                     message: "Validator list fetched successfully!",
-                    validatorsList:  [],
+                    validatorsList: [],
                 });
             }
-           
+
 
 
             //=======include node 1.0 list data======================
@@ -2342,7 +2342,7 @@ const getValidatorsList = async (req, res, next) => {
                 const oneDayIncomes = roiRecords.filter(
                     (r) => r.time >= todayStart && r.time <= todayEnd
                 );
-               
+
 
                 const oneDay = oneDayIncomes.reduce((acc, r) => {
                     let d = new BigNumber(r.dscAllocation || "0").div(1e18);
@@ -2376,13 +2376,25 @@ const getValidatorsList = async (req, res, next) => {
                     return acc.plus(d).plus(s);
                 }, new BigNumber(0)).toFixed(2);
 
-                let active = false
                 const currMonth = moment().format("MMMM YYYY");
+                const currMonthMoment = moment().startOf('month');
+
                 const lastFeeRecord = await AssuranceFeeModel.findOne({
                     userAddress: node.userAddress
                 }).sort({ time: -1 });
-                if(lastFeeRecord.calendarMonth === currMonth){
-                    active = true;
+                let active = false
+                // if(lastFeeRecord.calendarMonth === currMonth){
+                //     active = true;
+                // }
+                if (lastFeeRecord?.calendarMonth) {
+                    const recordMonthMoment = moment(
+                        lastFeeRecord.calendarMonth,
+                        "MMMM YYYY"
+                    ).startOf('month');
+
+                    if (recordMonthMoment.isSameOrAfter(currMonthMoment)) {
+                        active = true;
+                    }
                 }
 
                 // --------------------------------------------
