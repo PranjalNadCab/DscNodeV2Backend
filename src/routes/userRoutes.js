@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness, getValidatorsGroupData, getValidatorsList } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness, getValidatorsGroupData, getValidatorsList, loginNodeManager } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -41,6 +41,12 @@ router.post("/user-team-list",userTeamList);
 router.post("get-user-team-business",userTeamBusiness);
 router.get("/get-validators-group-data",getValidatorsGroupData);
 router.post("/get-validators-list",getValidatorsList);
+
+
+//Below apis are for node manager panel
+router.post("/login-node-manager",loginNodeManager);
+
+
 
 
 

@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser, getRealCustomMonthRange } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser, getRealCustomMonthRange, giveReceivedAssuranceOfUser } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -2431,9 +2431,58 @@ const getValidatorsList = async (req, res, next) => {
     }
 };
 
+const loginNodeManager = async(req,res,next)=>{
+    try{
+        const {userAddress, programId} = req.body;
+
+        if(!userAddress) throw new Error("Please provide user address.");
+        if(!programId) throw new Error("Please provide program id.");
+        if(![1,2,3].includes(Number(programId))) throw new Error("Please provide valid program id.");
+
+        if(programId === 2){
+            const userDoc = await RegistrationModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{userType:1, uniqueRandomId:1, userAddress:1, myNode:1,userTotalStakeInUsd:1,directStaking:1,swapAllocation:1,dscAllocation:1,_id:0});
+            if(!userDoc) throw new Error("User not found.");
+            const userDeployedNode = await NodeDeployedModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{nodeNum:1, userAddress:1,time:1,baseMinAss:1,baseMinValue:1, lastRoiDistributed:1,name:1,mobile:1,sudoLink:1,_id:0}).sort({time:-1});
+            if(!userDeployedNode) throw new Error("You do not have any deployed node.");
+
+            const billInfo = await AssuranceFeeModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{amount:1,userAddress:1,time:1,calendarMonth:1,_id:0}).lean().sort({time:-1});
+            const totalBillPaid = await AssuranceFeeModel.aggregate([
+                { $match: { userAddress: giveCheckSummedAddress(userAddress) } },
+                {
+                    $group: {
+                        _id: null,
+                        totalPaid: { $sum: "$amount" }
+                    }
+                }
+            ]);
+            const totalAssuranceFeePaid = totalBillPaid.length > 0 ? totalBillPaid[0].totalPaid : 0;
+            console.log("dddd",totalAssuranceFeePaid);
+
+            const {status, message,data} = await giveReceivedAssuranceOfUser(userAddress);
+            ct({status, message});
+            
+            return res.status(200).json({success:true, message:"Login Successful!", overview:{
+                billInfo:{...billInfo, totalAssuranceFeePaid},
+                userDoc,
+                userDeployedNode,
+                receivedAssuranceInfo: data
+            }})
+        }else{
+            throw new Error("Only program 2 is allowed for node manager login.");
+        }
+
+
+        
+
+    }catch(error){
+        next(error);
+    }
+}
+
 
 module.exports = {
     stakeVrs,
+    loginNodeManager,
     userTeamBusiness,
     userTeamList,
     getValidatorsList,

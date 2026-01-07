@@ -1966,7 +1966,7 @@ const returnLastRoiDistributedTimeOnFeeDeposit = async (
         // const lastFee = await AssuranceFeeModel.findOne(addrFilter).sort({ time: -1 });
 
         console.log("Last fee:", lastFee);
-                // PREVIOUS MONTH
+        // PREVIOUS MONTH
         const prevMonth = moment().subtract(1, "month").format("MMMM YYYY");
 
         const prevMonthPaid = lastFee ? (lastFee.calendarMonth === prevMonth) : false;
@@ -2036,7 +2036,7 @@ const returnLastRoiDistributedTimeOnFeeDeposit = async (
 
     } catch (error) {
         console.log(error);
-        return moment().unix(); 
+        return moment().unix();
     }
 };
 
@@ -2060,4 +2060,92 @@ function getRealCustomMonthRange() {
     };
 }
 
-module.exports = {getRealCustomMonthRange, giveTeamBusinessForUser,returnLastRoiDistributedTimeOnFeeDeposit, generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
+
+
+
+
+const giveReceivedAssuranceOfUser = async (userAddress) => {
+    try {
+        if (!userAddress) return { status: false, message: "Invalid user address", data: null };
+        const startOfCurrentMonth = moment().startOf('month').unix();
+        const startOfLastMonth = moment().subtract(1, 'months').startOf('month').unix();
+
+        const results = await RoiModel.aggregate([
+            // 1. Filter by User
+            { $match: { userAddress: userAddress } },
+
+            // 2. Run multiple calculations in parallel
+            {
+                $facet: {
+                    total: [
+                        {
+                            $group: {
+                                _id: null,
+                                dsc: { $sum: { $toDecimal: "$dscAllocation" } },
+                                swap: { $sum: { $toDecimal: "$swapAllocation" } }
+                            }
+                        }
+                    ],
+                    thisMonth: [
+                        { $match: { time: { $gte: startOfCurrentMonth } } },
+                        {
+                            $group: {
+                                _id: null,
+                                dsc: { $sum: { $toDecimal: "$dscAllocation" } },
+                                swap: { $sum: { $toDecimal: "$swapAllocation" } }
+                            }
+                        }
+                    ],
+                    lastMonth: [
+                        { 
+                            $match: { 
+                                time: { 
+                                    $gte: startOfLastMonth, 
+                                    $lt: startOfCurrentMonth 
+                                } 
+                            } 
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                dsc: { $sum: { $toDecimal: "$dscAllocation" } },
+                                swap: { $sum: { $toDecimal: "$swapAllocation" } }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+        // Extract results (Aggregation returns an array of facets)
+        const output = results[0];
+
+        // Helper to format the Decimal128 back to string (safe for 1e18)
+        const formatValue = (val) => val ? val.toString() : "0";
+
+        return {
+            status: true,
+            data: {
+                total: {
+                    dsc: formatValue(output.total[0]?.dsc),
+                    swap: formatValue(output.total[0]?.swap)
+                },
+                thisMonth: {
+                    dsc: formatValue(output.thisMonth[0]?.dsc),
+                    swap: formatValue(output.thisMonth[0]?.swap)
+                },
+                lastMonth: {
+                    dsc: formatValue(output.lastMonth[0]?.dsc),
+                    swap: formatValue(output.lastMonth[0]?.swap)
+                }
+            },
+            message: "Assurance income retrieved successfully"
+        };
+
+    } catch (error) {
+        console.error("Aggregation Error:", error);
+        return { status: false, message: "Error calculating ROI", data: null };
+    }
+};
+
+module.exports = { getRealCustomMonthRange, giveReceivedAssuranceOfUser, giveTeamBusinessForUser, returnLastRoiDistributedTimeOnFeeDeposit, generateVrsForAssuranceIncome, giveNumFrom1e18, calculateUserRoiAssurance, manageAssuranceIncome, getTargetDaysFromCalendarMonth, givePaymentRatioForDeployedNode, giveUserType, refreshDaoDelegatorUsers, updateFsrValue, createJwtToken, giveVrsForNodeDeployment, giveVrsForNodeUpgradation, sendNodeRegIncomeToUpline, getRemainingDscUsdToPayForStaking, getRemainingDscToPayInUsd, validateStake, giveUsdDscRatioParts, validateUpgradeNodeConditions, setLatestBlock, giveAdminSettings, manageUserWallet, generateRandomId, updateUserNodeInfo, updateTeamCount, updateUserNodeInfo, generateDefaultAdminDoc, ct, giveVrsForWithdrawIncomeDsc, giveVrsForWithdrawIncomeUsdt, giveVrsForStaking, splitByRatio, giveGapIncome, registerUser, updateUserTotalSelfStakeUsdt, createDefaultOwnerRegDoc, giveCheckSummedAddress, manageRank, updateDirectBusiness, giveVrsForNodeConversion, giveVrsForMixStaking, updateDirectCount, getMonthIndex, giveVrsForActivatingFsr, generateVrsForSponsorTx, manageUserWalletForDsc }
