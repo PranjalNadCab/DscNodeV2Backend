@@ -1013,6 +1013,25 @@
                 "type": "address"
             }
         ],
+        "name": "isMigrated",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
         "name": "isUserNodeDeployed",
         "outputs": [
             {
@@ -1296,6 +1315,61 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "registered",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "nodeDeployed",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nbdPaid",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "withdrawNonce",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "upgradeNonce",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "stakingNonce",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "assuranceNonce",
+                        "type": "uint32"
+                    }
+                ],
+                "internalType": "struct dscNodeValidator.UserData[]",
+                "name": "batch",
+                "type": "tuple[]"
+            }
+        ],
+        "name": "storeUsersBatch",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "systemAddress",
         "outputs": [
@@ -1402,25 +1476,6 @@
             }
         ],
         "name": "userNoncesForNodeUpgrade",
-        "outputs": [
-            {
-                "internalType": "uint32",
-                "name": "",
-                "type": "uint32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "userNoncesForSponsoringTx",
         "outputs": [
             {
                 "internalType": "uint32",
