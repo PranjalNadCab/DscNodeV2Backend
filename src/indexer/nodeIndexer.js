@@ -136,7 +136,7 @@ async function processEvents(events) {
                     await updateUserTotalSelfStakeUsdt(userAddress, amountNbdPaid);
                     await updateDirectBusiness(amountNbdPaid, userAddress);
 
-                    
+
                     await sendNodeRegIncomeToUpline(userAddress, majorIncome, minor4Income, Number(timestampNormal), amountNbdPaid, Number(nodeNum));
                     await manageRank(userAddress);
                     await manageRank(sponsorAddress);
@@ -464,19 +464,20 @@ async function processEvents(events) {
 
                     //----- calculate and give gap income----
 
-                    const sponsoredUserDoc = await RegistrationModel.findOne({ userAddress: sponsoredUser});
+                    const sponsoredUserDoc = await RegistrationModel.findOne({ userAddress: sponsoredUser });
 
 
                     const rateDollarPerDscInNum = Number(new BigNumber(rateDollarPerDsc).dividedBy(1e18).toFixed(2));
 
                     const userPrevNode = await UpgradedNodes.findOne({
                         userAddress: sponsoredUser,
-                        nodeNum: { $lt: Number(nodeNum) }}).sort({ nodeNum: -1 });
+                        nodeNum: { $lt: Number(nodeNum) }
+                    }).sort({ nodeNum: -1 });
                     let rankDuringStaking = sponsoredUserDoc.currentRank || "Beginner";
                     const netAmountPaidInUsd = new BigNumber(totalAmountInUsd).minus(userPrevNode?.totalAmountInUsd || 0).toFixed(0);
 
 
-        
+
                     const usdtStakedIn1e18 = amountUsdPaid;
 
                     await updateUserTotalSelfStakeUsdt(sponsoredUser, dscInUsdPaid.toFixed(0));
@@ -538,48 +539,63 @@ async function processEvents(events) {
 
             }
             else if (event == "SwappedAssurance") {
+                const session = await mongoose.startSession();
 
                 try {
-              
+                    session.startTransaction();
                     let { user, amountDsc, amountUsdt, lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed(0);
 
+                    const { status } = await manageAssuranceIncome(user, amountDsc, "SWAPPED", "minus", session);
+                    if (!status) {
+                        throw new Error("Error managing assurance income during swap assurance");
+                    }
+
                     const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create(
-                        
-                            {
-                                userAddress: user,
-                                amountDsc,
-                                amountUsdt,
-                                actionType: "SWAPPED",
-                                lastUsedNonce: Number(lastUsedNonce),
-                                block: Number(block),
-                                transactionHash,
-                                time: Number(timestampNormal),
-                            }
-                    
+
+                        [{
+                            userAddress: user,
+                            amountDsc,
+                            amountUsdt,
+                            actionType: "SWAPPED",
+                            lastUsedNonce: Number(lastUsedNonce),
+                            block: Number(block),
+                            transactionHash,
+                            time: Number(timestampNormal),
+                        }],
+                        { session }
                     );
 
                     console.log("Created swap assurance--->>", createdSwapAssurance);
 
-                    await manageAssuranceIncome(user, amountDsc, createdSwapAssurance.actionType, "minus");
 
+
+                    await session.commitTransaction();
+                    session.endSession();
 
                 } catch (error) {
                     console.log(error);
+                    await session.abortTransaction();
+                    session.endSession();
                     continue;
                 }
 
             }
             else if (event == "TransferAllocationAssurance") {
-
+                const session = await mongoose.startSession();
                 try {
-                    
+                    session.startTransaction();
                     let { user, amountDscTransferred, lastUsedNonce } = returnValues;
 
                     amountDscTransferred = new BigNumber(amountDscTransferred).toFixed(0);
 
-                    const createdTransferAssurance = await ManageAssuranceWithdrawalModel.create({
+                    const { status } = await manageAssuranceIncome(user, amountDscTransferred, "TRANSFER", "minus", session);
+                    if (!status) {
+                        throw new Error("Error managing assurance income during swap assurance");
+                    }
+
+                    const createdTransferAssurance = await ManageAssuranceWithdrawalModel.create([{
                         userAddress: user,
                         amountDsc: amountDscTransferred,
                         amountUsdt: "0",
@@ -588,26 +604,35 @@ async function processEvents(events) {
                         block: Number(block),
                         transactionHash,
                         time: Number(timestampNormal)
-                    });
+                    }], { session });
 
                     console.log("Created transfer assurance--->>", createdTransferAssurance);
 
-                    await manageAssuranceIncome(user, amountDscTransferred, createdTransferAssurance.actionType, "minus");
+                    await session.commitTransaction();
+                    session.endSession();
+
 
                 } catch (error) {
                     console.log(error);
+                    await session.abortTransaction();
+                    session.endSession();
                     continue;
                 }
             }
             else if (event == "WithdrawAssurance") {
+                const session = await mongoose.startSession();
 
                 try {
-
+                    session.startTransaction();
                     let { user, amountDsc, lastUsedNonce } = returnValues;
 
                     amountDsc = new BigNumber(amountDsc).toFixed(0);
 
-                    const createdWithdrawAssurance = await ManageAssuranceWithdrawalModel.create({
+                    const { status } = await manageAssuranceIncome(user, amountDsc, 'WITHDRAW', "minus",session);
+                    if (!status) {
+                        throw new Error("Error managing assurance income during swap assurance");
+                    }
+                    const createdWithdrawAssurance = await ManageAssuranceWithdrawalModel.create([{
                         userAddress: user,
                         amountDsc: amountDsc,
                         amountUsdt: "0",
@@ -616,15 +641,17 @@ async function processEvents(events) {
                         block: Number(block),
                         transactionHash,
                         time: Number(timestampNormal)
-                    });
+                    }], { session });
 
                     console.log("Created withdraw assurance--->>", createdWithdrawAssurance);
-
-                    await manageAssuranceIncome(user, amountDsc, createdWithdrawAssurance.actionType, "minus");
+                    await session.commitTransaction();
+                    session.endSession();
 
 
                 } catch (error) {
                     console.log(error);
+                    await session.abortTransaction();
+                    session.endSession();
                     continue;
                 }
             }

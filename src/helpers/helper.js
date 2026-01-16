@@ -1546,14 +1546,14 @@ const givePaymentRatioForDeployedNode = async (userAddress, nodeNum) => {
     }
 }
 
-const manageAssuranceIncome = async (userAddress, amountDsc, action, operation = 'minus') => {
+const manageAssuranceIncome = async (userAddress, amountDsc, action, operation = 'minus',session) => {
     try {
         if (!userAddress || !amountDsc)
             return { status: false, message: "Invalid parameters" };
 
         const fUserAddress = giveCheckSummedAddress(userAddress);
 
-        const userDoc = await RegistrationModel.findOne({ userAddress: fUserAddress });
+        const userDoc = await RegistrationModel.findOne({ userAddress: fUserAddress },null, {session});
         if (!userDoc)
             return { status: false, message: "User not found!" };
 
@@ -1564,33 +1564,42 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
 
         if (action === "SWAPPED") {
             const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
-            if (new BigNumber(newSwapAllocation).isNegative())
-                return { status: false, message: "Insufficient swapped assurance allocation" };
+            // if (new BigNumber(newSwapAllocation).isNegative())
+            //     return { status: false, message: "Insufficient swapped assurance allocation" };
 
-            const updatedUser = await RegistrationModel.findOneAndUpdate(
+            // const updatedUser = await RegistrationModel.findOneAndUpdate(
+            //     { userAddress: fUserAddress },
+            //     { $set: { swapAllocation: newSwapAllocation } },
+            //     { new: true }
+            // );
+          const updatedUser =  await RegistrationModel.updateOne(
                 { userAddress: fUserAddress },
                 { $set: { swapAllocation: newSwapAllocation } },
-                { new: true }
+                { session }
             );
 
-            if (!updatedUser)
-                return { status: false, message: "Failed to update user assurance allocation" };
+            if (updatedUser.modifiedCount === 0) {
+                return {
+                    status: false,
+                    message: "Balance was not updated"
+                };
+            }
 
             return { status: true, message: "Swapped assurance allocation deducted successfully" };
         }
 
         else if (action === "WITHDRAW") {
             const newDscAllocation = new BigNumber(dscAllocation).minus(amountDsc).toFixed(0);
-            if (new BigNumber(newDscAllocation).isNegative())
-                return { status: false, message: "Insufficient DSC assurance allocation" };
+            // if (new BigNumber(newDscAllocation).isNegative())
+            //     return { status: false, message: "Insufficient DSC assurance allocation" };
 
-            const updatedUser = await RegistrationModel.findOneAndUpdate(
+            const updatedUser = await RegistrationModel.updateOne(
                 { userAddress: fUserAddress },
                 { $set: { dscAllocation: newDscAllocation } },
-                { new: true }
+                { session }
             );
 
-            if (!updatedUser)
+            if (updatedUser.modifiedCount === 0)
                 return { status: false, message: "Failed to update user assurance allocation" };
 
             return { status: true, message: "DSC assurance allocation deducted successfully" };
@@ -1600,10 +1609,10 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
             const newDscAllocation = new BigNumber(dscAllocation).plus(amountDsc).toFixed(0);
             const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
 
-            if (new BigNumber(newDscAllocation).isNegative() || new BigNumber(newSwapAllocation).isNegative())
-                return { status: false, message: "Insufficient DSC or Swap assurance allocation" };
+            // if (new BigNumber(newDscAllocation).isNegative() || new BigNumber(newSwapAllocation).isNegative())
+            //     return { status: false, message: "Insufficient DSC or Swap assurance allocation" };
 
-            const updatedUser = await RegistrationModel.findOneAndUpdate(
+            const updatedUser = await RegistrationModel.updateOne(
                 { userAddress: fUserAddress },
                 {
                     $set: {
@@ -1611,10 +1620,10 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
                         swapAllocation: newSwapAllocation
                     }
                 },
-                { new: true }
+                { session }
             );
 
-            if (!updatedUser)
+            if (updatedUser.modifiedCount === 0)
                 return { status: false, message: "Failed to update user assurance allocation" };
 
             return { status: true, message: "DSC assurance allocation deducted successfully for transfer" };
