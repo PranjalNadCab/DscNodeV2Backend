@@ -9,14 +9,34 @@ const giveOverWithdrawalAssuranceUsers = async () => {
             {
                 $group: {
                     _id: "$userAddress",
-                    totalWithdrawnDsc: {
+
+                    totalWithdrawDsc: {
                         $sum: {
-                            $divide: [{ $toDouble: "$amountDsc" }, 1e18]
+                            $cond: [
+                                { $eq: ["$actionType", "WITHDRAW"] },
+                                { $divide: [{ $toDouble: "$amountDsc" }, 1e18] },
+                                0
+                            ]
                         }
                     },
-                    totalWithdrawnUsdt: {
+
+                    totalTransferDsc: {
                         $sum: {
-                            $divide: [{ $toDouble: "$amountUsdt" }, 1e18]
+                            $cond: [
+                                { $eq: ["$actionType", "TRANSFER"] },
+                                { $divide: [{ $toDouble: "$amountDsc" }, 1e18] },
+                                0
+                            ]
+                        }
+                    },
+
+                    totalSwappedDsc: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$actionType", "SWAPPED"] },
+                                { $divide: [{ $toDouble: "$amountDsc" }, 1e18] },
+                                0
+                            ]
                         }
                     }
                 }
@@ -25,6 +45,7 @@ const giveOverWithdrawalAssuranceUsers = async () => {
 
         for (const user of usersWithdrawn) {
 
+            // console.log(`User: ${user._id}, Total Withdrawn DSC: ${user.totalWithdrawDsc}, Total Transferred DSC: ${user.totalTransferDsc}, Total Swapped DSC: ${user.totalSwappedDsc}, Overall Total DSC: ${user.totalWithdrawDsc + user.totalTransferDsc + user.totalSwappedDsc}`);
             const earningForThisUser = await RoiModel.aggregate([
                 {
                     $match: {
@@ -54,20 +75,35 @@ const giveOverWithdrawalAssuranceUsers = async () => {
                     }
                 }
             ]);
-
+            
             const totalRoiEarnings = (earningForThisUser.length > 0 ? (earningForThisUser[0].totalEarningsDsc + earningForThisUser[0].totalEarningsSwap) : 0)
-            const totalWithdrwanDsc = user.totalWithdrawnDsc;
-            // ct({ user: user._id, totalWithdrawnDsc: user.totalWithdrawnDsc, totalWithdrawnUsdt: user.totalWithdrawnUsdt, totalEarningsDsc: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsDsc : 0, totalEarningsSwap: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsSwap : 0,totalRoiEarnings:(earningForThisUser.length > 0 ? (earningForThisUser[0].totalEarningsDsc + earningForThisUser[0].totalEarningsSwap) : 0) });
+            // const totalWithdrwanDsc = user.totalWithdrawnDsc;
+            // ct({ user: user._id, totalRoiEarnings: totalRoiEarnings, totalWithdrawnDsc: totalWithdrwanDsc, loss: totalRoiEarnings - totalWithdrwanDsc, totalEarningsDsc: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsDsc : 0, totalEarningsSwap: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsSwap : 0, });
+            const totalWithdrawnDsc = user.totalWithdrawDsc;
+            const totalTransferredDsc = user.totalTransferDsc;
+            const totalSwappedDsc = user.totalSwappedDsc;
+            const swapEarnings = earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsSwap : 0;
+            const dscEarnings = earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsDsc : 0;
+            // ct({ user: user._id, dscEarnings,totalWithdrawnDsc, totalTransferredDsc,swapEarnings, totalSwappedDsc: totalSwappedDsc, overallTotalDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
 
-            if (totalWithdrwanDsc > totalRoiEarnings) {
-                if (user._id === "0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372") continue;
-                ct({ user: user._id, totalRoiEarnings: totalRoiEarnings, totalWithdrawnDsc: totalWithdrwanDsc, loss: totalRoiEarnings - totalWithdrwanDsc, totalEarningsDsc: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsDsc : 0, totalEarningsSwap: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsSwap : 0, });
+            // if(totalTransferredDsc > 0){
+            //     console.log(`User ${user._id} has transferred ${totalTransferredDsc} DSC from assurance fund.`);
+            // }
 
+            if(user._id === "0x8ea8d183930691a1ba8652a605179dc45a20098b"){
+                ct({ user: user._id, dscEarnings,totalWithdrawnDsc, swapEarnings,totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
             }
+
+            // if (dscEarnings < totalWithdrawnDsc || swapEarnings < ( totalSwappedDsc)) {
+            //     if (user._id === "0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372") continue;
+                // ct({ user: user._id, dscEarnings,totalWithdrawnDsc, swapEarnings,totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
+
+            // }
 
 
         }
 
+        console.log("Script execution completed.");
 
     } catch (error) {
         console.log(error);
