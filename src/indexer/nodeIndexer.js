@@ -547,9 +547,9 @@ async function processEvents(events) {
 
                     amountDsc = new BigNumber(amountDsc).toFixed(0);
 
-                    const { status } = await manageAssuranceIncome(user, amountDsc, "SWAPPED", "minus", session);
+                    const { status,message } = await manageAssuranceIncome(user, amountDsc, "SWAPPED", "minus", session);
                     if (!status) {
-                        throw new Error("Error managing assurance income during swap assurance");
+                        throw new Error(message);
                     }
 
                     const createdSwapAssurance = await ManageAssuranceWithdrawalModel.create(

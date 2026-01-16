@@ -32,7 +32,7 @@ router.post("/user-deployed-node",userDeployedNode);
 router.post("/assurance-fee-history",assuranceFeeHistory);
 router.post("/assurance-roi-history",assuranceRoiHistory);
 router.post("/get-assurance-fee-info",getUserAssuranceFeeInfo)
-// router.post("/use-assurance-income",useAssuranceIncome);
+router.post("/use-assurance-income",useAssuranceIncome);
 router.post("/assurance-withdrawal-history",assuranceIncomeOutHistory);
 router.post("/sponsored-tx-history",sponsoredTxHistory);
 router.post("/get-user-node-lists",getUserNodeLists);

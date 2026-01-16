@@ -1776,7 +1776,7 @@ const getUserAssuranceFeeInfo = async (req, res, next) => {
 
 const useAssuranceIncome = async (req, res, next) => {
     try {
-
+        throw new Error("Assurance income withdrawal is paused temporarily!");
         let { userAddress, amountDsc, action } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
