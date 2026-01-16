@@ -1564,8 +1564,8 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
 
         if (action === "SWAPPED") {
             const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
-            // if (new BigNumber(newSwapAllocation).isNegative())
-            //     return { status: false, message: "Insufficient swapped assurance allocation" };
+            if (new BigNumber(newSwapAllocation).isNegative())
+                return { status: false, message: "Insufficient swapped assurance allocation" };
 
             // const updatedUser = await RegistrationModel.findOneAndUpdate(
             //     { userAddress: fUserAddress },
@@ -1590,8 +1590,8 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
 
         else if (action === "WITHDRAW") {
             const newDscAllocation = new BigNumber(dscAllocation).minus(amountDsc).toFixed(0);
-            // if (new BigNumber(newDscAllocation).isNegative())
-            //     return { status: false, message: "Insufficient DSC assurance allocation" };
+            if (new BigNumber(newDscAllocation).isNegative())
+                return { status: false, message: "Insufficient DSC assurance allocation" };
 
             const updatedUser = await RegistrationModel.updateOne(
                 { userAddress: fUserAddress },
@@ -1609,8 +1609,8 @@ const manageAssuranceIncome = async (userAddress, amountDsc, action, operation =
             const newDscAllocation = new BigNumber(dscAllocation).plus(amountDsc).toFixed(0);
             const newSwapAllocation = new BigNumber(swapAllocation).minus(amountDsc).toFixed(0);
 
-            // if (new BigNumber(newDscAllocation).isNegative() || new BigNumber(newSwapAllocation).isNegative())
-            //     return { status: false, message: "Insufficient DSC or Swap assurance allocation" };
+            if (new BigNumber(newDscAllocation).isNegative() || new BigNumber(newSwapAllocation).isNegative())
+                return { status: false, message: "Insufficient DSC or Swap assurance allocation" };
 
             const updatedUser = await RegistrationModel.updateOne(
                 { userAddress: fUserAddress },

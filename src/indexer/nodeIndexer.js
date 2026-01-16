@@ -592,7 +592,7 @@ async function processEvents(events) {
 
                     const { status } = await manageAssuranceIncome(user, amountDscTransferred, "TRANSFER", "minus", session);
                     if (!status) {
-                        throw new Error("Error managing assurance income during swap assurance");
+                        throw new Error("Error managing assurance income during TransferAllocationAssurance");
                     }
 
                     const createdTransferAssurance = await ManageAssuranceWithdrawalModel.create([{
@@ -630,7 +630,7 @@ async function processEvents(events) {
 
                     const { status } = await manageAssuranceIncome(user, amountDsc, 'WITHDRAW', "minus",session);
                     if (!status) {
-                        throw new Error("Error managing assurance income during swap assurance");
+                        throw new Error("Error managing assurance income during WithdrawAssurance ");
                     }
                     const createdWithdrawAssurance = await ManageAssuranceWithdrawalModel.create([{
                         userAddress: user,
