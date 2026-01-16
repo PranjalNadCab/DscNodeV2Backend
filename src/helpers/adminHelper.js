@@ -25,7 +25,7 @@ const getDaoAndDelegator = async () => {
         const delegators = delegatorLilst.data.data.filter((item, index) => item.Add);
         return { daos, delegators };
     } catch (error) {
-        console.error("Error in getDaoAndDelegator:", error);
+        console.log("Error in getDaoAndDelegator:");
         throw { daos: [], delegators: [] };
     }
 }
