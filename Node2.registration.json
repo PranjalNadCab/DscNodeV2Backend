@@ -1,0 +1,2765 @@
+[{
+  "_id": {
+    "$oid": "68e8a9c7137451084d638869"
+  },
+  "uniqueRandomId": "737885",
+  "userAddress": "0xF0Cba01760Ba8410Dff770fef30430E9CB59E033",
+  "sponsorAddress": "0x0000000000000000000000000000000000000000",
+  "teamCount": 59,
+  "directCount": 3,
+  "directStaking": 3900,
+  "userTotalStakeInUsd": 0,
+  "userDirectPlusSelfStakeInUsd": 3900,
+  "currentRank": "Mentor",
+  "rankAchievedAt": null,
+  "usdtIncomeWallet": "2715000000000000000000",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "2715000000000000000000",
+  "time": 1760074020,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 188852,
+  "transactionHash": "0x736eaad65f0ee198a8d33539642aa2ba5cb89820352ee93cb94649e64030317a",
+  "createdAt": {
+    "$date": "2025-10-10T06:37:59.308Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-04T10:34:13.103Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68e8ab8a137451084d63898d"
+  },
+  "uniqueRandomId": "792452",
+  "userAddress": "0x8F2DB3031f45F0Ce846f27d4a18F0615F0E21483",
+  "sponsorAddress": "0xF0Cba01760Ba8410Dff770fef30430E9CB59E033",
+  "teamCount": 18,
+  "directCount": 2,
+  "directStaking": 600,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3900,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1760078725,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "234866996518180870265",
+  "totalIncomeDscReceived": "234866996518180870265",
+  "totalIncomeUsdtReceived": "575000000000000000000",
+  "time": 1760078725,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762432360,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690c956ca9cfc5a3e226ee49"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "142258064516129032254",
+  "block": 189793,
+  "transactionHash": "0xe7c32df6c2cf49ce6520cd9bce26485a32f2b1fc9fc47d2a520914e6ed6246c5",
+  "createdAt": {
+    "$date": "2025-10-10T06:45:30.264Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-17T07:14:27.507Z"
+  },
+  "__v": 0,
+  "activatedFsr": 3000,
+  "currentFsr": 10040,
+  "userType": "delegator",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "360000000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "-6986774193548383746"
+},
+{
+  "_id": {
+    "$oid": "68e90187942b4777b802a113"
+  },
+  "uniqueRandomId": "379591",
+  "userAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "sponsorAddress": "0xF0Cba01760Ba8410Dff770fef30430E9CB59E033",
+  "teamCount": 38,
+  "directCount": 6,
+  "directStaking": 1800,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 2100,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1760100740,
+  "usdtIncomeWallet": "500000000000000000",
+  "dscIncomeWallet": "435444786209518109088",
+  "totalIncomeDscReceived": "435444786209518109088",
+  "totalIncomeUsdtReceived": "2267500000000000000000",
+  "time": 1760100740,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 194196,
+  "transactionHash": "0x2f28f7a760fce2b2e1106417bffbca378cea8fd65076cbd723254a1134d20d18",
+  "createdAt": {
+    "$date": "2025-10-10T12:52:23.917Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-04T16:55:00.956Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 9999,
+  "userType": "delegator",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "77500000000000000000",
+  "totalIncomeDscInUsdReceived": "292500000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68e90541942b4777b802a2c7"
+  },
+  "uniqueRandomId": "567903",
+  "userAddress": "0x12ea88198C74b428E9bD5d9d69aF6dC73aEb622c",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 24,
+  "directCount": 4,
+  "directStaking": 1200,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 1500,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1760101695,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "520644391856230437873",
+  "totalIncomeDscReceived": "520644391856230437873",
+  "totalIncomeUsdtReceived": "1222000000000000000000",
+  "time": 1760101695,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 194387,
+  "transactionHash": "0xc8352fcb5d4299470656a9fd52e9323cecf7e13aa8145a12320bd5e103ed5f10",
+  "createdAt": {
+    "$date": "2025-10-10T13:08:17.685Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "243000000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68e90849942b4777b802a44a"
+  },
+  "uniqueRandomId": "471699",
+  "userAddress": "0xE4EB0097Ac75821FBb93d044cA1D0BfDE0AB42F7",
+  "sponsorAddress": "0x8F2DB3031f45F0Ce846f27d4a18F0615F0E21483",
+  "teamCount": 15,
+  "directCount": 2,
+  "directStaking": 600,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 900,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1760102470,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "1949162109853076488180",
+  "totalIncomeDscReceived": "1949162109853076488180",
+  "totalIncomeUsdtReceived": "1292500000000000000000",
+  "time": 1760102470,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 194542,
+  "transactionHash": "0x3352f2e2d2d70286a7eb682475793aa19aa86d550be92fcebfdf0e6afd854ac7",
+  "createdAt": {
+    "$date": "2025-10-10T13:21:13.449Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T03:20:07.831Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "607500000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68e916cb942b4777b802a9e1"
+  },
+  "uniqueRandomId": "606994",
+  "userAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "sponsorAddress": "0x12ea88198C74b428E9bD5d9d69aF6dC73aEb622c",
+  "teamCount": 18,
+  "directCount": 8,
+  "directStaking": 33300,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 33600,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1760106185,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "7747109070312367476001",
+  "totalIncomeDscReceived": "7747109070312367476001",
+  "totalIncomeUsdtReceived": "6320500000000000000000",
+  "time": 1760106185,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 195285,
+  "transactionHash": "0x25dae8e64a2533a6ebeec53d887f0ad33fc10a91c00434e53d814270965e6c0b",
+  "createdAt": {
+    "$date": "2025-10-10T14:23:07.705Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-12T12:23:15.982Z"
+  },
+  "__v": 0,
+  "activatedFsr": 33750,
+  "currentFsr": 33818,
+  "userType": "dao",
+  "utilizedFsr": 33750,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "4414500000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68e91f38942b4777b802ad57"
+  },
+  "uniqueRandomId": "138697",
+  "userAddress": "0xf3FF2Abc25cd7f273a42991b0F8487D06C0fA739",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 1,
+  "directCount": 1,
+  "directStaking": 3300,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 3600,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1760108340,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "320000000000000000000",
+  "time": 1760108340,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 195716,
+  "transactionHash": "0x752dd72a6f423af8a8c9d2c1dc4d7f2dc7cb534799dc67852cd74b6254768afd",
+  "createdAt": {
+    "$date": "2025-10-10T14:59:04.795Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-04T04:28:41.510Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "dao",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68eb777f942b4777b803830f"
+  },
+  "uniqueRandomId": "856660",
+  "userAddress": "0xf48C6db3E4aaD2Fe63F7E444257aD084afB75583",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 2,
+  "directCount": 2,
+  "directStaking": 600,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 900,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1760262015,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "100000000000000000000",
+  "time": 1760262015,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 226450,
+  "transactionHash": "0xda4100968719114c1b02f933a12e8ba1ea57b39afef6cd2d0f5f2ae23d933bbd",
+  "createdAt": {
+    "$date": "2025-10-12T09:40:15.879Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-12T07:49:54.366Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "dao",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68eb999f942b4777b8038f6d"
+  },
+  "uniqueRandomId": "429820",
+  "userAddress": "0x45eB2457551ba3FBBaB0a1EC3C5B1034618591CE",
+  "sponsorAddress": "0xf48C6db3E4aaD2Fe63F7E444257aD084afB75583",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1760270750,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1760270750,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 228197,
+  "transactionHash": "0x0ce3828d63bc3aff06d9dc918f821b70d46e203781facb7e6da633b7fcd30510",
+  "createdAt": {
+    "$date": "2025-10-12T12:05:51.458Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T10:06:46.752Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68ed2064f3975a5ab7964bfa"
+  },
+  "uniqueRandomId": "347590",
+  "userAddress": "0xE44865573754FcB121226A4f42d56668934996a3",
+  "sponsorAddress": "0xf3FF2Abc25cd7f273a42991b0F8487D06C0fA739",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1760370785,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1760370785,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762359045,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b770810f5e3fb6300358f"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "179999999999999999994",
+  "block": 248204,
+  "transactionHash": "0x5ec99d4ba49facce75b7fea1053a64be47007c6b27f3a26b282123fb49420017",
+  "createdAt": {
+    "$date": "2025-10-13T15:53:08.278Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-04T18:31:01.930Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "43548387096774194994"
+},
+{
+  "_id": {
+    "$oid": "68edf4caf3975a5ab79697dd"
+  },
+  "uniqueRandomId": "203134",
+  "userAddress": "0x25beaC7CB9febe3dd83C9E32d941daDD4F4a01d1",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 2,
+  "directCount": 2,
+  "directStaking": 6600,
+  "userTotalStakeInUsd": 13200,
+  "userDirectPlusSelfStakeInUsd": 19800,
+  "currentRank": "Expert",
+  "rankAchievedAt": 1763633209,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "520644391856230437880",
+  "totalIncomeDscReceived": "520644391856230437880",
+  "totalIncomeUsdtReceived": "397000000000000000000",
+  "time": 1760425160,
+  "nodePurchasingBalance": "1200000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Node Omega",
+    "deployedAt": 1762332670,
+    "nodeNum": 4,
+    "_id": {
+      "$oid": "690b0fff10f5e3fb63febced"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "847741935483870966133",
+  "block": 259076,
+  "transactionHash": "0x6eeba10945c088217f6592d39d2bcd70cc9199b6676e4deb1354eed4e0315e87",
+  "createdAt": {
+    "$date": "2025-10-14T06:59:22.674Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.800Z"
+  },
+  "__v": 0,
+  "activatedFsr": 0,
+  "currentFsr": 0,
+  "userType": "normal",
+  "utilizedFsr": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "243000000000000000000",
+  "dscAllocation": "251983870967741934765",
+  "swapAllocation": "268258064516129031367"
+},
+{
+  "_id": {
+    "$oid": "68ef88a1f3975a5ab7972957"
+  },
+  "uniqueRandomId": "483328",
+  "userAddress": "0x26b39A9FaC66fD96c1137D4D2F1610f0ff19Bd8C",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 4,
+  "directCount": 4,
+  "directStaking": 10200,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 10500,
+  "currentRank": "Master",
+  "rankAchievedAt": 1760528540,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "875612951407014450669",
+  "totalIncomeDscReceived": "875612951407014450669",
+  "totalIncomeUsdtReceived": "695000000000000000000",
+  "time": 1760528540,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 279752,
+  "transactionHash": "0x9007179d863f4a3013582c7a50803f872d5d03d8cd3970cd976ebefee85535b3",
+  "createdAt": {
+    "$date": "2025-10-15T11:42:25.108Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-17T02:53:37.381Z"
+  },
+  "__v": 0,
+  "activatedFsr": 2700,
+  "currentFsr": 2700,
+  "userType": "dao",
+  "utilizedFsr": 2700,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "855000000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f0901b7137cab944ca6dc1"
+  },
+  "uniqueRandomId": "237972",
+  "userAddress": "0x5E6B7dE895908cd0acd2c996dac4AD8DFef14740",
+  "sponsorAddress": "0xF0Cba01760Ba8410Dff770fef30430E9CB59E033",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1760595990,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1760595990,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 293242,
+  "transactionHash": "0x33020262c0a3d23fbdb84edd7e7a60bdf2745a275b8b73d9cb1bd5147fc858b5",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-16T06:26:35.338Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T10:06:46.934Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f1262edae17dbd59cdf8e8"
+  },
+  "uniqueRandomId": "913564",
+  "userAddress": "0x2D1014097CA6041E363394c18F51709765ab60CC",
+  "sponsorAddress": "0x12ea88198C74b428E9bD5d9d69aF6dC73aEb622c",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1760634410,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1760634410,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 300926,
+  "transactionHash": "0xf6fa6957ad8bf9b0bf43274d37c828afd6e647e83ade16171c3012379a3d3fb3",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-16T17:06:54.079Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f12695dae17dbd59cdf92d"
+  },
+  "uniqueRandomId": "585808",
+  "userAddress": "0x0075Edf541B23600EDEe8DB31F11c855E59f1A9d",
+  "sponsorAddress": "0x12ea88198C74b428E9bD5d9d69aF6dC73aEb622c",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Expert",
+  "rankAchievedAt": 1760634515,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1760634515,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 300947,
+  "transactionHash": "0x4cdfd48c64d56f2ac62d1fcb1a523ebce4e29c9277037bdc0eb514c2461feae7",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-16T17:08:37.844Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f871ebdae17dbd59d09113"
+  },
+  "uniqueRandomId": "733722",
+  "userAddress": "0xC93A652E21b14A683cfA95442A97D67a1fCfb216",
+  "sponsorAddress": "0xE4EB0097Ac75821FBb93d044cA1D0BfDE0AB42F7",
+  "teamCount": 9,
+  "directCount": 4,
+  "directStaking": 23100,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 23400,
+  "currentRank": "Expert",
+  "rankAchievedAt": 1762197257,
+  "usdtIncomeWallet": "500000000000000000",
+  "dscIncomeWallet": "1597796842058194355953",
+  "totalIncomeDscReceived": "1597796842058194355953",
+  "totalIncomeUsdtReceived": "1118500000000000000000",
+  "time": 1761112550,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 396554,
+  "transactionHash": "0x7329c4f28160fd2a0d766aee0ee20cb482144002a0700a8ffc6c37a6606d67c5",
+  "currentFsr": 4120,
+  "utilizedFsr": 4050,
+  "activatedFsr": 4050,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-22T05:55:55.029Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "-643500000000000000000",
+  "totalIncomeDscInUsdReceived": "526500000000000000000",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f874f4dae17dbd59d0928d"
+  },
+  "uniqueRandomId": "853560",
+  "userAddress": "0x8b8a9C1E01a44e1e5c7E7771F61812b3Dea06f94",
+  "sponsorAddress": "0xC93A652E21b14A683cfA95442A97D67a1fCfb216",
+  "teamCount": 5,
+  "directCount": 1,
+  "directStaking": 300,
+  "userTotalStakeInUsd": 13200,
+  "userDirectPlusSelfStakeInUsd": 13500,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1761113330,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "150000000000000000000",
+  "time": 1761113330,
+  "nodePurchasingBalance": "1200000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Node Omega",
+    "deployedAt": 1762352430,
+    "nodeNum": 4,
+    "_id": {
+      "$oid": "690b5d2e10f5e3fb63ffd873"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "859354838709677419359",
+  "block": 396710,
+  "transactionHash": "0xef88e0e34136fb49ba5ec23da8859090faca968c52636efe76f17574452d7e3f",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-22T06:08:52.692Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.519Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "559354838709677419359",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68f89535dae17dbd59d0a030"
+  },
+  "uniqueRandomId": "831846",
+  "userAddress": "0x40ed8186F0fa2704253DFeaaF64b0Bb213cB3e40",
+  "sponsorAddress": "0xf48C6db3E4aaD2Fe63F7E444257aD084afB75583",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761121585,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761121585,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 398361,
+  "transactionHash": "0x6ecaf6709c214624aabc18c7ef84ba272b58374b03e85010b37ae2b1dc917f74",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-22T08:26:29.277Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-23T11:33:45.410Z"
+  },
+  "__v": 0,
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fa15822956c235daf9edba"
+  },
+  "uniqueRandomId": "648274",
+  "userAddress": "0x0a4f73428FEBbe0324B866cd61DBa6F6644bc540",
+  "sponsorAddress": "0x8F2DB3031f45F0Ce846f27d4a18F0615F0E21483",
+  "teamCount": 1,
+  "directCount": 1,
+  "directStaking": 300,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 600,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761219970,
+  "usdtIncomeWallet": "50000000000000000000",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "50000000000000000000",
+  "time": 1761219970,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 418038,
+  "transactionHash": "0x5ddd43f887dcbc69578a268949e1f4dd3b880b37b28a06d500201f53ab8c1891",
+  "currentFsr": 600,
+  "utilizedFsr": 0,
+  "activatedFsr": 600,
+  "userType": "dao",
+  "createdAt": {
+    "$date": "2025-10-23T11:46:10.804Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-28T05:19:24.599Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fb14c2d205a9c34e0aff79"
+  },
+  "uniqueRandomId": "330029",
+  "userAddress": "0xB929e8Be6a426C7aA91A4947962665084272bC90",
+  "sponsorAddress": "0x26b39A9FaC66fD96c1137D4D2F1610f0ff19Bd8C",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761285310,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761285310,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762259370,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "6909f1aa10f5e3fb63fabacd"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "205935483870967741926",
+  "block": 431105,
+  "transactionHash": "0x743e901fdf621750fe9578968c62f8194c1c957f2bf3d3fe0662cafd36dcd3a4",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-24T05:55:14.290Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.222Z"
+  },
+  "__v": 0,
+  "dscAllocation": "92670967741935483852",
+  "swapAllocation": "105264516129032258074"
+},
+{
+  "_id": {
+    "$oid": "68fb2251d205a9c34e0b05f4"
+  },
+  "uniqueRandomId": "661503",
+  "userAddress": "0x91388e3F2F0B51fffb6386703D42A0634BF8F794",
+  "sponsorAddress": "0xE4EB0097Ac75821FBb93d044cA1D0BfDE0AB42F7",
+  "teamCount": 4,
+  "directCount": 4,
+  "directStaking": 23100,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 23400,
+  "currentRank": "Master",
+  "rankAchievedAt": 1762167727,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "2751842989117799800974",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "2751842989117799800974",
+  "totalIncomeDscInUsdReceived": "1417500000000000000000",
+  "totalIncomeUsdtReceived": "2082500000000000000000",
+  "time": 1761288780,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 431799,
+  "transactionHash": "0x5ae19764105af427b62970dfadc241d00a777cc227d82e551aa09357710a0705",
+  "currentFsr": 10000,
+  "utilizedFsr": 9450,
+  "activatedFsr": 9450,
+  "userType": "dao",
+  "createdAt": {
+    "$date": "2025-10-24T06:53:05.564Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T14:37:00.520Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fb2528d205a9c34e0b0875"
+  },
+  "uniqueRandomId": "789181",
+  "userAddress": "0x235ef2f2B158354a212C8FeF7aB3d9b9fe468A7f",
+  "sponsorAddress": "0x8b8a9C1E01a44e1e5c7E7771F61812b3Dea06f94",
+  "teamCount": 4,
+  "directCount": 1,
+  "directStaking": 300,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 600,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1761289510,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "125000000000000000000",
+  "time": 1761289510,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 431945,
+  "transactionHash": "0x60f6336c1e19f741c41b61ab18996f6c1fe290aac7683df6540a149503ae3ccc",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-24T07:05:12.851Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fb67f8d205a9c34e0b21c1"
+  },
+  "uniqueRandomId": "359509",
+  "userAddress": "0x8Ea8D183930691A1BA8652a605179DC45a20098B",
+  "sponsorAddress": "0x235ef2f2B158354a212C8FeF7aB3d9b9fe468A7f",
+  "teamCount": 3,
+  "directCount": 2,
+  "directStaking": 3600,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 3900,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1761306615,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "162689709536170731921",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "162689709536170731921",
+  "totalIncomeDscInUsdReceived": "243000000000000000000",
+  "totalIncomeUsdtReceived": "422000000000000000000",
+  "time": 1761306615,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 435366,
+  "transactionHash": "0xc0b5174283bfbf15ec72d3193f66e55e267deb49d4d8f48014c50a1bad8f3f0c",
+  "currentFsr": 2700,
+  "utilizedFsr": 1350,
+  "activatedFsr": 1350,
+  "userType": "dao",
+  "createdAt": {
+    "$date": "2025-10-24T11:50:16.192Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-02T19:25:16.565Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fb6f81ddbb78c29316ddf0"
+  },
+  "uniqueRandomId": "515672",
+  "userAddress": "0xc6F15bb4D41B8781988904453e30ad07BB25E294",
+  "sponsorAddress": "0x8Ea8D183930691A1BA8652a605179DC45a20098B",
+  "teamCount": 1,
+  "directCount": 1,
+  "directStaking": 3300,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 3600,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1761308540,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "260322195928115218940",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "260322195928115218940",
+  "totalIncomeDscInUsdReceived": "121500000000000000000",
+  "totalIncomeUsdtReceived": "198500000000000000000",
+  "time": 1761308540,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 435751,
+  "transactionHash": "0x414854191f693c3280fd158b34f3d82ef31d620a7334dfd2519a5b64853294d9",
+  "currentFsr": 3000,
+  "utilizedFsr": 1350,
+  "activatedFsr": 2085,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-24T12:22:25.423Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fbc1a7ddbb78c29316fd70"
+  },
+  "uniqueRandomId": "995810",
+  "userAddress": "0x5f34e11eBeAFDe49CF7cb57f8a362090D51EF34f",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761329570,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761329570,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762341715,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b335610f5e3fb63ff3eea"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 439957,
+  "transactionHash": "0x4118c25de035a5a64e6fabc26d6f962188470112679a8c0908545285970b6666",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-24T18:12:55.889Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.455Z"
+  },
+  "__v": 0,
+  "dscAllocation": "94020967741935483852",
+  "swapAllocation": "46014516129032258074"
+},
+{
+  "_id": {
+    "$oid": "68fc8380ddbb78c2931747ec"
+  },
+  "uniqueRandomId": "266842",
+  "userAddress": "0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372",
+  "sponsorAddress": "0x0a4f73428FEBbe0324B866cd61DBa6F6644bc540",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761379200,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761379200,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 449883,
+  "transactionHash": "0xfb90315abd60bd341aea1a23d9e1080f36cf56cd485576793f7e68e61dbe7e1c",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-25T08:00:00.829Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-17T07:26:36.998Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fc8e9bddbb78c293174c4a"
+  },
+  "uniqueRandomId": "710189",
+  "userAddress": "0x030c58721F79490018B8818601C618391E9BE012",
+  "sponsorAddress": "0x12ea88198C74b428E9bD5d9d69aF6dC73aEb622c",
+  "teamCount": 2,
+  "directCount": 2,
+  "directStaking": 9900,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 10200,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1761382040,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "780966587784345656822",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "780966587784345656822",
+  "totalIncomeDscInUsdReceived": "364500000000000000000",
+  "totalIncomeUsdtReceived": "595500000000000000000",
+  "time": 1761382040,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 450451,
+  "transactionHash": "0xda2b0ea02b9cd94cc3733c9ce2189d9b3cdf0a7d4648397187b3304f882c403a",
+  "currentFsr": 4060,
+  "utilizedFsr": 4050,
+  "activatedFsr": 4060,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-25T08:47:23.184Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0,
+  "dscAllocation": "0",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "68fcb4dcddbb78c293175ae9"
+  },
+  "uniqueRandomId": "675674",
+  "userAddress": "0x2E7D16145771e74463a9Cac152dF311372166C82",
+  "sponsorAddress": "0xc6F15bb4D41B8781988904453e30ad07BB25E294",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761391835,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761391835,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762365780,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b915910f5e3fb630099bf"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "211935483870967741927",
+  "block": 452410,
+  "transactionHash": "0xf802438e50e783a2a31fcaa169e6e20d353f7063c1f743237fce74324c279108",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-25T11:30:36.530Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.474Z"
+  },
+  "__v": 0,
+  "dscAllocation": "19596774193548393854",
+  "swapAllocation": "23951612903225808073"
+},
+{
+  "_id": {
+    "$oid": "68ff9e795cd80530b965a423"
+  },
+  "uniqueRandomId": "966478",
+  "userAddress": "0x4a177e857dB11a0229FeEbb355eB9eC895C55E68",
+  "sponsorAddress": "0x91388e3F2F0B51fffb6386703D42A0634BF8F794",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 13200,
+  "userDirectPlusSelfStakeInUsd": 13200,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1762167727,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761582710,
+  "nodePurchasingBalance": "1200000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Node Omega",
+    "deployedAt": 1762339900,
+    "nodeNum": 4,
+    "_id": {
+      "$oid": "690b2c3e10f5e3fb63ff253e"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "823741935483870966133",
+  "block": 490576,
+  "transactionHash": "0xd37e654bfc86ed758653bc34b47f81cbff4b2bf2832e3fe20ae24a8e365a37e0",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-27T16:31:53.106Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.368Z"
+  },
+  "__v": 0,
+  "dscAllocation": "30283870967741934766",
+  "swapAllocation": "281458064516129031367"
+},
+{
+  "_id": {
+    "$oid": "68ffc4745cd80530b965cbff"
+  },
+  "uniqueRandomId": "565226",
+  "userAddress": "0x58Fc6Ea36FA2DC0472eC12f26EDE1dd242199518",
+  "sponsorAddress": "0x030c58721F79490018B8818601C618391E9BE012",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 6600,
+  "userDirectPlusSelfStakeInUsd": 6600,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1763633209,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761592435,
+  "nodePurchasingBalance": "600000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Guardians",
+    "deployedAt": 1762366855,
+    "nodeNum": 2,
+    "_id": {
+      "$oid": "690b958a10f5e3fb6300aa05"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "371612903225806445794",
+  "block": 492521,
+  "transactionHash": "0x04bbd96393ca89d6a2c9281808028ed381e14196bc4c27253859852af858b0e6",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-27T19:13:56.495Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.639Z"
+  },
+  "__v": 0,
+  "dscAllocation": "33967741935483869616",
+  "swapAllocation": "6387096774193549206"
+},
+{
+  "_id": {
+    "$oid": "69006c517aa4f238bd647a2b"
+  },
+  "uniqueRandomId": "725358",
+  "userAddress": "0x8c508AC0A544b7D02679842A5A737642122826D3",
+  "sponsorAddress": "0x26b39A9FaC66fD96c1137D4D2F1610f0ff19Bd8C",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761635405,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761635405,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762259040,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "6909f06210f5e3fb63fab5ba"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "182903225806451612897",
+  "block": 501115,
+  "transactionHash": "0x1aa4244167b4aeb11bfbb62020c80d9d56e5d2817f72ec1a3cf3e9247da5104f",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-28T07:10:09.299Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.721Z"
+  },
+  "__v": 0,
+  "dscAllocation": "92903225806451612897",
+  "swapAllocation": "0"
+},
+{
+  "_id": {
+    "$oid": "6900ac427aa4f238bd64c009"
+  },
+  "uniqueRandomId": "432002",
+  "userAddress": "0xa333F125aF1cB1F688F4aEC09b0A2C164A491cc1",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761651775,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761651775,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762349220,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b50a910f5e3fb63ffaaa2"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 504389,
+  "transactionHash": "0x14dcb6a670a32c8402ad4a03e086fb84431a942821d5f3dc7f83faecbfb7cbd7",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-28T11:42:58.815Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.501Z"
+  },
+  "__v": 0,
+  "dscAllocation": "47070967741935483852",
+  "swapAllocation": "49954516129032258074"
+},
+{
+  "_id": {
+    "$oid": "6900cec71dcc8c084ab35b34"
+  },
+  "uniqueRandomId": "308528",
+  "userAddress": "0x4415a05fb9A6B3D183affC1037C5D9a1D7213103",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761660610,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761660610,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762329070,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b01f210f5e3fb63fe886c"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 506156,
+  "transactionHash": "0x45f336b52e748bbd0060abd95c4aa8e2de17c55380cd8b2763d1526c57b5ecd4",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-28T14:10:15.938Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.587Z"
+  },
+  "__v": 0,
+  "dscAllocation": "94020967741935483852",
+  "swapAllocation": "92614516129032258074"
+},
+{
+  "_id": {
+    "$oid": "6900f2181dcc8c084ab380a8"
+  },
+  "uniqueRandomId": "769482",
+  "userAddress": "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 1,
+  "directCount": 1,
+  "directStaking": 3300,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 6600,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1763633210,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "173548130618743479292",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "173548130618743479292",
+  "totalIncomeDscInUsdReceived": "81000000000000000000",
+  "totalIncomeUsdtReceived": "149000000000000000000",
+  "time": 1761669650,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762330525,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b07a310f5e3fb63fe9d30"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 507964,
+  "transactionHash": "0x205067eec3a0e620764afb4628b733fbec66bbd2513a694995c78250c78932ed",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-28T16:40:56.042Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.072Z"
+  },
+  "__v": 0,
+  "dscAllocation": "94020967741935483852",
+  "swapAllocation": "99914516129032258074"
+},
+{
+  "_id": {
+    "$oid": "6901fabb1dcc8c084ab4a382"
+  },
+  "uniqueRandomId": "792552",
+  "userAddress": "0xdAD11D65d831e9F9Bd833081F362A4dafc02ca0c",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 2,
+  "directCount": 2,
+  "directStaking": 9900,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 13200,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1761737400,
+  "usdtIncomeWallet": "500000000000000000",
+  "dscIncomeWallet": "780966587784345656822",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "780966587784345656822",
+  "totalIncomeDscInUsdReceived": "364500000000000000000",
+  "totalIncomeUsdtReceived": "595500000000000000000",
+  "time": 1761737400,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762363960,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b8a3910f5e3fb63007c9e"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 521514,
+  "transactionHash": "0xe49d0a3d0c94939835c04276ea8fa565cf5dac3973a89f9861431499b0da4424",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-29T11:30:03.294Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.714Z"
+  },
+  "__v": 0,
+  "dscAllocation": "94020967741935483852",
+  "swapAllocation": "3214516129032258074"
+},
+{
+  "_id": {
+    "$oid": "6901fe581dcc8c084ab4a806"
+  },
+  "uniqueRandomId": "224527",
+  "userAddress": "0x64001dB3E7fFDb84aA9798c1e2268F2c64e7Be1C",
+  "sponsorAddress": "0xdAD11D65d831e9F9Bd833081F362A4dafc02ca0c",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 6600,
+  "userDirectPlusSelfStakeInUsd": 6600,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1763633210,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761738325,
+  "nodePurchasingBalance": "600000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Guardians",
+    "deployedAt": 1762364265,
+    "nodeNum": 2,
+    "_id": {
+      "$oid": "690b8b6b10f5e3fb63008115"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "417870967741935478046",
+  "block": 521699,
+  "transactionHash": "0xb37f5ea7d47dfc739c10f26539b23cdf056ef233b5ab4bcbbb332206d7889804",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-29T11:45:28.773Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.756Z"
+  },
+  "__v": 0,
+  "dscAllocation": "188041935483870965133",
+  "swapAllocation": "6829032258064512954"
+},
+{
+  "_id": {
+    "$oid": "690365835fe618e340c79270"
+  },
+  "uniqueRandomId": "948643",
+  "userAddress": "0x26D0e4B38e2ab946fAaF94aa2C1C6901a776E81f",
+  "sponsorAddress": "0xdAD11D65d831e9F9Bd833081F362A4dafc02ca0c",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761830270,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761830270,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762352080,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b5bd510f5e3fb63ffd314"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 540088,
+  "transactionHash": "0xeca7631e8a3bc64e426430edb531e1178b28160ed274b9b406ef58c651148d66",
+  "currentFsr": 1000,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-30T13:17:55.001Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.546Z"
+  },
+  "__v": 0,
+  "dscAllocation": "2620967741935483852",
+  "swapAllocation": "3194516129032258074"
+},
+{
+  "_id": {
+    "$oid": "69036a925fe618e340c7a51c"
+  },
+  "uniqueRandomId": "909759",
+  "userAddress": "0x8933116A755877022DBcBFC7594A35fa5681cE25",
+  "sponsorAddress": "0x25beaC7CB9febe3dd83C9E32d941daDD4F4a01d1",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761831565,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761831565,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762333015,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b115b10f5e3fb63fec1d3"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "211935483870967741927",
+  "block": 540347,
+  "transactionHash": "0x81f2a42f9389cbfdae2355c2463469bc7604db0655c57eaf1ad667333afeda20",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-30T13:39:30.138Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.843Z"
+  },
+  "__v": 0,
+  "dscAllocation": "63070967741935483854",
+  "swapAllocation": "77064516129032258073"
+},
+{
+  "_id": {
+    "$oid": "69036ae65fe618e340c7a646"
+  },
+  "uniqueRandomId": "169510",
+  "userAddress": "0xa7b6CEcD11Bd8F7D77CB4ff501D860113B3605B4",
+  "sponsorAddress": "0x25beaC7CB9febe3dd83C9E32d941daDD4F4a01d1",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761831650,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761831650,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762333240,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b123b10f5e3fb63fec5d4"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 540364,
+  "transactionHash": "0x7a168a877fc733baeeaf0ed15d85f9a20a7ce564b20e3d7d43b905c9d6f0fab6",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-30T13:40:54.537Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.884Z"
+  },
+  "__v": 0,
+  "dscAllocation": "63020967741935483852",
+  "swapAllocation": "77014516129032258074"
+},
+{
+  "_id": {
+    "$oid": "69036be75fe618e340c7aad7"
+  },
+  "uniqueRandomId": "686484",
+  "userAddress": "0x1a7fb9856a0da56c780304990BA99cf2EFb7CceE",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761831910,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761831910,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762348120,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b4c5d10f5e3fb63ff9a43"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "191516129032258064508",
+  "block": 540416,
+  "transactionHash": "0x537b8404f27cec42b4459e57538c6010ad3654ed92447ca2d9c95cf18a3e05a7",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-30T13:45:11.322Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.434Z"
+  },
+  "__v": 0,
+  "dscAllocation": "86182258064516129016",
+  "swapAllocation": "3333870967741935492"
+},
+{
+  "_id": {
+    "$oid": "6903ad3c5fe618e340c89613"
+  },
+  "uniqueRandomId": "821611",
+  "userAddress": "0xcE2DFaD29bb7f5E61dFE561e485eaBCF9C797faA",
+  "sponsorAddress": "0x030c58721F79490018B8818601C618391E9BE012",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1761848635,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1761848635,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762367400,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b97ab10f5e3fb6300b2b8"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "185806451612903225800",
+  "block": 543761,
+  "transactionHash": "0xb573cc98128129f82d8c4893c3f624e8eece3d75437284d56a3045e2d79d23a2",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-10-30T18:23:56.904Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.681Z"
+  },
+  "__v": 0,
+  "dscAllocation": "83612903225806451600",
+  "swapAllocation": "3193548387096774200"
+},
+{
+  "_id": {
+    "$oid": "6906df09940cb00b218828a0"
+  },
+  "uniqueRandomId": "740954",
+  "userAddress": "0x3D3963EcEaA055d2C6335ED2a5c27d7d8EA54015",
+  "sponsorAddress": "0xF8F9b2a3AD92Ab2a11B2BB1A99EaDd96e3dc98aC",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762057990,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762057990,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762331005,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b097e10f5e3fb63fea44d"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "208935483870967741926",
+  "block": 585632,
+  "transactionHash": "0x10f4007226c10022c4eb94902c8c620818ce631df0fc86fb1be6b752d8b1f635",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-02T04:33:13.480Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.266Z"
+  },
+  "__v": 0,
+  "dscAllocation": "94020967741935483852",
+  "swapAllocation": "76964516129032258074"
+},
+{
+  "_id": {
+    "$oid": "6908d8c4b02e1e58b4a92c50"
+  },
+  "uniqueRandomId": "808938",
+  "userAddress": "0x493a8629836FB9Ef8eECED218336c029bBB5C90D",
+  "sponsorAddress": "0xC93A652E21b14A683cfA95442A97D67a1fCfb216",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762187455,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762187455,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762353595,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b61bb10f5e3fb63ffe8e3"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "214838709677419354830",
+  "block": 611525,
+  "transactionHash": "0x4be523c57399eb9d6590140ea19d7dd811d8654fffdb98e83d88d3e91e320eec",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-03T16:31:00.597Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.559Z"
+  },
+  "__v": 0,
+  "dscAllocation": "62927419354838709661",
+  "swapAllocation": "77161290322580645170"
+},
+{
+  "_id": {
+    "$oid": "6908e2f5b02e1e58b4a95367"
+  },
+  "uniqueRandomId": "316900",
+  "userAddress": "0xd2DD115488808440d6a8129bEfd9B4f6444434Ce",
+  "sponsorAddress": "0xC93A652E21b14A683cfA95442A97D67a1fCfb216",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762190065,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762190065,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762362985,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b866c10f5e3fb63006dc0"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "214838709677419354830",
+  "block": 612047,
+  "transactionHash": "0x78a0f3dac443eb11032fbf63dfeb482f16b21a40b0b08f88a67122b2afa77020",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-03T17:14:29.633Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:01.598Z"
+  },
+  "__v": 0,
+  "dscAllocation": "62927419354838709661",
+  "swapAllocation": "33532258064516135170"
+},
+{
+  "_id": {
+    "$oid": "6908fedcb02e1e58b4a9b7a2"
+  },
+  "uniqueRandomId": "822692",
+  "userAddress": "0x3a73D48589CDb6cDd32e8797b679CF3159639Ed5",
+  "sponsorAddress": "0xC93A652E21b14A683cfA95442A97D67a1fCfb216",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762197210,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762197210,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762363645,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b890210f5e3fb630077f0"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "179999999999999999994",
+  "block": 613476,
+  "transactionHash": "0xdf4ba74f4a00709c44615541a4b5966bf8014d214e6ff0b7a3bdd0c6c568e461",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-03T19:13:32.640Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-04T18:31:00.490Z"
+  },
+  "__v": 0,
+  "dscAllocation": "80999999999999999988",
+  "swapAllocation": "57750000000000000006"
+},
+{
+  "_id": {
+    "$oid": "6909d59965fa391b98c0da88"
+  },
+  "uniqueRandomId": "974628",
+  "userAddress": "0xE71Bd4487F96DAC9F83E02E34C5f541aaE86C2A7",
+  "sponsorAddress": "0x91388e3F2F0B51fffb6386703D42A0634BF8F794",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762252180,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762252180,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762338130,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690b255310f5e3fb63ff0c7d"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "173999999999999999993",
+  "block": 623420,
+  "transactionHash": "0xd5652db30c3c929c4756ecf8a74c4c2c7a52d4d80df7a9cb3a8dc6e1c470a79b",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-04T10:29:45.571Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-05T18:31:01.916Z"
+  },
+  "__v": 0,
+  "dscAllocation": "40499999999999999986",
+  "swapAllocation": "49500000000000000007"
+},
+{
+  "_id": {
+    "$oid": "690c781210f5e3fb6303d57c"
+  },
+  "uniqueRandomId": "927661",
+  "userAddress": "0x6Cf0E47d39009AFF4a7C169C891Ab3F57EbaE511",
+  "sponsorAddress": "0x91388e3F2F0B51fffb6386703D42A0634BF8F794",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1762424845,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1762424845,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1762425535,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "690c7ac110f5e3fb6303df7b"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "173999999999999999993",
+  "block": 646442,
+  "transactionHash": "0x78a0702e296baab7453560f536e111ba9f840da352ffe1f58ca334288bbbe2c5",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "createdAt": {
+    "$date": "2025-11-06T10:27:30.353Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-13T06:33:19.202Z"
+  },
+  "__v": 0,
+  "dscAllocation": "78299999999999999986",
+  "swapAllocation": "59400000000000000007"
+},
+{
+  "_id": {
+    "$oid": "6929425520d064bfb11c8f01"
+  },
+  "uniqueRandomId": "252479",
+  "userAddress": "0x6f58dE51F684Cf2E2b211c9a9B5E7b397d730829",
+  "sponsorAddress": "0x26b39A9FaC66fD96c1137D4D2F1610f0ff19Bd8C",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764311635,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764311635,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 897976,
+  "transactionHash": "0x718684ab260e6a5cfcf5d4b5c545ba60924aae17fe960cb6767632aa0a1b2037",
+  "currentFsr": 600,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "0",
+  "dscAllocation": "0",
+  "createdAt": {
+    "$date": "2025-11-28T06:33:57.613Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-28T06:35:34.194Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692ad76320d064bfb122d8ee"
+  },
+  "uniqueRandomId": "474542",
+  "userAddress": "0x6A7D315F5eE28c4F81d54DdAFf1e423b098f0ac2",
+  "sponsorAddress": "0x5eD156B40f3dB1b98Ae340dDa12B2B624d81ae68",
+  "teamCount": 5,
+  "directCount": 1,
+  "directStaking": 13200,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 13500,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1764844453,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "356802960473938356169",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "356802960473938356169",
+  "totalIncomeDscInUsdReceived": "486000000000000000000",
+  "totalIncomeUsdtReceived": "919000000000000000000",
+  "time": 1764415330,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 911802,
+  "transactionHash": "0x6b6d61b3b425eeaa5a374fb0c1467cd0f144e376d0cc44ac7fd9ed7758dcc07f",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "0",
+  "dscAllocation": "0",
+  "createdAt": {
+    "$date": "2025-11-29T11:22:11.476Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-08T19:44:01.768Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692ad81720d064bfb122dc67"
+  },
+  "uniqueRandomId": "174154",
+  "userAddress": "0xFEc3d1788DFc39730016b4c57772b1796c6624A1",
+  "sponsorAddress": "0x6A7D315F5eE28c4F81d54DdAFf1e423b098f0ac2",
+  "teamCount": 4,
+  "directCount": 2,
+  "directStaking": 9900,
+  "userTotalStakeInUsd": 13200,
+  "userDirectPlusSelfStakeInUsd": 23100,
+  "currentRank": "Expert",
+  "rankAchievedAt": 1764844697,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "238040462571711328875",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "238040462571711328875",
+  "totalIncomeDscInUsdReceived": "324000000000000000000",
+  "totalIncomeUsdtReceived": "596000000000000000000",
+  "time": 1764415510,
+  "nodePurchasingBalance": "1200000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Node Omega",
+    "deployedAt": 1764844870,
+    "nodeNum": 4,
+    "_id": {
+      "$oid": "69316548b340e48dd7141c56"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "476129032258064516133",
+  "block": 911826,
+  "transactionHash": "0x1147f8515edb028799f53c2cb21d1249e0a05d905a75ab81afe003e4a63150af",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "12870967741935483867",
+  "dscAllocation": "15858064516129032266",
+  "createdAt": {
+    "$date": "2025-11-29T11:25:11.759Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.323Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692ada0d20d064bfb122e46f"
+  },
+  "uniqueRandomId": "272154",
+  "userAddress": "0x0303Eae53bc12045f658753B689527CD8284d5b9",
+  "sponsorAddress": "0xFEc3d1788DFc39730016b4c57772b1796c6624A1",
+  "teamCount": 2,
+  "directCount": 2,
+  "directStaking": 6600,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 9900,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1764757140,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "118934566640857926367",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "118934566640857926367",
+  "totalIncomeDscInUsdReceived": "162000000000000000000",
+  "totalIncomeUsdtReceived": "298000000000000000000",
+  "time": 1764416010,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764842805,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "69315d37f0d8c25786b0e719"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "119032258064516129023",
+  "block": 911893,
+  "transactionHash": "0xb2caa3cfde487a793b5a0eb8432f9199b32aefbe97a9e3034a8c453c04ccfdde",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "57467741935483870977",
+  "dscAllocation": "53564516129032258046",
+  "createdAt": {
+    "$date": "2025-11-29T11:33:33.790Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.672Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692add5520d064bfb122f243"
+  },
+  "uniqueRandomId": "872498",
+  "userAddress": "0x470FC6C567918E25F7a80b662c6ff07E545327ec",
+  "sponsorAddress": "0x0303Eae53bc12045f658753B689527CD8284d5b9",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764416850,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764416850,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764733720,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "692fb3191c9112a5772ae608"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "119032258064516129023",
+  "block": 912005,
+  "transactionHash": "0x860a6025585095a087a5bb9cb26d8c6daf0681f45f8246a5034edea2a2b4d2e7",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "44467741935483870977",
+  "dscAllocation": "48564516129032258046",
+  "createdAt": {
+    "$date": "2025-11-29T11:47:33.003Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.922Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692ae60d20d064bfb12315a2"
+  },
+  "uniqueRandomId": "238265",
+  "userAddress": "0x0525Dea6778412D775bB4A60aea8c544C9e16B75",
+  "sponsorAddress": "0x0303Eae53bc12045f658753B689527CD8284d5b9",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764419085,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764419085,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764757330,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "69300f531f68c9df893393d8"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "87096774193548387090",
+  "block": 912303,
+  "transactionHash": "0xce6d73a31dd116120462ca8419f66dc3c6754f28c612372f7fa8c730b01768f1",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "47903225806451612910",
+  "dscAllocation": "39193548387096774180",
+  "createdAt": {
+    "$date": "2025-11-29T12:24:45.880Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-05T18:31:00.849Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692b00a920d064bfb123816a"
+  },
+  "uniqueRandomId": "343396",
+  "userAddress": "0x264C258bf0E61f7e18A37961965A8B38b3343404",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 1,
+  "directCount": 1,
+  "directStaking": 66000,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 66300,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1764582013,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "3161673782443602346780",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "3161673782443602346780",
+  "totalIncomeDscInUsdReceived": "4860000000000000000000",
+  "totalIncomeUsdtReceived": "6940000000000000000000",
+  "time": 1764425895,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 913211,
+  "transactionHash": "0x7755e29ee26aa49ef31d246c8861ce6e4d16e3838efb0db8ed4100bbb46d28b6",
+  "currentFsr": 10000,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "0",
+  "dscAllocation": "0",
+  "createdAt": {
+    "$date": "2025-11-29T14:18:17.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T00:36:57.230Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692b042620d064bfb1239079"
+  },
+  "uniqueRandomId": "100079",
+  "userAddress": "0xCD6b155435a6714c5dDaE1Dc1376118F460AdAbd",
+  "sponsorAddress": "0x384ce8b6122166E7882CD49Ce78F12C3E0bf57Ed",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 300,
+  "userDirectPlusSelfStakeInUsd": 300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764426790,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764426790,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": null,
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "0",
+  "block": 913330,
+  "transactionHash": "0x6f82b10d7711c2dca5909229a80eb06db8e3393fe950c20e69392303e3e378cf",
+  "currentFsr": 10000,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "0",
+  "dscAllocation": "0",
+  "createdAt": {
+    "$date": "2025-11-29T14:33:10.990Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T01:05:08.033Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692b1cc520d064bfb123f52f"
+  },
+  "uniqueRandomId": "158224",
+  "userAddress": "0xE1AebFaA8121F2e44A92eEEb87369ae08e594d02",
+  "sponsorAddress": "0x8Ea8D183930691A1BA8652a605179DC45a20098B",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764433090,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764433090,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764823425,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "69311184f0d8c25786afb3bf"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "119032258064516129023",
+  "block": 914170,
+  "transactionHash": "0xc2f7205ed18215ec19d598d8aecf5ac496dd47357b82a5c25eb538d87205092e",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "57917741935483870977",
+  "dscAllocation": "53564516129032258046",
+  "createdAt": {
+    "$date": "2025-11-29T16:18:13.383Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.632Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692d4c1f027cf83cb7afe760"
+  },
+  "uniqueRandomId": "464437",
+  "userAddress": "0x6A753281a023610c2554B54A570b091e00F23DeC",
+  "sponsorAddress": "0x264C258bf0E61f7e18A37961965A8B38b3343404",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 66000,
+  "userDirectPlusSelfStakeInUsd": 66000,
+  "currentRank": "Mentor",
+  "rankAchievedAt": 1764582013,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764576285,
+  "nodePurchasingBalance": "6000000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Node Dominion",
+    "deployedAt": 1764582175,
+    "nodeNum": 9,
+    "_id": {
+      "$oid": "692d6321027cf83cb7b046ac"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "1741935483870967741950",
+  "block": 933263,
+  "transactionHash": "0x7025a42b2e29ed47e5af4dc8a3698a33ed5d90b472b49d59a784682b5edcf300",
+  "currentFsr": 200,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "958064516129032258050",
+  "dscAllocation": "783870967741935483870",
+  "createdAt": {
+    "$date": "2025-12-01T08:04:47.247Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T12:32:00.309Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692d7e04027cf83cb7b0b3ca"
+  },
+  "uniqueRandomId": "667311",
+  "userAddress": "0x12C5E0B28D44223C50e97611c4915E2Ef1EE8A25",
+  "sponsorAddress": "0x91388e3F2F0B51fffb6386703D42A0634BF8F794",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764589060,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764589060,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764929170,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "6932ae923bfb14c9d3b56355"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "87096774193548387090",
+  "block": 934966,
+  "transactionHash": "0x2e4660f40dbe852808b3e9c91b4995c2cb2a4dc45260b3dd060e943543ee50b2",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "47903225806451612910",
+  "dscAllocation": "39193548387096774180",
+  "createdAt": {
+    "$date": "2025-12-01T11:37:40.618Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-05T18:31:01.820Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692eaa8c027cf83cb7b55f61"
+  },
+  "uniqueRandomId": "316755",
+  "userAddress": "0x5FF0A2776FAE208e49Bf99c0520Bf78CC2900FDe",
+  "sponsorAddress": "0x26b39A9FaC66fD96c1137D4D2F1610f0ff19Bd8C",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 3300,
+  "userDirectPlusSelfStakeInUsd": 3300,
+  "currentRank": "Beginner",
+  "rankAchievedAt": 1764665995,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764665995,
+  "nodePurchasingBalance": "300000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Pioneers",
+    "deployedAt": 1764735555,
+    "nodeNum": 1,
+    "_id": {
+      "$oid": "692fba461c9112a5772b04ae"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "119032258064516129023",
+  "block": 945224,
+  "transactionHash": "0x9c8f5261cb61f03cd1af9b53c9509cce15a0480137d88a3ab875259217aa66d6",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "57467741935483870977",
+  "dscAllocation": "53564516129032258046",
+  "createdAt": {
+    "$date": "2025-12-02T08:59:56.932Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.126Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "692ef2571c9112a57727e3eb"
+  },
+  "uniqueRandomId": "384478",
+  "userAddress": "0x1f3793A1486779439a729176fbc41660d65a293e",
+  "sponsorAddress": "0xFEc3d1788DFc39730016b4c57772b1796c6624A1",
+  "teamCount": 0,
+  "directCount": 0,
+  "directStaking": 0,
+  "userTotalStakeInUsd": 6600,
+  "userDirectPlusSelfStakeInUsd": 6600,
+  "currentRank": "Learner",
+  "rankAchievedAt": 1764736482,
+  "usdtIncomeWallet": "0",
+  "dscIncomeWallet": "0",
+  "dscIncomeInUsdWallet": "0",
+  "totalIncomeDscReceived": "0",
+  "totalIncomeDscInUsdReceived": "0",
+  "totalIncomeUsdtReceived": "0",
+  "time": 1764684370,
+  "nodePurchasingBalance": "600000000000000000000",
+  "isNodeRegDone": false,
+  "myNode": {
+    "nodeName": "Guardians",
+    "deployedAt": 1764736710,
+    "nodeNum": 2,
+    "_id": {
+      "$oid": "692fbecb1c9112a5772b1815"
+    }
+  },
+  "roiWithdrawWallet": "0",
+  "allTimeRoi": "238064516129032258046",
+  "block": 947674,
+  "transactionHash": "0xd658c6f08f155a5a41763b17bda80e611c667394746c73cd1c2b6581bb005cf4",
+  "currentFsr": 0,
+  "utilizedFsr": 0,
+  "activatedFsr": 0,
+  "userType": "normal",
+  "swapAllocation": "130935483870967741954",
+  "dscAllocation": "107129032258064516133",
+  "createdAt": {
+    "$date": "2025-12-02T14:06:15.192Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-16T18:31:00.412Z"
+  },
+  "__v": 0
+}]

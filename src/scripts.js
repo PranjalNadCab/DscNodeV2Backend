@@ -77,7 +77,7 @@ const giveOverWithdrawalAssuranceUsers = async () => {
                     }
                 }
             ]);
-            
+
             const totalRoiEarnings = (earningForThisUser.length > 0 ? (earningForThisUser[0].totalEarningsDsc + earningForThisUser[0].totalEarningsSwap) : 0)
             // const totalWithdrwanDsc = user.totalWithdrawnDsc;
             // ct({ user: user._id, totalRoiEarnings: totalRoiEarnings, totalWithdrawnDsc: totalWithdrwanDsc, loss: totalRoiEarnings - totalWithdrwanDsc, totalEarningsDsc: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsDsc : 0, totalEarningsSwap: earningForThisUser.length > 0 ? earningForThisUser[0].totalEarningsSwap : 0, });
@@ -92,13 +92,13 @@ const giveOverWithdrawalAssuranceUsers = async () => {
             //     console.log(`User ${user._id} has transferred ${totalTransferredDsc} DSC from assurance fund.`);
             // }
 
-            if(user._id === "0x8ea8d183930691a1ba8652a605179dc45a20098b"){
-                ct({ user: user._id, dscEarnings,totalWithdrawnDsc, swapEarnings,totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
+            if (user._id === "0x8ea8d183930691a1ba8652a605179dc45a20098b") {
+                ct({ user: user._id, dscEarnings, totalWithdrawnDsc, swapEarnings, totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc: (totalWithdrawnDsc + totalTransferredDsc + totalSwappedDsc), totalRoiEarnings });
             }
 
             // if (dscEarnings < totalWithdrawnDsc || swapEarnings < ( totalSwappedDsc)) {
             //     if (user._id === "0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372") continue;
-                // ct({ user: user._id, dscEarnings,totalWithdrawnDsc, swapEarnings,totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
+            // ct({ user: user._id, dscEarnings,totalWithdrawnDsc, swapEarnings,totalTransferredDsc, totalSwappedDsc, overallUtilisedDsc:( totalWithdrawnDsc +totalTransferredDsc + totalSwappedDsc),totalRoiEarnings });
 
             // }
 
@@ -114,25 +114,79 @@ const giveOverWithdrawalAssuranceUsers = async () => {
 
 const giveWithdrawalListAfterMigration = async () => {
     try {
+
+        const action = "WITHDRAW";
         // 🔹 Migration date
-        const migrationDate = "12 January 2026";
+        const migrationDate = "11 January 2026";
 
         // 🔹 Convert to UNIX seconds
         const migrationUnix = moment(migrationDate, "DD MMMM YYYY").startOf("day").unix();
 
-        const withdrawalList = await ManageAssuranceWithdrawalModel.find({
-            // actionType: "WITHDRAW",
-            time: { $gte: migrationUnix }
-        }).sort({ time: 1 });
-        let count=0;
+        
+        const withdrawalList = await ManageAssuranceWithdrawalModel.aggregate([
+            {
+                $match: {
+                    actionType: action,
+                    time: { $gte: migrationUnix }
+                }
+            },
+            {
+                $group: {
+                    _id: "$userAddress",
+
+                    userAddress: { $first: "$userAddress" },
+
+                    // 🔹 Sum DSC
+                    amountDsc: {
+                        $sum: { $toDouble: "$amountDsc" }
+                    },
+
+                    // 🔹 Sum USDT
+                    amountUsdt: {
+                        $sum: { $toDouble: "$amountUsdt" }
+                    },
+
+                    // 🔹 Keep action type
+                    actionType: { $first: "$actionType" },
+
+                    // 🔹 Keep earliest time for sorting
+                    time: { $min: "$time" }
+                }
+            },
+            {
+                $sort: { time: 1 }
+            }
+        ]);
+        let count = 0;
         for (const record of withdrawalList) {
+
+            // if((record.userAddress).toLowerCase() === ("0xFEc3d1788DFc39730016b4c57772b1796c6624A1").toLowerCase()){
+            //     continue;
+            // }
             count++;
+            const userRegDoc = await RegistrationModel.findOne({ userAddress: record.userAddress });
+            const { dscAllocation,swapAllocation } = userRegDoc;
+            if(action==="SWAPPED"){
+                const newSwapAllocation = new BigNumber(swapAllocation).minus(record.amountDsc).toFixed(0);
+                userRegDoc.swapAllocation = newSwapAllocation;
+                
+                // await userRegDoc.save();
+            }else{
+                const newDscAllocation = new BigNumber(dscAllocation).minus(record.amountDsc).toFixed(0);
+                userRegDoc.dscAllocation = newDscAllocation;
+                // await userRegDoc.save();
+
+            }
             ct({
                 count: count,
                 userAddress: record.userAddress,
-                amountDsc:Number( record.amountDsc)/1e18,
-                // txHash: record.transactionHash,
-                // time: record.time
+                amountDsc: Number(record.amountDsc) / 1e18,
+                amountUsdt: Number(record.amountUsdt) / 1e18,
+                actionType: record.actionType,
+                oldDscAllocation:dscAllocation/1e18,
+                // newDscAllocation:userRegDoc.dscAllocation/1e18,
+                // oldSwapAllocation:swapAllocation/1e18,
+                // newSwapAllocation:userRegDoc.swapAllocation/1e18,
             });
         }
 
@@ -143,10 +197,10 @@ const giveWithdrawalListAfterMigration = async () => {
     }
 };
 
-const test = async()=>{
-    try{
+const test = async () => {
+    try {
 
-        const user = await RegistrationModel.findOne({userAddress:"0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372"});
+        const user = await RegistrationModel.findOne({ userAddress: "0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372" });
         const balanceToMinus = "9000000000000000000";
         const oldBalance = user.dscAllocation;
         const newBalance = new BigNumber(oldBalance).plus(balanceToMinus).toFixed(0);
@@ -157,7 +211,7 @@ const test = async()=>{
 
         console.log("User balance updated successfully.");
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 }
