@@ -1776,7 +1776,7 @@ const getUserAssuranceFeeInfo = async (req, res, next) => {
 
 const useAssuranceIncome = async (req, res, next) => {
     try {
-        throw new Error("Assurance income withdrawal is paused temporarily!");
+        // throw new Error("Assurance income withdrawal is paused temporarily!");
         let { userAddress, amountDsc, action } = req.body;
 
         if (!userAddress) throw new Error("Please provide user address.");
@@ -1787,9 +1787,8 @@ const useAssuranceIncome = async (req, res, next) => {
         userAddress = giveCheckSummedAddress(userAddress);
         if (!amountDsc || isNaN(amountDsc) || Number(amountDsc) <= 0) throw new Error("Please provide valid amount dsc to use assurance income");
 
-        const userDoc = await RegistrationModel.find({ userAddress });
+        const userDoc = await RegistrationModel.findOne({ userAddress });
         if (!userDoc) throw new Error("User not found!");
-
         const { swapAllocation, dscAllocation, myNode } = userDoc;
 
         const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
@@ -1803,7 +1802,7 @@ const useAssuranceIncome = async (req, res, next) => {
 
         if (new BigNumber(allocation).isLessThan(amountDscIn1e18)) {
             throw new Error(
-                `Insufficient ${allocType} allocation: have ${allocation}, need ${amountDscIn1e18} DSC for ${action}`
+                `Insufficient ${allocType} allocation: have ${allocation/1e18}, need ${amountDscIn1e18/1e18} DSC for ${action}`
             );
         }
 

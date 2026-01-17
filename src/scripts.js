@@ -1,7 +1,9 @@
 const { ct } = require("./helpers/helper");
 const ManageAssuranceWithdrawalModel = require("./models/ManageAssuranceWithdrawalModel");
+const RegistrationModel = require("./models/RegistrationModel");
 const RoiModel = require("./models/RoiModel");
-
+const moment = require("moment");
+const BigNumber = require("bignumber.js");
 const giveOverWithdrawalAssuranceUsers = async () => {
     try {
 
@@ -110,6 +112,57 @@ const giveOverWithdrawalAssuranceUsers = async () => {
     }
 }
 
+const giveWithdrawalListAfterMigration = async () => {
+    try {
+        // 🔹 Migration date
+        const migrationDate = "12 January 2026";
+
+        // 🔹 Convert to UNIX seconds
+        const migrationUnix = moment(migrationDate, "DD MMMM YYYY").startOf("day").unix();
+
+        const withdrawalList = await ManageAssuranceWithdrawalModel.find({
+            // actionType: "WITHDRAW",
+            time: { $gte: migrationUnix }
+        }).sort({ time: 1 });
+        let count=0;
+        for (const record of withdrawalList) {
+            count++;
+            ct({
+                count: count,
+                userAddress: record.userAddress,
+                amountDsc:Number( record.amountDsc)/1e18,
+                // txHash: record.transactionHash,
+                // time: record.time
+            });
+        }
+
+        return withdrawalList;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
+const test = async()=>{
+    try{
+
+        const user = await RegistrationModel.findOne({userAddress:"0x480Ef3Bd9f3BD33830BF50c2766Bff81fbBA2372"});
+        const balanceToMinus = "9000000000000000000";
+        const oldBalance = user.dscAllocation;
+        const newBalance = new BigNumber(oldBalance).plus(balanceToMinus).toFixed(0);
+
+        user.dscAllocation = newBalance;
+
+        await user.save();
+
+        console.log("User balance updated successfully.");
+
+    }catch(error){
+        console.log(error);
+    }
+}
 module.exports = {
-    giveOverWithdrawalAssuranceUsers
+    giveOverWithdrawalAssuranceUsers,
+    giveWithdrawalListAfterMigration,
+    test
 }
