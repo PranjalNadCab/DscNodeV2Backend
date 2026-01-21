@@ -1802,7 +1802,7 @@ const useAssuranceIncome = async (req, res, next) => {
 
         if (new BigNumber(allocation).isLessThan(amountDscIn1e18)) {
             throw new Error(
-                `Insufficient ${allocType} allocation: have ${allocation/1e18}, need ${amountDscIn1e18/1e18} DSC for ${action}`
+                `Insufficient ${allocType} allocation: have ${allocation / 1e18}, need ${amountDscIn1e18 / 1e18} DSC for ${action}`
             );
         }
 
@@ -2430,48 +2430,48 @@ const getValidatorsList = async (req, res, next) => {
     }
 };
 
-const loginNodeManager = async(req,res,next)=>{
-    try{
-        const {userAddress, programId} = req.body;
+const loginNodeManager = async (req, res, next) => {
+    try {
+        const { userAddress, programId } = req.body;
 
-        if(!userAddress) throw new Error("Please provide user address.");
-        if(!programId) throw new Error("Please provide program id.");
-        if(![1,2,3].includes(Number(programId))) throw new Error("Please provide valid program id.");
+        if (!userAddress) throw new Error("Please provide user address.");
+        if (!programId) throw new Error("Please provide program id.");
+        if (![1, 2, 3].includes(Number(programId))) throw new Error("Please provide valid program id.");
 
-        if(programId === 2){
-            const userDoc = await RegistrationModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{userType:1, uniqueRandomId:1, userAddress:1, myNode:1,userTotalStakeInUsd:1,directStaking:1,swapAllocation:1,dscAllocation:1,_id:0});
-            if(!userDoc) throw new Error("User not found.");
-            const userDeployedNode = await NodeDeployedModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{nodeNum:1, userAddress:1,time:1,baseMinAss:1,baseMinValue:1, lastRoiDistributed:1,name:1,mobile:1,sudoLink:1,_id:0}).sort({time:-1});
-            if(!userDeployedNode) throw new Error("You do not have any deployed node.");
+        if (programId === 2) {
+            const userDoc = await RegistrationModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { userType: 1, uniqueRandomId: 1, userAddress: 1, myNode: 1, userTotalStakeInUsd: 1, directStaking: 1, swapAllocation: 1, dscAllocation: 1, _id: 0 });
+            if (!userDoc) throw new Error("User not found.");
+            const userDeployedNode = await NodeDeployedModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { nodeNum: 1, userAddress: 1, time: 1, baseMinAss: 1, baseMinValue: 1, lastRoiDistributed: 1, name: 1, mobile: 1, sudoLink: 1, _id: 0 }).sort({ time: -1 });
+            if (!userDeployedNode) throw new Error("You do not have any deployed node.");
 
-            return res.status(200).json({success:true, message:"Login Successful!"})
-        }else{
+            return res.status(200).json({ success: true, message: "Login Successful!" })
+        } else {
             throw new Error("Only program 2 is allowed for node manager login.");
         }
 
 
-        
 
-    }catch(error){
+
+    } catch (error) {
         next(error);
     }
 }
 
-const getNodeOverview = async(req,res,next)=>{
-    try{
-        const {userAddress, programId} = req.body;
+const getNodeOverview = async (req, res, next) => {
+    try {
+        const { userAddress, programId } = req.body;
 
-        if(!userAddress) throw new Error("Please provide user address.");
-        if(!programId) throw new Error("Please provide program id.");
-        if(![1,2,3].includes(Number(programId))) throw new Error("Please provide valid program id.");
+        if (!userAddress) throw new Error("Please provide user address.");
+        if (!programId) throw new Error("Please provide program id.");
+        if (![1, 2, 3].includes(Number(programId))) throw new Error("Please provide valid program id.");
 
-        if(programId === 2){
-            const userDoc = await RegistrationModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{userType:1, uniqueRandomId:1, userAddress:1, myNode:1,userTotalStakeInUsd:1,directStaking:1,swapAllocation:1,dscAllocation:1,_id:0});
-            if(!userDoc) throw new Error("User not found.");
-            const userDeployedNode = await NodeDeployedModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{nodeNum:1, userAddress:1,time:1,baseMinAss:1,baseMinValue:1, lastRoiDistributed:1,name:1,mobile:1,sudoLink:1,_id:0}).sort({time:-1});
-            if(!userDeployedNode) throw new Error("You do not have any deployed node.");
+        if (programId === 2) {
+            const userDoc = await RegistrationModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { userType: 1, uniqueRandomId: 1, userAddress: 1, myNode: 1, userTotalStakeInUsd: 1, directStaking: 1, swapAllocation: 1, dscAllocation: 1, _id: 0 });
+            if (!userDoc) throw new Error("User not found.");
+            const userDeployedNode = await NodeDeployedModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { nodeNum: 1, userAddress: 1, time: 1, baseMinAss: 1, baseMinValue: 1, lastRoiDistributed: 1, name: 1, mobile: 1, sudoLink: 1, _id: 0 }).sort({ time: -1 });
+            if (!userDeployedNode) throw new Error("You do not have any deployed node.");
 
-            const billInfo = await AssuranceFeeModel.findOne({userAddress: giveCheckSummedAddress(userAddress)},{amount:1,userAddress:1,time:1,calendarMonth:1,_id:0}).lean().sort({time:-1});
+            const billInfo = await AssuranceFeeModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { amount: 1, userAddress: 1, time: 1, calendarMonth: 1, _id: 0 }).lean().sort({ time: -1 });
             const totalBillPaid = await AssuranceFeeModel.aggregate([
                 { $match: { userAddress: giveCheckSummedAddress(userAddress) } },
                 {
@@ -2482,31 +2482,117 @@ const getNodeOverview = async(req,res,next)=>{
                 }
             ]);
             const totalAssuranceFeePaid = totalBillPaid.length > 0 ? totalBillPaid[0].totalPaid : 0;
-            console.log("dddd",totalAssuranceFeePaid);
+            console.log("dddd", totalAssuranceFeePaid);
 
-            const {status, message,data} = await giveReceivedAssuranceOfUser(userAddress);
-            ct({status, message});
-            
-            return res.status(200).json({success:true, message:"Login Successful!", overview:{
-                billInfo:{...billInfo, totalAssuranceFeePaid},
-                userDoc,
-                userDeployedNode,
-                receivedAssuranceInfo: data
-            }})
-        }else{
+            const { status, message, data } = await giveReceivedAssuranceOfUser(userAddress);
+            ct({ status, message });
+
+            return res.status(200).json({
+                success: true, message: "Login Successful!", overview: {
+                    billInfo: { ...billInfo, totalAssuranceFeePaid },
+                    userDoc,
+                    userDeployedNode,
+                    receivedAssuranceInfo: data
+                }
+            })
+        } else {
             throw new Error("Only program 2 is allowed for node manager login.");
         }
 
 
-        
 
-    }catch(error){
+
+    } catch (error) {
         next(error);
     }
 }
 
+const getNodeStatus = async (req, res, next) => {
+    try {
+        const { userAddress } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+
+        const isUserNodeDeployed = await dscNodeContract.methods.isUserNodeDeployed(userAddress).call();
+        if (!isUserNodeDeployed) throw new Error("You do not have any deployed node!");
+        const userNodeInfo = await NodeDeployedModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }).sort({ time: -1 });
+        if (!userNodeInfo) throw new Error("You do not have any deployed node!");
+
+        const { nodeNum, baseMinValue, baseMinAss } = userNodeInfo;
+        const totalFeePaid = await AssuranceFeeModel.aggregate([
+            {
+                $match: { userAddress: giveCheckSummedAddress(userAddress) }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalPaid: { $sum: "$amount" }
+                }
+            }
+        ]);
+        const totalAssuranceFeePaid = totalFeePaid.length > 0 ? totalFeePaid[0].totalPaid : 0;
+
+        const lastPayment = await AssuranceFeeModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }).sort({ seqMonth: -1 });
+        const nodeStatus = {
+            nodeNum: nodeNum || null,
+            baseMinValue,
+            baseMinAss,
+            totalAssuranceFeePaid,
+            lastPaymentTime: lastPayment?.time || null,
+            lastCalendarMonth: lastPayment?.calendarMonth || null
+        }
+        return res.status(200).json({ success: true, message: "User node status fetched successfully!", isUserNodeDeployed, nodeStatus });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getNodeBillingHistory = async (req, res, next) => {
+
+    try {
+        let { userAddress, page = 1, limit = 1000 } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        // Convert pagination to numbers
+        page = parseInt(page);
+        limit = parseInt(limit);
+        // Count total documents for pagination
+
+        const totalCount = await AssuranceFeeModel.countDocuments({ userAddress });
+        // Fetch paginated data
+        const history = await AssuranceFeeModel.find({ userAddress })
+            .select("-__v  -createdAt -updatedAt") // exclude unwanted fields
+            .sort({ time: -1 }) // newest first
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Assurance fee history fetched successfully!",
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalRecords: totalCount
+            },
+            assuranceHistory: history
+        });
+
+    } catch (error) {
+        next(error);
+    }
+
+
+}
+
 
 module.exports = {
+    getNodeStatus,
+    getNodeBillingHistory,
     stakeVrs,
     getNodeOverview,
     loginNodeManager,
