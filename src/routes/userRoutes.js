@@ -1,5 +1,5 @@
 const express = require("express");
-const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness, getValidatorsGroupData, getValidatorsList, loginNodeManager, getNodeOverview, getNodeStatus, getNodeBillingHistory } = require("../controllers/userController");
+const { stakeVrs, getLiveDscPrice, getUserInfo, getUserStakings, withdrawIncomeUsdt, withdrawIncomeDsc, getGapIncomeHistory, getWithdrawIncomeHistory, upgradeNode, getRoiHistory, stakeMix, deployNode, getUserPendingStake, getUsdDscRatio, getUserPendingNodeUpgrades, getNodeUpgradeHistory, getIdToAddress, getLevelIncome, nbdPaidHistory, activateFsr, pendingTxsToSponsor, completeSponsoredTx, fsrActivationHistory, userDeployedNode, assuranceFeeHistory, getUserAssuranceFeeInfo, assuranceRoiHistory, useAssuranceIncome, assuranceIncomeOutHistory, sponsoredTxHistory, getUserNodeLists, userAlldirects, userTeamList, userTeamBusiness, getValidatorsGroupData, getValidatorsList, loginNodeManager, getNodeOverview, getNodeStatus, getNodeBillingHistory, getAllocationInfo, getAssuranceWithdrawals } = require("../controllers/userController");
 
 
 const router = express.Router();
@@ -48,6 +48,10 @@ router.post("/login-node-manager",loginNodeManager);
 router.post("/get-node-overview",getNodeOverview);
 router.post("/get-node-status",getNodeStatus);
 router.post("/get-node-billing-history",getNodeBillingHistory);
+router.post("/get-allocation-info",getAllocationInfo);
+router.post("/get-assurance-withrawals",getAssuranceWithdrawals);
+
+
 
 
 

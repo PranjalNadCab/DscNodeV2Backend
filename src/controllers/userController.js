@@ -2589,9 +2589,87 @@ const getNodeBillingHistory = async (req, res, next) => {
 
 }
 
+const getAllocationInfo = async (req, res, next) => {
+    try {
+
+        let { userAddress } = req.body;
+
+
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        const userAllocationInfo = await RegistrationModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { swapAllocation: 1, dscAllocation: 1, _id: 0 }).lean();
+        if (!userAllocationInfo) throw new Error("User not found!");
+
+        return res.status(200).json({ success: true, message: "User allocation info fetched successfully!", allocationInfo: userAllocationInfo });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getAssuranceWithdrawals = async (req, res, next) => {
+    try {
+
+        let { userAddress, action, page = 1, limit = 10, } = req.body;
+
+        if (!userAddress) throw new Error("Please provide user address.");
+        userAddress = giveCheckSummedAddress(userAddress);
+
+        if (!["TRANSFER", "WITHDRAW", "SWAPPED"].includes(action)) throw new Error("Please provide valid action type.");
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const skip = (page - 1) * limit;
+
+        const query = action === "SWAPPED"
+            ? { userAddress, actionType: "SWAPPED" } : (action === "WITHDRAW" ? { userAddress, actionType: "WITHDRAW" } : { userAddress, actionType: "TRANSFER" });
+
+        const userDoc = await RegistrationModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { userAddress: 1, _id: 0 }).lean();
+        if (!userDoc) throw new Error("User not found.");
+
+
+        let [totalCount, history] = await Promise.all([
+            ManageAssuranceWithdrawalModel.countDocuments(query),
+            ManageAssuranceWithdrawalModel.find(query).sort({ timestamp: -1 }) // newest first
+                .skip(skip)
+                .limit(limit)
+                .lean()
+
+        ]);
+
+        history = history.map(record => ({
+            userAddress: record.userAddress,
+            type: action,
+            amountUsdt: record.amountUsdt,
+            amountDsc: record.amountDsc,
+            time: record.time,
+            txHash: record.transactionHash
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: "Assurance withdrawal history fetched successfully!",
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalRecords: totalCount
+            },
+            history
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 module.exports = {
     getNodeStatus,
+    getAssuranceWithdrawals,
+    getAllocationInfo,
     getNodeBillingHistory,
     stakeVrs,
     getNodeOverview,
