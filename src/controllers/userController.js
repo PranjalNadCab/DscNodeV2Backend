@@ -2601,8 +2601,12 @@ const getAllocationInfo = async (req, res, next) => {
 
         const userAllocationInfo = await RegistrationModel.findOne({ userAddress: giveCheckSummedAddress(userAddress) }, { swapAllocation: 1, dscAllocation: 1, _id: 0 }).lean();
         if (!userAllocationInfo) throw new Error("User not found!");
+        const allocationInfo = {
+            swapAllocation: userAllocationInfo?.swapAllocation ? new BigNumber(userAllocationInfo.swapAllocation).dividedBy(1e18).toNumber() : 0,
+            dscAllocation: userAllocationInfo?.dscAllocation ? new BigNumber(userAllocationInfo.dscAllocation).dividedBy(1e18).toNumber() : 0
+        }
 
-        return res.status(200).json({ success: true, message: "User allocation info fetched successfully!", allocationInfo: userAllocationInfo });
+        return res.status(200).json({ success: true, message: "User allocation info fetched successfully!", allocationInfo: allocationInfo });
 
     } catch (error) {
         next(error);
