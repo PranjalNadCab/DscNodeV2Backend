@@ -2647,8 +2647,8 @@ const getAssuranceWithdrawals = async (req, res, next) => {
         history = history.map(record => ({
             userAddress: record.userAddress,
             type: action,
-            amountUsdt: record.amountUsdt,
-            amountDsc: record.amountDsc,
+            amountUsdt: new BigNumber(record.amountUsdt).dividedBy(1e18).toNumber(),
+            amountDsc: new BigNumber(record.amountDsc).dividedBy(1e18).toNumber(),
             time: record.time,
             txHash: record.transactionHash
         }));
