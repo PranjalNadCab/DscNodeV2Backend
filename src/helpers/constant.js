@@ -107,7 +107,9 @@ const ratioUsdDsc = () => {
     const currentMonthKey = cycleMonth.format("MMMM").toLowerCase();
     console.log("Current Cycle Month Key:", currentMonthKey, usdDscRatio[currentMonthKey]);
 
-    return usdDscRatio[currentMonthKey] || { usd: 55, dsc: 45 };
+    // return usdDscRatio[currentMonthKey] || { usd: 55, dsc: 45 };
+    return  { usd: 55, dsc: 45 };
+
 };
 
 const zeroAddressTxhash = "0x0000000000000000000000000000000000000000000000000000000000000000";
