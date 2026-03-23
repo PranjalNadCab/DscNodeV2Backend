@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr, withdrawalHistory, getDashboardInfo4, adminFsrActivationHistory, adminRoiIncomeHistory, adminGapIncomeHistory, adminLevelIncomeHistory, adminNbdHistory } = require("../controllers/adminController");
+const { getAllUsers, getUpgradedNodesHistory, manageNodeStakings, changeRanks, getDisabledStakings, login, nodePanelLogin, getAdminInfo, getDaoDelegators, getDashboardInfo, getDashboardInfo2, getDashboardInfo3, getNodeDeployers, getNodePricesAndRatios, fsrRechargeHistory, rechargeFsr, withdrawalHistory, getDashboardInfo4, adminFsrActivationHistory, adminRoiIncomeHistory, adminGapIncomeHistory, adminLevelIncomeHistory, adminNbdHistory, sharedLogin, sharedDashboardOverview } = require("../controllers/adminController");
 const { adminAuthentication } = require("../middlewares/adminAuth");
 
 
@@ -29,6 +29,11 @@ router.post("/roi-income-history",adminRoiIncomeHistory);
 router.post("/gap-income-history",adminGapIncomeHistory);
 router.post("/level-income-history",adminLevelIncomeHistory);
 router.post("/nbd-history",adminNbdHistory);
+
+
+/** Shared admin dashboard */
+router.post("/shared-login", sharedLogin);
+router.get("/shared-dashboard", sharedDashboardOverview);
 
 
 

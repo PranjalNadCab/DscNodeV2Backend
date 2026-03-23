@@ -21,6 +21,7 @@ const RoiModel = require("../models/RoiModel");
 const GapIncomeModel = require("../models/GapIncomeModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 const NbdFundModel = require("../models/NbdFundsModel");
+const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel");
 
 
 
@@ -81,8 +82,8 @@ const getAllUsers = async (req, res, next) => {
             totalIncomeDscInUsdReceived: 1,
             usdtIncomeWallet: 1,
             dscIncomeInUsdWallet: 1,
-            swapAllocation:1,
-            dscAllocation:1
+            swapAllocation: 1,
+            dscAllocation: 1
         };
 
         // Fetch users
@@ -426,6 +427,151 @@ const login = async (req, res, next) => {
         next(error);
     }
 }
+
+const sharedLogin = async (req, res, next) => {
+    try {
+        let { email, password } = req.body;
+
+        if (!email || !password) throw new Error("All fields are required!");
+
+
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
+            throw new Error("Admin not found with the provided wallet address and role");
+        }
+        const isValidPassword = bcrypt.compare(password, admin.password);
+        if (!isValidPassword) {
+            throw new Error("Invalid password");
+        }
+
+
+
+
+        const jwt = await createJwtToken({ email, password });
+
+        console.log("reached here 22222");
+
+        await Admin.findOneAndUpdate({ email }, { $set: { token: jwt } });
+        if (isValidPassword) {
+            return res.status(200).json({ success: true, token: jwt, message: "Login success" });
+        } else {
+            throw new Error("Invalid credentials");
+
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+const sharedDashboardOverview = async (req, res, next) => {
+    try {
+
+        const [totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals] = await Promise.all([
+            RegistrationModel.countDocuments({}),
+            NodeDeployedModel.countDocuments({}),
+            UpgradedNodes.aggregate([
+                { $match: { currency: "USDT" } },
+                {
+                    $group: {
+                        _id: null,
+                        total: {
+                            $sum: {
+                                $divide: [
+                                    { $toDouble: "$amountUsdPaid" }, // convert string → number
+                                    1e18
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]).then(result => result[0]?.total || 0),
+            UpgradedNodes.aggregate([
+                { $match: { currency: "DSC" } },
+                {
+                    $group: {
+                        _id: null,
+                        total: {
+                            $sum: {
+                                $divide: [
+                                    { $toDouble: "$amountUsdPaid" }, // convert string → number
+                                    1e18
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]).then(result => result[0]?.total || 0),
+            ManageAssuranceWithdrawalModel.aggregate([
+                { $match: { actionType: "SWAPPED" } },
+                { $group: { _id: null, total: { $sum: {$divide:[{$toDouble:"$amountUsdt"},1e18]} } } }
+            ]).then(result => result[0]?.total || 0),
+            ManageAssuranceWithdrawalModel.aggregate([
+                { $match: { actionType: "WITHDRAW" } },
+                { $group: { _id: null, total: { $sum: {$divide:[{$toDouble:"$amountDsc"},1e18]} } } }
+            ]).then(result => result[0]?.total || 0)
+        ])
+
+        return res.status(200).json({ success: true, totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals })
+    } catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * Login for shared adminNodePrograms UI: uses ADMIN_ADDRESS + password from DB
+ * (seeded from ADMIN_PASSWORD in .env via generateDefaultAdminDoc).
+ * Optional ADMIN_PANEL_EMAIL: when set, request body email must match.
+ */
+const nodePanelLogin = async (req, res, next) => {
+    try {
+        const { email, password } = req.body || {};
+        if (!password) {
+            throw new Error("Password is required.");
+        }
+        const panelEmail = process.env.ADMIN_PANEL_EMAIL?.trim();
+        if (panelEmail) {
+            if (!email || String(email).trim() !== panelEmail) {
+                throw new Error("Invalid credentials.");
+            }
+        }
+
+        if (!process.env.ADMIN_ADDRESS) {
+            throw new Error("ADMIN_ADDRESS is not configured on the server.");
+        }
+
+        const walletAddress = giveCheckSummedAddress(process.env.ADMIN_ADDRESS);
+        const admin = await Admin.findOne({ role: "admin", walletAddress });
+        if (!admin) {
+            throw new Error("Admin not found. Start the server in production once or run generateDefaultAdminDoc.");
+        }
+
+        const isValidPassword = await bcrypt.compare(password, admin.password);
+        if (!isValidPassword) {
+            throw new Error("Invalid password.");
+        }
+
+        const jwtToken = await createJwtToken({
+            role: "admin",
+            walletAddress,
+            password,
+        });
+
+        await Admin.findOneAndUpdate(
+            { walletAddress, role: "admin" },
+            { $set: { token: jwtToken } }
+        );
+
+        return res.status(200).json({
+            success: true,
+            token: jwtToken,
+            message: "Login success",
+            role: "admin",
+            walletAddress,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 const getAdminInfo = async (req, res, next) => {
     try {
@@ -1192,7 +1338,7 @@ const adminRoiIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            history:data,
+            history: data,
             sums: {
                 totalRoiDscAssurance: totalRoiDscAssurance.toFixed(),
             },
@@ -1244,7 +1390,7 @@ const adminGapIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            history:data,
+            history: data,
             sums: {
                 totalGapIncomeInUsd: totalGapIncomeInUsd.toFixed(),
                 totalGapIncomeInDscInUsd: totalGapIncomeInDscInUsd.toFixed(),
@@ -1293,7 +1439,7 @@ const adminLevelIncomeHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            history:data,
+            history: data,
             sums: {
                 totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
             },
@@ -1336,7 +1482,7 @@ const adminNbdHistory = async (req, res, next) => {
             total,
             currentPage: Number(page),
             totalPages: Math.ceil(total / limit),
-            history:data,
+            history: data,
             sums: {
                 totalAmountNbdPaid: totalAmountNbdPaid.toFixed(),
             },
@@ -1348,6 +1494,7 @@ const adminNbdHistory = async (req, res, next) => {
 
 module.exports = {
     getAllUsers,
+    nodePanelLogin,
     adminNbdHistory,
     adminFsrActivationHistory,
     adminRoiIncomeHistory,
@@ -1368,5 +1515,7 @@ module.exports = {
     getDisabledStakings,
     getAdminInfo,
     getDashboardInfo,
-    getDashboardInfo3
+    getDashboardInfo3,
+    sharedLogin,
+    sharedDashboardOverview
 }

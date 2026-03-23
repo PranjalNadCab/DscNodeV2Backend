@@ -48,6 +48,11 @@ const adminSchema = new mongoose.Schema({
         required: true,
        
     },
+    email:{
+        type: String,
+        
+        default:"admindsc321@gmail.com"
+    },
     password: {
         type: String
     },

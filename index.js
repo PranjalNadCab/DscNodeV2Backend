@@ -124,12 +124,12 @@ const server = app.listen(PORT, async () => {
         // await updateNodeValueAssurance();
     } else {
 
-        const res = await getLivePrice();
-        console.log("Live DSC Price fetched successfully:", res);
-        await generateDefaultAdminDoc();
-        await createDaoAndDelegatorsAdminInBulk();
-        await dscNodeListEvents();
-        await billingListEvents();
+        // const res = await getLivePrice();
+        // console.log("Live DSC Price fetched successfully:", res);
+        // await generateDefaultAdminDoc();
+        // await createDaoAndDelegatorsAdminInBulk();
+        // await dscNodeListEvents();
+        // await billingListEvents();
     }
 });
 
