@@ -77,28 +77,28 @@ if (process.env.NODE_ENV !== "development") {
     });
 
 } else {
-    // cron.schedule('*/2 * * * *', async () => {
-    //     try {
-    //         console.log(`Cron job started at ${new Date().toLocaleString()}`);
-    //         await giveRoiToNodeHolders();
+    cron.schedule('*/2 * * * *', async () => {
+        try {
+            console.log(`Cron job started at ${new Date().toLocaleString()}`);
+            await giveRoiToNodeHolders();
 
-    //     } catch (err) {
-    //         console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
-    //     }
+        } catch (err) {
+            console.error('Error executing updateLegRanksForAllUsersThroughCron cron job:', err);
+        }
 
-    // }, {
-    //     timezone: 'Asia/Kolkata'
-    // });
-    // cron.schedule('*/15 * * * *', async () => {
-    //     try {
-    //         console.log(`Cron (every 15 mins) started at ${new Date().toLocaleString()}`);
-    //         await updateNodeValueAssurance();
-    //     } catch (err) {
-    //         console.error('Error in 15-min cron job:', err);
-    //     }
-    // }, {
-    //     timezone: 'Asia/Kolkata'
-    // });
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
+    cron.schedule('*/15 * * * *', async () => {
+        try {
+            console.log(`Cron (every 15 mins) started at ${new Date().toLocaleString()}`);
+            await updateNodeValueAssurance();
+        } catch (err) {
+            console.error('Error in 15-min cron job:', err);
+        }
+    }, {
+        timezone: 'Asia/Kolkata'
+    });
 }
 
 const server = app.listen(PORT, async () => {
@@ -124,12 +124,12 @@ const server = app.listen(PORT, async () => {
         // await updateNodeValueAssurance();
     } else {
 
-        // const res = await getLivePrice();
-        // console.log("Live DSC Price fetched successfully:", res);
-        // await generateDefaultAdminDoc();
-        // await createDaoAndDelegatorsAdminInBulk();
-        // await dscNodeListEvents();
-        // await billingListEvents();
+        const res = await getLivePrice();
+        console.log("Live DSC Price fetched successfully:", res);
+        await generateDefaultAdminDoc();
+        await createDaoAndDelegatorsAdminInBulk();
+        await dscNodeListEvents();
+        await billingListEvents();
     }
 });
 
