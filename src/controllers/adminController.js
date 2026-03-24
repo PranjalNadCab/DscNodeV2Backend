@@ -466,7 +466,7 @@ const sharedLogin = async (req, res, next) => {
 const sharedDashboardOverview = async (req, res, next) => {
     try {
 
-        const [totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals] = await Promise.all([
+        const [totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals,totalAllocations] = await Promise.all([
             RegistrationModel.countDocuments({}),
             NodeDeployedModel.countDocuments({}),
             UpgradedNodes.aggregate([
@@ -508,10 +508,37 @@ const sharedDashboardOverview = async (req, res, next) => {
             ManageAssuranceWithdrawalModel.aggregate([
                 { $match: { actionType: "WITHDRAW" } },
                 { $group: { _id: null, total: { $sum: {$divide:[{$toDouble:"$amountDsc"},1e18]} } } }
-            ]).then(result => result[0]?.total || 0)
+            ]).then(result => result[0]?.total || 0),
+            RoiModel.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalSwapAllocation: {
+                            $sum: {
+                                $divide: [
+                                    { $toDouble: "$swapAllocation" },
+                                    1e18
+                                ]
+                            }
+                        },
+                        totalDscAllocation: {
+                            $sum: {
+                                $divide: [
+                                    { $toDouble: "$dscAllocation" },
+                                    1e18
+                                ]
+                            }
+                        }
+                    }
+                }]).then(result => {
+                    return {
+                        swapAllocationTotal: result[0]?.totalSwapAllocation || 0,
+                        dscAllocationTotal: result[0]?.totalDscAllocation || 0
+                    }
+                })
         ])
 
-        return res.status(200).json({ success: true, totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals })
+        return res.status(200).json({ success: true, totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals,totalAllocations })
     } catch (error) {
         next(error);
     }
