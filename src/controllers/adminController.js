@@ -1524,7 +1524,6 @@ const getUserStats = async (req, res, next) => {
         const { page = 1, limit = 10, search = "" } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        // Build search filter on NodeDeployedModel directly
         const nodeFilter = search
             ? {
                 $or: [
@@ -1534,12 +1533,7 @@ const getUserStats = async (req, res, next) => {
             }
             : {};
 
-        // Get only addresses that have deployed nodes (with pagination)
-        // First get distinct addresses matching the filter
-        const allMatchingAddresses = await NodeDeployedModel.distinct(
-            "userAddress",
-            nodeFilter
-        );
+        const allMatchingAddresses = await NodeDeployedModel.distinct("userAddress", nodeFilter);
 
         const total = allMatchingAddresses.length;
         const paginatedAddresses = allMatchingAddresses.slice(skip, skip + parseInt(limit));
@@ -1553,10 +1547,11 @@ const getUserStats = async (req, res, next) => {
             });
         }
 
-        // Fetch nodes and registrations in parallel — only for paginated addresses
-        const [deployedNodes, registrations] = await Promise.all([
+        // Fetch all three collections in parallel
+        const [deployedNodes, registrations, withdrawals] = await Promise.all([
             NodeDeployedModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
             RegistrationModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
+            WithdrawIncomeModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
         ]);
 
         // Group nodes by userAddress
@@ -1566,9 +1561,20 @@ const getUserStats = async (req, res, next) => {
             return acc;
         }, {});
 
-        // Map registrations by userAddress for quick lookup
+        // Map registrations by userAddress
         const regByAddress = registrations.reduce((acc, reg) => {
             acc[reg.userAddress] = reg;
+            return acc;
+        }, {});
+
+        // Aggregate withdrawals per user — sum amountInUsdt and amountInDsc separately
+        const withdrawalsByAddress = withdrawals.reduce((acc, w) => {
+            if (!acc[w.userAddress]) {
+                acc[w.userAddress] = { totalUsdt: 0n, totalDsc: 0n };
+            }
+            // Use BigInt to safely sum 1e18-scale string values without precision loss
+            acc[w.userAddress].totalUsdt += BigInt(w.amountInUsdt || "0");
+            acc[w.userAddress].totalDsc  += BigInt(w.amountInDsc  || "0");
             return acc;
         }, {});
 
@@ -1576,18 +1582,22 @@ const getUserStats = async (req, res, next) => {
 
         const data = paginatedAddresses.map((address) => {
             const userNodes = nodesByAddress[address] || [];
-            const reg = regByAddress[address] || null;
+            const reg       = regByAddress[address]   || null;
+            const withdrawn = withdrawalsByAddress[address] || { totalUsdt: 0n, totalDsc: 0n };
 
-            // Pick the most recently deployed node
             const latestNode = userNodes.sort((a, b) => b.time - a.time)[0] || null;
 
             const runningSlot = "N/A"; // dummy for now
 
+            // Convert BigInt sums back to decimal strings
+            const claimedSwapAllocation = (Number(withdrawn.totalUsdt) / DIVISOR).toFixed(4);
+            const claimedDscAllocation  = (Number(withdrawn.totalDsc)  / DIVISOR).toFixed(4);
+
             return {
                 srNo:                reg?.uniqueRandomId || "—",
-                username:            latestNode?.name || "—",
+                username:            latestNode?.name    || "—",
                 wallet:              address,
-                mobile:              latestNode?.mobile || "—",
+                mobile:              latestNode?.mobile  || "—",
                 node:                reg?.myNode?.nodeName || "—",
                 deploymentTime:      latestNode
                     ? new Date(latestNode.time * 1000).toLocaleString()
@@ -1598,9 +1608,10 @@ const getUserStats = async (req, res, next) => {
                 baseMinAss:          latestNode?.baseMinAss
                     ? (parseFloat(latestNode.baseMinAss) / DIVISOR).toFixed(4)
                     : "0",
-                swapAllocation:      (parseFloat(reg?.swapAllocation || "0") / DIVISOR).toFixed(4),
-                dscAllocation:       (parseFloat(reg?.dscAllocation || "0") / DIVISOR).toFixed(4),
-                claimedDscAllocation:(parseFloat(reg?.totalIncomeDscReceived || "0") / DIVISOR).toFixed(4),
+                swapAllocation:      (parseFloat(reg?.swapAllocation  || "0") / DIVISOR).toFixed(4),
+                dscAllocation:       (parseFloat(reg?.dscAllocation   || "0") / DIVISOR).toFixed(4),
+                claimedSwapAllocation,
+                claimedDscAllocation,
                 runningSlot,
             };
         });
