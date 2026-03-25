@@ -1519,6 +1519,17 @@ const adminNbdHistory = async (req, res, next) => {
     }
 };
 
+const getSlot = (nodeTimestamp) => {
+    const now = Math.floor(Date.now() / 1000); // current time in seconds
+    const diffSeconds = now - nodeTimestamp;
+  
+    const months = diffSeconds / (30 * 24 * 60 * 60); // approx months
+  
+    if (months <= 6) return "QUARTER";
+    if (months <= 12) return "HALF";
+    return "FULL";
+  };
+
 const getUserStats = async (req, res, next) => {
     try {
         const { page = 1, limit = 10, search = "" } = req.query;
@@ -1612,7 +1623,7 @@ const getUserStats = async (req, res, next) => {
                 dscAllocation:       (parseFloat(reg?.dscAllocation   || "0") / DIVISOR).toFixed(4),
                 claimedSwapAllocation,
                 claimedDscAllocation,
-                runningSlot,
+                runningSlot:getSlot(latestNode?.time || 0),
             };
         });
 
