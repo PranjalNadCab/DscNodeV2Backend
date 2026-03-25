@@ -466,7 +466,7 @@ const sharedLogin = async (req, res, next) => {
 const sharedDashboardOverview = async (req, res, next) => {
     try {
 
-        const [totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals,totalAllocations] = await Promise.all([
+        const [totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals, totalAllocations] = await Promise.all([
             RegistrationModel.countDocuments({}),
             NodeDeployedModel.countDocuments({}),
             UpgradedNodes.aggregate([
@@ -503,11 +503,11 @@ const sharedDashboardOverview = async (req, res, next) => {
             ]).then(result => result[0]?.total || 0),
             ManageAssuranceWithdrawalModel.aggregate([
                 { $match: { actionType: "SWAPPED" } },
-                { $group: { _id: null, total: { $sum: {$divide:[{$toDouble:"$amountUsdt"},1e18]} } } }
+                { $group: { _id: null, total: { $sum: { $divide: [{ $toDouble: "$amountUsdt" }, 1e18] } } } }
             ]).then(result => result[0]?.total || 0),
             ManageAssuranceWithdrawalModel.aggregate([
                 { $match: { actionType: "WITHDRAW" } },
-                { $group: { _id: null, total: { $sum: {$divide:[{$toDouble:"$amountDsc"},1e18]} } } }
+                { $group: { _id: null, total: { $sum: { $divide: [{ $toDouble: "$amountDsc" }, 1e18] } } } }
             ]).then(result => result[0]?.total || 0),
             RoiModel.aggregate([
                 {
@@ -538,7 +538,7 @@ const sharedDashboardOverview = async (req, res, next) => {
                 })
         ])
 
-        return res.status(200).json({ success: true, totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals,totalAllocations })
+        return res.status(200).json({ success: true, totalUsers, totalDeployedNodes, totalUsdtBusiness, totalDscBusinessInUsd, totalUsdtSwaps, totalDscWithdrawals, totalAllocations })
     } catch (error) {
         next(error);
     }
@@ -1519,8 +1519,110 @@ const adminNbdHistory = async (req, res, next) => {
     }
 };
 
+const getUserStats = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        // Build search filter on NodeDeployedModel directly
+        const nodeFilter = search
+            ? {
+                $or: [
+                    { userAddress: { $regex: search, $options: "i" } },
+                    { name: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+
+        // Get only addresses that have deployed nodes (with pagination)
+        // First get distinct addresses matching the filter
+        const allMatchingAddresses = await NodeDeployedModel.distinct(
+            "userAddress",
+            nodeFilter
+        );
+
+        const total = allMatchingAddresses.length;
+        const paginatedAddresses = allMatchingAddresses.slice(skip, skip + parseInt(limit));
+
+        if (!paginatedAddresses.length) {
+            return res.status(200).json({
+                success: true,
+                message: "No users found",
+                data: [],
+                pagination: { total: 0, page: parseInt(page), limit: parseInt(limit), totalPages: 0 },
+            });
+        }
+
+        // Fetch nodes and registrations in parallel — only for paginated addresses
+        const [deployedNodes, registrations] = await Promise.all([
+            NodeDeployedModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
+            RegistrationModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
+        ]);
+
+        // Group nodes by userAddress
+        const nodesByAddress = deployedNodes.reduce((acc, node) => {
+            if (!acc[node.userAddress]) acc[node.userAddress] = [];
+            acc[node.userAddress].push(node);
+            return acc;
+        }, {});
+
+        // Map registrations by userAddress for quick lookup
+        const regByAddress = registrations.reduce((acc, reg) => {
+            acc[reg.userAddress] = reg;
+            return acc;
+        }, {});
+
+        const DIVISOR = 1e18;
+
+        const data = paginatedAddresses.map((address) => {
+            const userNodes = nodesByAddress[address] || [];
+            const reg = regByAddress[address] || null;
+
+            // Pick the most recently deployed node
+            const latestNode = userNodes.sort((a, b) => b.time - a.time)[0] || null;
+
+            const runningSlot = "N/A"; // dummy for now
+
+            return {
+                srNo:                reg?.uniqueRandomId || "—",
+                username:            latestNode?.name || "—",
+                wallet:              address,
+                mobile:              latestNode?.mobile || "—",
+                node:                reg?.myNode?.nodeName || "—",
+                deploymentTime:      latestNode
+                    ? new Date(latestNode.time * 1000).toLocaleString()
+                    : "—",
+                baseMinValue:        latestNode?.baseMinValue
+                    ? (parseFloat(latestNode.baseMinValue) / DIVISOR).toFixed(4)
+                    : "0",
+                baseMinAss:          latestNode?.baseMinAss
+                    ? (parseFloat(latestNode.baseMinAss) / DIVISOR).toFixed(4)
+                    : "0",
+                swapAllocation:      (parseFloat(reg?.swapAllocation || "0") / DIVISOR).toFixed(4),
+                dscAllocation:       (parseFloat(reg?.dscAllocation || "0") / DIVISOR).toFixed(4),
+                claimedDscAllocation:(parseFloat(reg?.totalIncomeDscReceived || "0") / DIVISOR).toFixed(4),
+                runningSlot,
+            };
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "User stats fetched successfully!",
+            data,
+            pagination: {
+                total,
+                page:       parseInt(page),
+                limit:      parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit)),
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 module.exports = {
     getAllUsers,
+    getUserStats,
     nodePanelLogin,
     adminNbdHistory,
     adminFsrActivationHistory,
