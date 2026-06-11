@@ -1,7 +1,7 @@
 const { BigNumber } = require("bignumber.js");
 const { ranks, ratioUsdDsc } = require("../helpers/constant");
 // const { giveAdminSettings, createJwtToken, ct } = require("../helpers/helper");
-const { ct, createJwtToken, giveAdminSettings, giveCheckSummedAddress } = require("../helpers/helper");
+const { ct, createJwtToken, giveAdminSettings, giveCheckSummedAddress, calculateUserRoiAssurance, getMonthIndex } = require("../helpers/helper");
 
 const Admin = require("../models/AdminModel");
 const RegistrationModel = require("../models/RegistrationModel");
@@ -22,6 +22,7 @@ const GapIncomeModel = require("../models/GapIncomeModel");
 const NodeRegIncomeModel = require("../models/NodeRegIncomeModel");
 const NbdFundModel = require("../models/NbdFundsModel");
 const ManageAssuranceWithdrawalModel = require("../models/ManageAssuranceWithdrawalModel");
+const AssuranceFeeModel = require("../models/AssuranceFeeModel");
 
 
 
@@ -1519,16 +1520,17 @@ const adminNbdHistory = async (req, res, next) => {
     }
 };
 
-const getSlot = (nodeTimestamp) => {
-    const now = Math.floor(Date.now() / 1000); // current time in seconds
-    const diffSeconds = now - nodeTimestamp;
-  
-    const months = diffSeconds / (30 * 24 * 60 * 60); // approx months
-  
-    if (months <= 6) return "QUARTER";
-    if (months <= 12) return "HALF";
-    return "FULL";
-  };
+const getAssurancePhase = (deploymentUnix) => {
+    if (!deploymentUnix) return "N/A";
+
+    const monthIndex = getMonthIndex(deploymentUnix);
+
+    if (monthIndex === 0) return "WAITING";
+    if (monthIndex >= 1 && monthIndex <= 6) return "FULL";
+    if (monthIndex >= 7 && monthIndex <= 12) return "HALF";
+    if (monthIndex >= 13 && monthIndex <= 18) return "QUARTER";
+    return "EXPIRED";
+};
 
 const getUserStats = async (req, res, next) => {
     try {
@@ -1558,11 +1560,14 @@ const getUserStats = async (req, res, next) => {
             });
         }
 
-        // Fetch all three collections in parallel
-        const [deployedNodes, registrations, withdrawals] = await Promise.all([
+        // Fetch all collections in parallel
+        const [deployedNodes, registrations, withdrawals, assuranceFees] = await Promise.all([
             NodeDeployedModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
             RegistrationModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
             WithdrawIncomeModel.find({ userAddress: { $in: paginatedAddresses } }).lean(),
+            AssuranceFeeModel.find({ userAddress: { $in: paginatedAddresses } })
+                .sort({ time: -1 })
+                .lean(),
         ]);
 
         // Group nodes by userAddress
@@ -1589,16 +1594,52 @@ const getUserStats = async (req, res, next) => {
             return acc;
         }, {});
 
+        const latestFeeByAddress = {};
+        const totalFeeByAddress = {};
+        assuranceFees.forEach((fee) => {
+            if (!latestFeeByAddress[fee.userAddress]) {
+                latestFeeByAddress[fee.userAddress] = fee;
+            }
+            totalFeeByAddress[fee.userAddress] =
+                (totalFeeByAddress[fee.userAddress] || 0) + Number(fee.amount || 0);
+        });
+
         const DIVISOR = 1e18;
 
-        const data = paginatedAddresses.map((address) => {
+        const data = await Promise.all(
+            paginatedAddresses.map(async (address) => {
             const userNodes = nodesByAddress[address] || [];
             const reg       = regByAddress[address]   || null;
             const withdrawn = withdrawalsByAddress[address] || { totalUsdt: 0n, totalDsc: 0n };
 
             const latestNode = userNodes.sort((a, b) => b.time - a.time)[0] || null;
+            const deploymentUnix = reg?.myNode?.deployedAt || latestNode?.time || null;
 
-            const runningSlot = "N/A"; // dummy for now
+            const initialBaseMinAss = latestNode?.baseMinAss
+                ? new BigNumber(latestNode.baseMinAss).div(DIVISOR).toFixed(4)
+                : "0";
+
+            let currentBaseMinAss = initialBaseMinAss;
+            let reducedBaseMinAss = "0.0000";
+            let isIncomeExpired = false;
+
+            if (deploymentUnix && latestNode?.baseMinAss) {
+                const roiAssurance = await calculateUserRoiAssurance(
+                    deploymentUnix,
+                    latestNode.baseMinAss,
+                );
+                currentBaseMinAss = new BigNumber(roiAssurance.finalBaseMinAss || 0)
+                    .div(DIVISOR)
+                    .toFixed(4);
+                reducedBaseMinAss = Math.max(
+                    0,
+                    parseFloat(initialBaseMinAss) - parseFloat(currentBaseMinAss),
+                ).toFixed(4);
+                isIncomeExpired = roiAssurance.isIncomeExpired || false;
+            }
+
+            const monthIndex = deploymentUnix ? getMonthIndex(deploymentUnix) : null;
+            const latestFee = latestFeeByAddress[address] || null;
 
             // Convert BigInt sums back to decimal strings
             const claimedSwapAllocation = (Number(withdrawn.totalUsdt) / DIVISOR).toFixed(4);
@@ -1610,22 +1651,35 @@ const getUserStats = async (req, res, next) => {
                 wallet:              address,
                 mobile:              latestNode?.mobile  || "—",
                 node:                reg?.myNode?.nodeName || "—",
-                deploymentTime:      latestNode
-                    ? new Date(latestNode.time * 1000).toLocaleString()
+                deploymentTime:      deploymentUnix
+                    ? moment.unix(deploymentUnix).format("DD MMM YYYY, hh:mm A")
                     : "—",
                 baseMinValue:        latestNode?.baseMinValue
-                    ? (parseFloat(latestNode.baseMinValue) / DIVISOR).toFixed(4)
-                    : "0",
-                baseMinAss:          latestNode?.baseMinAss
-                    ? (parseFloat(latestNode.baseMinAss) / DIVISOR).toFixed(4)
-                    : "0",
-                swapAllocation:      (parseFloat(reg?.swapAllocation  || "0") / DIVISOR).toFixed(4),
-                dscAllocation:       (parseFloat(reg?.dscAllocation   || "0") / DIVISOR).toFixed(4),
+                    ? new BigNumber(latestNode.baseMinValue).div(DIVISOR).toFixed(4)
+                    : "0.0000",
+                initialBaseMinAss:   initialBaseMinAss,
+                currentBaseMinAss:   currentBaseMinAss,
+                reducedBaseMinAss:   reducedBaseMinAss,
+                baseMinAss:          currentBaseMinAss,
+                swapAllocation:      new BigNumber(reg?.swapAllocation || 0).div(DIVISOR).toFixed(4),
+                dscAllocation:       new BigNumber(reg?.dscAllocation || 0).div(DIVISOR).toFixed(4),
                 claimedSwapAllocation,
                 claimedDscAllocation,
-                runningSlot:getSlot(latestNode?.time || 0),
+                runningSlot:         getAssurancePhase(deploymentUnix),
+                monthIndex:          monthIndex ?? "—",
+                assuranceStatus:     isIncomeExpired ? "EXPIRED" : "ACTIVE",
+                billPaidTill:        latestFee?.calendarMonth || "—",
+                totalAssuranceFeePaid: totalFeeByAddress[address]
+                    ? `$ ${totalFeeByAddress[address]}`
+                    : "$ 0",
+                lastRoiDistributed:  latestNode?.lastRoiDistributed
+                    ? moment.unix(latestNode.lastRoiDistributed).format("DD MMM YYYY, hh:mm A")
+                    : "—",
+                allTimeAssurance:      new BigNumber(reg?.allTimeRoi || 0).div(DIVISOR).toFixed(4),
+                stakeAmount:           reg?.directStaking ?? 0,
+                coinAmount:            reg?.userTotalStakeInUsd ?? 0,
             };
-        });
+        }));
 
         return res.status(200).json({
             success: true,
