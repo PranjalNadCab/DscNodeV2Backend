@@ -1,6 +1,6 @@
 const { hash } = require("crypto");
 const LivePriceDsc = require("../models/LiveDscPriceModel");
-const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser, getRealCustomMonthRange, giveReceivedAssuranceOfUser } = require("../helpers/helper");
+const { giveVrsForStaking, ct, giveCheckSummedAddress, giveVrsForWithdrawIncomeUsdt, giveVrsForWithdrawIncomeDsc, giveVrsForNodeConversionAndRegistration, giveAdminSettings, giveVrsForNodeConversion, validateStake, giveVrsForMixStaking, validateUpgradeNodeConditions, giveUsdDscRatioParts, getRemainingDscToPayInUsd, getRemainingDscUsdToPayForStaking, giveVrsForNodeUpgradation, giveVrsForNodeDeployment, giveUserType, updateFsrValue, giveVrsForActivatingFsr, generateVrsForSponsorTx, createJwtToken, generateVrsForAssuranceIncome, giveTeamBusinessForUser, getRealCustomMonthRange, giveReceivedAssuranceOfUser, calculateUserRoiAssurance } = require("../helpers/helper");
 const StakingModel = require("../models/StakingModel");
 const BigNumber = require("bignumber.js");
 const { dscNodeContract, web3 } = require("../web3/web3");
@@ -2487,12 +2487,25 @@ const getNodeOverview = async (req, res, next) => {
             const { status, message, data } = await giveReceivedAssuranceOfUser(userAddress);
             ct({ status, message });
 
+            const { time, baseMinAss } = userDeployedNode;
+            const roiAssurance = await calculateUserRoiAssurance(time, baseMinAss);
+            const initialBaseMinAss = new BigNumber(baseMinAss || 0).dividedBy(1e18).toNumber();
+            const currentBaseMinAss = new BigNumber(roiAssurance.finalBaseMinAss || 0).dividedBy(1e18).toNumber();
+            const reducedBaseMinAss = Math.max(0, initialBaseMinAss - currentBaseMinAss);
+
             return res.status(200).json({
                 success: true, message: "Login Successful!", overview: {
                     billInfo: { ...billInfo, totalAssuranceFeePaid },
                     userDoc,
                     userDeployedNode,
-                    receivedAssuranceInfo: data
+                    receivedAssuranceInfo: data,
+                    baseMinAssInfo: {
+                        initial: initialBaseMinAss,
+                        current: currentBaseMinAss,
+                        reducedBy: reducedBaseMinAss,
+                        isIncomeExpired: roiAssurance.isIncomeExpired || false,
+                        monthIndex: roiAssurance.monthIndex ?? null,
+                    }
                 }
             })
         } else {
