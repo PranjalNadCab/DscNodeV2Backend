@@ -161,6 +161,12 @@ async function updateBlock(updatedBlock) {
     }
 }
 
+const getSyncBatchSize = (diffBlock) => {
+    if (diffBlock > 50000) return 1000;
+    if (diffBlock > 5000) return 500;
+    return 100;
+};
+
 const billingListEvents = async () => {
 
     try {
@@ -168,14 +174,16 @@ const billingListEvents = async () => {
         lastSyncBlock = Number(lastSyncBlock);
         let latestBlock = await web3.eth.getBlockNumber();
         latestBlock = Number(latestBlock);
+        const diffBlock = latestBlock - lastSyncBlock;
+        const batchSize = getSyncBatchSize(diffBlock);
         let toBlock =
-            latestBlock > lastSyncBlock + 100 ? lastSyncBlock + 100 : latestBlock;
+            latestBlock > lastSyncBlock + batchSize ? lastSyncBlock + batchSize : latestBlock;
         // console.log("Latest block and last synced block of blockchain is: ", latestBlock.toString(), lastSyncBlock.toString());
 
         latestBlock = latestBlock.toString();
         lastSyncBlock = lastSyncBlock.toString();
         toBlock = toBlock.toString()
-        ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), fromBlock: lastSyncBlock, toBlock });
+        ct({ latestBlock, lastSyncBlock, diffBlock: (new BigNumber(latestBlock).minus(lastSyncBlock)).toFixed(), batchSize, fromBlock: lastSyncBlock, toBlock });
 
         // lastSyncBlock = "76324955"; 
         // toBlock = "76324955"
